@@ -1,5 +1,5 @@
 from imports import *
-
+#Hola
 # Llamar a la función para inicializar la base de datos al iniciar el programa
 back_end_modules.initialize_database()
 
