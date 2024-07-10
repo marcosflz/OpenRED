@@ -1,0 +1,5 @@
+tk
+customtkinter
+Pillow
+matplotlib
+sqlite3
