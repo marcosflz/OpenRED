@@ -33,7 +33,7 @@ def convert_to_latex(component):
 class AdiabaticTempModule:
     def __init__(self, content_frame):
         self.content_frame = content_frame
-        self.content_frame.grid_rowconfigure(0, weight=0)
+        self.content_frame.grid_rowconfigure(0, weight=1)
         self.content_frame.grid_rowconfigure(1, weight=0)  # Row with fixed height
         self.content_frame.grid_rowconfigure(2, weight=1)
         self.content_frame.grid_rowconfigure(3, weight=0)
@@ -42,11 +42,11 @@ class AdiabaticTempModule:
         self.content_frame.grid_columnconfigure(2, weight=1)
         self.content_frame.grid_columnconfigure(3, weight=1)
 
-        self.temp_label = ctk.CTkLabel(content_frame, text="TEMPERATURA ADIABÁTICA DE LLAMA", font=ctk.CTkFont(size=15, weight="bold"))
-        self.temp_label.grid(row=0, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
+        #self.temp_label = ctk.CTkLabel(content_frame, text="TEMPERATURA ADIABÁTICA DE LLAMA", font=ctk.CTkFont(size=15, weight="bold"))
+        #self.temp_label.grid(row=0, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
 
         self.display_frame = ctk.CTkFrame(content_frame, height=100)
-        self.display_frame.grid(row=1, column=0, columnspan=4, padx=10, pady=10, sticky="ew")
+        self.display_frame.grid(row=0, column=0, rowspan=2, columnspan=4, padx=10, pady=10, sticky="ew")
         self.display_frame.grid_propagate(False)  # Prevents frame from resizing itself
         self.display_frame.bind("<Enter>", lambda event: self.update_reaction_label)
 
@@ -377,7 +377,7 @@ class AdiabaticTempModule:
         fig.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
 
         buf = io.BytesIO()
-        fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.1)
+        fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.1, dpi=300)
         plt.close(fig)
         buf.seek(0)
         image = Image.open(buf)
@@ -689,41 +689,175 @@ class TermoquimicaWindow:
         # Actualizar valores del combobox
         self.combobox.configure(values=self.get_components())
 
-
 class PropellantDesignModule:
     def __init__(self, content_frame):
         self.content_frame = content_frame
-        self.content_frame.grid_rowconfigure(0, weight=0)
-        self.content_frame.grid_rowconfigure(1, weight=0)  # Row with fixed height
-        self.content_frame.grid_rowconfigure(2, weight=1)
-        self.content_frame.grid_rowconfigure(3, weight=0)
+        self.content_frame.grid_rowconfigure(0, weight=1)
+        self.content_frame.grid_rowconfigure(1, weight=6)
         self.content_frame.grid_columnconfigure(0, weight=1)
         self.content_frame.grid_columnconfigure(1, weight=1)
-        self.content_frame.grid_columnconfigure(2, weight=1)
-        self.content_frame.grid_columnconfigure(3, weight=1)
 
-                # Crear frames dentro de content_frame
-        self.images_frame = ctk.CTkFrame(content_frame)
-        self.images_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
-        self.images_frame.grid_columnconfigure(0, weight=1)
-        self.images_frame.grid_columnconfigure(1, weight=1)
-
-        self.graphs_frame = ctk.CTkFrame(content_frame)
-        self.graphs_frame.grid(row=0, column=2, rowspan=2, padx=10, pady=10, sticky="nsew")
-        self.graphs_frame.grid_columnconfigure(0, weight=1)
-        self.graphs_frame.grid_columnconfigure(1, weight=1)
-
+        # Crear frames dentro de content_frame
         self.inputs_frame = ctk.CTkFrame(content_frame)
-        self.inputs_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        self.inputs_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         self.inputs_frame.grid_columnconfigure(0, weight=1)
         self.inputs_frame.grid_columnconfigure(1, weight=1)
+        self.inputs_frame.grid_columnconfigure(2, weight=4)
+        self.inputs_frame.grid_rowconfigure(0, weight=1)
+        self.inputs_frame.grid_rowconfigure(1, weight=1)
+        self.inputs_frame.grid_rowconfigure(2, weight=1)
+        self.inputs_frame.grid_rowconfigure(3, weight=6)
+
+        self.inputsLabel = ctk.CTkLabel(self.inputs_frame, text="Inputs")
+        self.inputsLabel.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky="nsew")
+
+        propellants = self.get_propellants()
+        self.propellant_label = ctk.CTkLabel(self.inputs_frame, text="Propelente")
+        self.propellant_label.grid(row=1, column=0, padx=(10, 5), pady=10, sticky="nsew")
+        self.propellant_selector = ctk.CTkOptionMenu(self.inputs_frame, values=propellants)
+        self.propellant_selector.grid(row=1, column=1, padx=(5, 10), pady=10, sticky="nsew")
+
+        grains = ["Tubular", "End-Burner"]
+        self.grainGeo_label = ctk.CTkLabel(self.inputs_frame, text="Geometría del grano")
+        self.grainGeo_label.grid(row=2, column=0, padx=(10, 5), pady=10, sticky="nsew")
+        self.grainGeo_selector = ctk.CTkOptionMenu(self.inputs_frame, values=grains, command=self.update_entries)
+        self.grainGeo_selector.grid(row=2, column=1, padx=(5, 10), pady=10, sticky="nsew")
+
+        self.subInputsFrame = ctk.CTkScrollableFrame(self.inputs_frame)
+        self.subInputsFrame.grid(row=3, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
+        
+        self.inputImageFrame = ctk.CTkFrame(self.inputs_frame)
+        self.inputImageFrame.grid(row=1, column=2, rowspan=3, padx=10, pady=10, sticky="nsew")
+        self.inputImageFrame.grid_propagate(False)
+
+        # Crear un canvas para mostrar la imagen
+        self.canvas = FigureCanvasTkAgg(plt.figure(), master=self.inputImageFrame)
+        self.canvas.get_tk_widget().pack(fill="both", expand=True)
 
         self.outputs_frame = ctk.CTkFrame(content_frame)
-        self.outputs_frame.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
+        self.outputs_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        self.outputs_frame.grid_rowconfigure(0, weight=1)
         self.outputs_frame.grid_columnconfigure(0, weight=1)
-        self.outputs_frame.grid_columnconfigure(1, weight=1)
+
+        self.graphs_frame = ctk.CTkFrame(content_frame)
+        self.graphs_frame.grid(row=0, column=1, rowspan=2, padx=10, pady=10, sticky="nsew")
+        self.graphs_frame.grid_rowconfigure(0, weight=1)
+        self.graphs_frame.grid_rowconfigure(1, weight=1)
+        self.graphs_frame.grid_rowconfigure(2, weight=1)
+        self.graphs_frame.grid_columnconfigure(0, weight=1)
+
+        self.pressureFrame = ctk.CTkFrame(self.graphs_frame)
+        self.pressureFrame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+        self.massFlowFrame = ctk.CTkFrame(self.graphs_frame)
+        self.massFlowFrame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+
+        self.massTimeFrame = ctk.CTkFrame(self.graphs_frame)
+        self.massTimeFrame.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
+
+        self.update_plot()
+        self.update_entries("Tubular")
 
 
+        
+
+        
+
+        
+
+
+
+
+    def get_propellants(self):
+        conn = sqlite3.connect('database.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT Propelente FROM propelente")
+        resultados = cursor.fetchall()
+        conn.close()
+        propellants = [fila[0] for fila in resultados]
+        return propellants
+    
+    def update_entries(self, selection):
+        # Limpiar el frame de entradas
+        for widget in self.subInputsFrame.winfo_children():
+            widget.destroy()
+
+        if selection == "Tubular":
+            self.create_tubular_entries()
+        elif selection == "End-Burner":
+            self.create_end_burner_entries()
+
+        # Actualizar el gráfico
+        self.update_plot()
+
+    def create_tubular_entries(self):
+        # Crear entradas específicas para Tubular
+        self.tubular_label1 = ctk.CTkLabel(self.subInputsFrame, text="Radio Interior (m):")
+        self.tubular_label1.grid(row=0, column=0, padx=10, pady=5, sticky="nsew")
+        self.tubular_entry1 = ctk.CTkEntry(self.subInputsFrame)
+        self.tubular_entry1.grid(row=0, column=1, padx=10, pady=5, sticky="nsew")
+
+        self.tubular_label2 = ctk.CTkLabel(self.subInputsFrame, text="Radio Exterior (m):")
+        self.tubular_label2.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
+        self.tubular_entry2 = ctk.CTkEntry(self.subInputsFrame)
+        self.tubular_entry2.grid(row=1, column=1, padx=10, pady=5, sticky="nsew")
+
+        self.tubular_label3 = ctk.CTkLabel(self.subInputsFrame, text="Radio Garganta (m):")
+        self.tubular_label3.grid(row=2, column=0, padx=10, pady=5, sticky="nsew")
+        self.tubular_entry3 = ctk.CTkEntry(self.subInputsFrame)
+        self.tubular_entry3.grid(row=2, column=1, padx=10, pady=5, sticky="nsew")
+
+        self.tubular_label4 = ctk.CTkLabel(self.subInputsFrame, text="Longitud Cámara (m):")
+        self.tubular_label4.grid(row=3, column=0, padx=10, pady=5, sticky="nsew")
+        self.tubular_entry4 = ctk.CTkEntry(self.subInputsFrame)
+        self.tubular_entry4.grid(row=3, column=1, padx=10, pady=5, sticky="nsew")
+
+        self.tubular_label5 = ctk.CTkLabel(self.subInputsFrame, text="Presión Ambiental (Pa):")
+        self.tubular_label5.grid(row=4, column=0, padx=10, pady=5, sticky="nsew")
+        self.tubular_entry5 = ctk.CTkEntry(self.subInputsFrame)
+        self.tubular_entry5.grid(row=4, column=1, padx=10, pady=5, sticky="nsew")
+
+        self.tubular_label6 = ctk.CTkLabel(self.subInputsFrame, text="Paso radial (m):")
+        self.tubular_label6.grid(row=5, column=0, padx=10, pady=5, sticky="nsew")
+        self.tubular_entry6 = ctk.CTkEntry(self.subInputsFrame)
+        self.tubular_entry6.grid(row=5, column=1, padx=10, pady=5, sticky="nsew")
+
+    def create_end_burner_entries(self):
+        # Crear entradas específicas para End-Burner
+        self.end_burner_label1 = ctk.CTkLabel(self.subInputsFrame, text="End-Burner Param 1")
+        self.end_burner_label1.grid(row=0, column=0, padx=10, pady=5, sticky="nsew")
+        self.end_burner_entry1 = ctk.CTkEntry(self.subInputsFrame)
+        self.end_burner_entry1.grid(row=0, column=1, padx=10, pady=5, sticky="nsew")
+
+        self.end_burner_label2 = ctk.CTkLabel(self.subInputsFrame, text="End-Burner Param 2")
+        self.end_burner_label2.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
+        self.end_burner_entry2 = ctk.CTkEntry(self.subInputsFrame)
+        self.end_burner_entry2.grid(row=1, column=1, padx=10, pady=5, sticky="nsew")
+
+        self.end_burner_label3 = ctk.CTkLabel(self.subInputsFrame, text="End-Burner Param 3")
+        self.end_burner_label3.grid(row=2, column=0, padx=10, pady=5, sticky="nsew")
+        self.end_burner_entry3 = ctk.CTkEntry(self.subInputsFrame)
+        self.end_burner_entry3.grid(row=2, column=1, padx=10, pady=5, sticky="nsew")
+
+    def update_plot(self):
+        # Crear una figura y un eje
+        fig, ax = plt.subplots(figsize=(self.inputImageFrame.winfo_width() / 100, self.inputImageFrame.winfo_height() / 100))
+        ax.plot([1, 2, 3], [4, 5, 6])  # Ejemplo de datos de prueba
+        ax.set_title("Graph Title")
+        ax.set_xlabel("X Axis Label")
+        ax.set_ylabel("Y Axis Label")
+    
+        # Limpiar el canvas antes de dibujar
+        for widget in self.inputImageFrame.winfo_children():
+            widget.destroy()
+    
+        # Crear FigureCanvasTkAgg con la figura y agregarla al frame
+        self.canvas = FigureCanvasTkAgg(fig, master=self.inputImageFrame)
+        self.canvas.draw()
+        self.canvas.get_tk_widget().pack(fill="both", expand=True)
+    
+        # Cerrar la figura para liberar recursos
+        plt.close(fig)
 
 class PropellantWindow:
     instance = None  # Variable de clase para rastrear la instancia

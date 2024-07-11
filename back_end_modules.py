@@ -2,6 +2,40 @@ from imports import *
 from tkinter import messagebox
 import numpy as np
 
+def newtonRaph(f, x0, tol, max_iter, h):
+    """
+    Método de Newton-Raphson para encontrar las raíces de una función.
+    Args:
+    f: función objetivo.
+    x0: valor inicial para la raíz.
+    tol: tolerancia para la convergencia.
+    max_iter: número máximo de iteraciones.
+    h: paso pequeño para la derivada numérica.
+    Returns:
+    La raíz aproximada de la función.
+    """
+    def fp(f, x, h):
+        return (f(x + h) - f(x - h)) / (2 * h)
+
+    x = x0
+    for i in range(max_iter):
+        fx = f(x)
+        dfx = fp(f, x, h)
+
+        if dfx == 0:
+            return messagebox.showinfo("Error", "Derivada nula. El método de Newton-Raphson no puede continuar.")
+
+        x_new = x - fx / dfx
+
+        if abs(x_new - x) < tol:
+            return x_new
+
+        x = x_new
+
+    return messagebox.showinfo("Error", "El método de Newton-Raphson no convergió en el número máximo de iteraciones.")
+
+
+
 def initialize_database():
     db_filename = 'database.db'
     conn = sqlite3.connect(db_filename)
@@ -140,44 +174,8 @@ def adiabaticTemp_calc(reac, prod, t0, tGuess, hStep):
         delta = (Q_Disp - Q_Req)
         return delta
     
-
-    def newtonRaph(f, x0, tol=hStep, max_iter=10000, h=hStep):
-        """
-        Método de Newton-Raphson para encontrar las raíces de una función.
-
-        Args:
-        f: función objetivo.
-        x0: valor inicial para la raíz.
-        tol: tolerancia para la convergencia.
-        max_iter: número máximo de iteraciones.
-        h: paso pequeño para la derivada numérica.
-
-        Returns:
-        La raíz aproximada de la función.
-        """
-        def fp(f, x, h):
-            return (f(x + h) - f(x - h)) / (2 * h)
-
-        x = x0
-        for i in range(max_iter):
-            fx = f(x)
-            dfx = fp(f, x, h)
-
-            if dfx == 0:
-                return messagebox.showinfo("Error", "Derivada nula. El método de Newton-Raphson no puede continuar.")
-
-            x_new = x - fx / dfx
-
-            if abs(x_new - x) < tol:
-                return x_new
-
-            x = x_new
-
-        return messagebox.showinfo("Error", "El método de Newton-Raphson no convergió en el número máximo de iteraciones.")
-    
-
     prodMol         = sum([n for n in prod_moles])
-    tSol            = newtonRaph(heat_balance, tGuess)
+    tSol            = newtonRaph(heat_balance, tGuess, tol=hStep, max_iter=10000, h=hStep)
     molWeight_prod  = (sum([n * r.MolWeight for n,r in zip(prod_moles,prod_comps)]) / prodMol)*1e-3
     cp_Mass         =  (sum([n * r.cp(tSol) for n,r in zip(prod_moles,prod_comps)]) / prodMol) / molWeight_prod
     R_prod          = 8.31446261815324/molWeight_prod

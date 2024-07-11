@@ -113,10 +113,10 @@ content_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 # Configurar pesos para el grid
 main_frame.grid_rowconfigure(0, weight=1)
 main_frame.grid_columnconfigure(1, weight=1)
-content_frame.grid_columnconfigure(0, weight=1)
-content_frame.grid_columnconfigure(1, weight=1)
-content_frame.grid_columnconfigure(2, weight=2)  
-content_frame.grid_columnconfigure(3, weight=2)
+#content_frame.grid_columnconfigure(0, weight=1)
+#content_frame.grid_columnconfigure(1, weight=1)
+#content_frame.grid_columnconfigure(2, weight=2)  
+#content_frame.grid_columnconfigure(3, weight=2)
 
 # Función para cambiar el contenido
 def change_tab(tab_name):
