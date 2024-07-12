@@ -697,6 +697,8 @@ class PropellantDesignModule:
         self.content_frame.grid_columnconfigure(0, weight=1)
         self.content_frame.grid_columnconfigure(1, weight=1)
 
+        self.image_label = None
+
         # Crear frames dentro de content_frame
         self.inputs_frame = ctk.CTkFrame(content_frame)
         self.inputs_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
@@ -730,6 +732,8 @@ class PropellantDesignModule:
         self.inputImageFrame = ctk.CTkFrame(self.inputs_frame)
         self.inputImageFrame.grid(row=1, column=2, rowspan=3, padx=10, pady=10, sticky="nsew")
         self.inputImageFrame.grid_propagate(False)
+        self.inputImageFrame.configure(fg_color="white")
+        self.inputImageFrame.bind("<Enter>", lambda event: self.update_plot())
 
         # Crear un canvas para mostrar la imagen
         self.canvas = FigureCanvasTkAgg(plt.figure(), master=self.inputImageFrame)
@@ -758,13 +762,16 @@ class PropellantDesignModule:
 
         self.tubular_widgets = []
         self.end_burner_widgets = []
+        self.selection = 'Tubular'  # Initialize selection
 
         self.create_tubular_entries()
         self.create_end_burner_entries()
 
-        self.selection = 'Tubular'  # Initialize selection
+        
         self.update_plot()
         self.update_entries("Tubular")
+
+        
 
 
 
@@ -798,142 +805,125 @@ class PropellantDesignModule:
         # Actualizar el gráfico
         self.update_plot()
 
+
     def create_tubular_entries(self):
         # Crear entradas específicas para Tubular
-        self.tubular_label1 = ctk.CTkLabel(self.subInputsFrame, text="Radio Interior (m):")
-        self.tubular_label1.grid(row=0, column=0, padx=10, pady=5, sticky="nsew")
-        self.tubular_entry1 = ctk.CTkEntry(self.subInputsFrame)
-        self.tubular_entry1.grid(row=0, column=1, padx=10, pady=5, sticky="nsew")
-        self.tubular_entry1.bind("<KeyRelease>", self.update_plot)
-
-        self.tubular_label2 = ctk.CTkLabel(self.subInputsFrame, text="Radio Exterior (m):")
-        self.tubular_label2.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
-        self.tubular_entry2 = ctk.CTkEntry(self.subInputsFrame)
-        self.tubular_entry2.grid(row=1, column=1, padx=10, pady=5, sticky="nsew")
-        self.tubular_entry2.bind("<KeyRelease>", self.update_plot)
-
-        self.tubular_label3 = ctk.CTkLabel(self.subInputsFrame, text="Radio Garganta (m):")
-        self.tubular_label3.grid(row=2, column=0, padx=10, pady=5, sticky="nsew")
-        self.tubular_entry3 = ctk.CTkEntry(self.subInputsFrame)
-        self.tubular_entry3.grid(row=2, column=1, padx=10, pady=5, sticky="nsew")
-        self.tubular_entry3.bind("<KeyRelease>", self.update_plot)
-
-        self.tubular_label4 = ctk.CTkLabel(self.subInputsFrame, text="Longitud Cámara (m):")
-        self.tubular_label4.grid(row=3, column=0, padx=10, pady=5, sticky="nsew")
-        self.tubular_entry4 = ctk.CTkEntry(self.subInputsFrame)
-        self.tubular_entry4.grid(row=3, column=1, padx=10, pady=5, sticky="nsew")
-        self.tubular_entry4.bind("<KeyRelease>", self.update_plot)
-
-        self.tubular_label5 = ctk.CTkLabel(self.subInputsFrame, text="Presión Ambiental (Pa):")
-        self.tubular_label5.grid(row=4, column=0, padx=10, pady=5, sticky="nsew")
-        self.tubular_entry5 = ctk.CTkEntry(self.subInputsFrame)
-        self.tubular_entry5.grid(row=4, column=1, padx=10, pady=5, sticky="nsew")
-        self.tubular_entry5.bind("<KeyRelease>", self.update_plot)
-
-        self.tubular_label6 = ctk.CTkLabel(self.subInputsFrame, text="Paso radial (m):")
-        self.tubular_label6.grid(row=5, column=0, padx=10, pady=5, sticky="nsew")
-        self.tubular_entry6 = ctk.CTkEntry(self.subInputsFrame)
-        self.tubular_entry6.grid(row=5, column=1, padx=10, pady=5, sticky="nsew")
-        self.tubular_entry6.bind("<KeyRelease>", self.update_plot)
-
-        self.tubular_widgets = [
-            self.tubular_label1, self.tubular_entry1,
-            self.tubular_label2, self.tubular_entry2,
-            self.tubular_label3, self.tubular_entry3,
-            self.tubular_label4, self.tubular_entry4,
-            self.tubular_label5, self.tubular_entry5,
-            self.tubular_label6, self.tubular_entry6
+        self.tubular_entries = []
+        labels = [
+            "Radio Interior (m):",
+            "Radio Exterior (m):",
+            "Radio Garganta (m):",
+            "Longitud Cámara (m):",
+            "Presión Ambiental (Pa):",
+            "Paso radial (m):"
         ]
+
+        for i, label_text in enumerate(labels):
+            label = ctk.CTkLabel(self.subInputsFrame, text=label_text)
+            label.grid(row=i, column=0, padx=10, pady=5, sticky="nsew")
+            entry = ctk.CTkEntry(self.subInputsFrame)
+            entry.grid(row=i, column=1, padx=10, pady=5, sticky="nsew")
+            entry.bind("<KeyRelease>", self.update_plot)
+            self.tubular_entries.append(entry)
+            self.tubular_widgets.append(label)
+            self.tubular_widgets.append(entry)
+
 
     def create_end_burner_entries(self):
         # Crear entradas específicas para End-Burner
-        self.end_burner_label1 = ctk.CTkLabel(self.subInputsFrame, text="End-Burner Param 1")
-        self.end_burner_label1.grid(row=0, column=0, padx=10, pady=5, sticky="nsew")
-        self.end_burner_entry1 = ctk.CTkEntry(self.subInputsFrame)
-        self.end_burner_entry1.grid(row=0, column=1, padx=10, pady=5, sticky="nsew")
 
-        self.end_burner_label2 = ctk.CTkLabel(self.subInputsFrame, text="End-Burner Param 2")
-        self.end_burner_label2.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
-        self.end_burner_entry2 = ctk.CTkEntry(self.subInputsFrame)
-        self.end_burner_entry2.grid(row=1, column=1, padx=10, pady=5, sticky="nsew")
-
-        self.end_burner_label3 = ctk.CTkLabel(self.subInputsFrame, text="End-Burner Param 3")
-        self.end_burner_label3.grid(row=2, column=0, padx=10, pady=5, sticky="nsew")
-        self.end_burner_entry3 = ctk.CTkEntry(self.subInputsFrame)
-        self.end_burner_entry3.grid(row=2, column=1, padx=10, pady=5, sticky="nsew")
-
-        self.end_burner_widgets = [
-            self.end_burner_label1, self.end_burner_entry1,
-            self.end_burner_label2, self.end_burner_entry2,
-            self.end_burner_label3, self.end_burner_entry3
+        self.end_burner_entries = []
+        labels = [
+            "End-Burner Param 1:",
+            "End-Burner Param 2:",
+            "End-Burner Param 3:"
         ]
 
-    def update_plot(self, event=None):
+        for i, label_text in enumerate(labels):
+            label = ctk.CTkLabel(self.subInputsFrame, text=label_text)
+            label.grid(row=i, column=0, padx=10, pady=5, sticky="nsew")
+            entry = ctk.CTkEntry(self.subInputsFrame)
+            entry.grid(row=i, column=1, padx=10, pady=5, sticky="nsew")
+            entry.bind("<KeyRelease>", self.update_plot)
+            self.end_burner_entries.append(entry)
+            self.end_burner_widgets.append(label)
+            self.end_burner_widgets.append(entry)
 
+        
+
+    def update_plot(self, event=None):
         if self.selection == 'Tubular':
             fig = self.tubular_plot()
-    
+        
         # Limpiar el canvas antes de dibujar
         for widget in self.inputImageFrame.winfo_children():
             widget.destroy()
-    
-        # Crear FigureCanvasTkAgg con la figura y agregarla al frame
-        self.canvas = FigureCanvasTkAgg(fig, master=self.inputImageFrame)
-        self.canvas.draw()
-        self.canvas.get_tk_widget().pack(fill="both", expand=True)
-        # Cerrar la figura para liberar recursos
+
+        buf = io.BytesIO()
+        fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.1, dpi=300)
         plt.close(fig)
+        buf.seek(0)
+        image = Image.open(buf)
+
+        display_width, display_height = self.inputImageFrame.winfo_width(), self.inputImageFrame.winfo_height()
+        ctk_image = ctk.CTkImage(light_image=image, dark_image=image, size=(display_height, display_height))
+
+        if self.image_label:
+            self.image_label.destroy()
+
+        self.image_label = ctk.CTkLabel(self.inputImageFrame, text="", image=ctk_image)
+        self.image_label.image = ctk_image
+        pad4x = (display_width-display_height)/2 - 0.05 * (display_width-display_height)/2
+        self.image_label.grid(row=0, column=0, padx=(pad4x, pad4x), pady=0, sticky="nsew")
 
     def tubular_plot(self):
-        try: 
-            rIn_0b  = float(get_entry_value(self.tubular_entry1))
-            rOut    = float(get_entry_value(self.tubular_entry2))
-            delta_r = float(get_entry_value(self.tubular_entry6))
+        try:
+            rIn_0b  = float(get_entry_value(self.tubular_entries[0]))
+            rOut    = float(get_entry_value(self.tubular_entries[1]))
+            delta_r = float(get_entry_value(self.tubular_entries[5]))
 
             # Crear una figura y un eje
-            fig, ax = plt.subplots(figsize=(1,1))
-        
+            height = self.inputImageFrame.winfo_height() / 100
+            fig, ax = plt.subplots(figsize=(height, height))
+
             # Dibujar los círculos exteriores e interiores
             outer_circle = plt.Circle((0, 0), rOut, color='r', fill=False, label='Outer Radius')
             inner_circle = plt.Circle((0, 0), rIn_0b, color='b', fill=False, label='Initial Inner Radius')
-        
+
             # Añadir los círculos al gráfico
             ax.add_artist(outer_circle)
             ax.add_artist(inner_circle)
-        
+
             # Rellenar el área entre el círculo interior y exterior
             theta = np.linspace(0, 2 * np.pi, 100)
             x_outer = rOut * np.cos(theta)
             y_outer = rOut * np.sin(theta)
             x_inner = rIn_0b * np.cos(theta)
             y_inner = rIn_0b * np.sin(theta)
-            ax.fill(np.concatenate([x_outer, x_inner[::-1]]), 
-                np.concatenate([y_outer, y_inner[::-1]]), 
-                color='k', alpha=0.5)
-        
-            # Dfinir un conjunto de colores
+            ax.fill(np.concatenate([x_outer, x_inner[::-1]]),
+                    np.concatenate([y_outer, y_inner[::-1]]),
+                    color='gray', alpha=0.5)
+
+            # Definir un conjunto de colores
             colors = ['tab:red', 'tab:blue', 'tab:green']
             num_colors = len(colors)
             # Dibujar las líneas radiales internas
-            radii = np.linspace(rIn_0b, rOut, int(1/delta_r))
+            radii = np.linspace(rIn_0b, rOut, int(1 / delta_r))
             for i, r in enumerate(radii):
                 color = colors[i % num_colors]
                 circle = plt.Circle((0, 0), r, color=color, linestyle='-', fill=False)
                 ax.add_artist(circle)
-            
-        
+
             # Establecer los límites del gráfico
             ax.set_xlim(-rOut * 1.1, rOut * 1.1)
             ax.set_ylim(-rOut * 1.1, rOut * 1.1)
-        
             # Establecer el aspecto del gráfico para que sea igual
             ax.set_aspect('equal')
-        
             # Añadir título y leyenda
-            ax.set_title('Cross-Sectional View of the Rocket Motor')
-        except Exception:
-            fig, ax = plt.subplots(figsize=(1,1))
             ax.set_title(self.selection)
+        except Exception:
+            fig, ax = plt.subplots(figsize=(1, 1))
+            ax.set_axis_off()
 
         return fig
 

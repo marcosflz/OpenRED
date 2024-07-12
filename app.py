@@ -23,12 +23,22 @@ def save_configuration():
         config = {
             "tabs": {
                 "tab_0": {
-                    "reactivos": [(get_entry_value(entry), combo.get()) for entry, combo in adiabatic_module_instance.reactivos_widgets],
-                    "productos": [(get_entry_value(entry), combo.get()) for entry, combo in adiabatic_module_instance.productos_widgets],
-                    "initial_temp": get_entry_value(adiabatic_module_instance.initial_temp),
-                    "temp_Int_step": get_entry_value(adiabatic_module_instance.temp_Int_step),
-                    "temp_guess": get_entry_value(adiabatic_module_instance.temp_guess)
-                }
+                    "reactivos"     : [(get_entry_value(entry), combo.get()) for entry, combo in adiabatic_module_instance.reactivos_widgets],
+                    "productos"     : [(get_entry_value(entry), combo.get()) for entry, combo in adiabatic_module_instance.productos_widgets],
+                    "initial_temp"  : get_entry_value(adiabatic_module_instance.initial_temp),
+                    "temp_Int_step" : get_entry_value(adiabatic_module_instance.temp_Int_step),
+                    "temp_guess"    : get_entry_value(adiabatic_module_instance.temp_guess)
+                },
+                "tab_1": {
+                    "propellant": engineDesing_module_instance.propellant_selector.get(),
+                    "geoConfig": engineDesing_module_instance.grainGeo_selector.get(),
+                    "tubular_rIn": get_entry_value(engineDesing_module_instance.tubular_entries[0]),
+                    "tubular_rOut": get_entry_value(engineDesing_module_instance.tubular_entries[1]),
+                    "tubular_rt": get_entry_value(engineDesing_module_instance.tubular_entries[2]),
+                    "tubular_lComb": get_entry_value(engineDesing_module_instance.tubular_entries[3]),
+                    "tubular_P0": get_entry_value(engineDesing_module_instance.tubular_entries[4]),
+                    "tubular_dr": get_entry_value(engineDesing_module_instance.tubular_entries[5]),
+                },
             }
         }
         with open(file_path, 'w') as config_file:
@@ -44,6 +54,7 @@ def load_configuration():
 
             # Restaurar la configuración de las pestañas
             tab_0_config = config["tabs"]["tab_0"]
+            tab_1_config = config["tabs"]["tab_1"]
 
             # Clear existing widgets
             for entry, combo in adiabatic_module_instance.reactivos_widgets:
@@ -79,8 +90,30 @@ def load_configuration():
             adiabatic_module_instance.temp_guess.insert(0, tab_0_config["temp_guess"])
             adiabatic_module_instance.update_reaction_label()
 
+        # Cargar configuración de tab_1
+            engineDesing_module_instance.propellant_selector.set(tab_1_config["propellant"])
+            engineDesing_module_instance.grainGeo_selector.set(tab_1_config["geoConfig"])
+            engineDesing_module_instance.update_entries(tab_1_config["geoConfig"])
+
+            engineDesing_module_instance.tubular_entries[0].delete(0, tk.END)
+            engineDesing_module_instance.tubular_entries[0].insert(0, tab_1_config["tubular_rIn"])
+            engineDesing_module_instance.tubular_entries[1].delete(0, tk.END)
+            engineDesing_module_instance.tubular_entries[1].insert(0, tab_1_config["tubular_rOut"])
+            engineDesing_module_instance.tubular_entries[2].delete(0, tk.END)
+            engineDesing_module_instance.tubular_entries[2].insert(0, tab_1_config["tubular_rt"])
+            engineDesing_module_instance.tubular_entries[3].delete(0, tk.END)
+            engineDesing_module_instance.tubular_entries[3].insert(0, tab_1_config["tubular_lComb"])
+            engineDesing_module_instance.tubular_entries[4].delete(0, tk.END)
+            engineDesing_module_instance.tubular_entries[4].insert(0, tab_1_config["tubular_P0"])
+            engineDesing_module_instance.tubular_entries[5].delete(0, tk.END)
+            engineDesing_module_instance.tubular_entries[5].insert(0, tab_1_config["tubular_dr"])
+
+            engineDesing_module_instance.update_plot()
+
         except FileNotFoundError:
             print("No previous configuration found. Starting with default values.")
+        except Exception as e:
+            print(f"Error loading configuration: {e}")
 
 # Crear el menú usando tkinter
 menu = tk.Menu(main_frame)
