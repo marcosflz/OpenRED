@@ -107,7 +107,6 @@ def load_configuration():
             engineDesing_module_instance.tubular_entries[4].insert(0, tab_1_config["tubular_P0"])
             engineDesing_module_instance.tubular_entries[5].delete(0, tk.END)
             engineDesing_module_instance.tubular_entries[5].insert(0, tab_1_config["tubular_dr"])
-
             engineDesing_module_instance.update_plot()
 
         except FileNotFoundError:

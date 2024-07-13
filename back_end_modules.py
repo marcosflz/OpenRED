@@ -34,7 +34,11 @@ def newtonRaph(f, x0, tol, max_iter, h):
 
     return messagebox.showinfo("Error", "El método de Newton-Raphson no convergió en el número máximo de iteraciones.")
 
+def integration(f,a,b,h):
+    return h * ( (f(a) + f(b))/2 + sum([f(a + k*h) for k in range(1, int((b - a)/h))]))
 
+def discreteIntegration(fs, xs):
+    return sum([(xs[i+1] - xs[i]) * (fs[i+1] + fs[i]) / 2 for i in range(len(fs)-1)])
 
 def initialize_database():
     db_filename = 'database.db'
@@ -86,7 +90,42 @@ def initialize_database():
     conn.commit()
     conn.close()
 
+def adiabaticTemp_calc(reac, prod, t0, tGuess, hStep):
+    if hStep <= 0:
+        return messagebox.showinfo("Error", "Valor de paso de integración no válido.")
+    
 
+    reac_moles = [item[0] for item in reac]
+    prod_moles = [item[0] for item in prod]
+
+    reac_comps = [polynomialCp(item[1]) for item in reac]
+    prod_comps = [polynomialCp(item[1]) for item in prod]
+
+    hf0_reac = sum([n * r.Hf0 for n,r in zip(reac_moles,reac_comps)])
+    hf0_prod = sum([n * p.Hf0 for n,p in zip(prod_moles,prod_comps)])
+
+    molWeight_prod = sum([n * r.MolWeight for n,r in zip(prod_moles,prod_comps)]) / sum([n for n in prod_moles])
+
+    def heat_balance(t):
+
+        hCp_reac = sum([n * integration(r.cp, 298, t0, hStep) for n,r in zip(reac_moles,reac_comps)])
+        hCp_prod = sum([n * integration(p.cp, 298, t,  hStep) for n,p in zip(prod_moles,prod_comps)])
+
+        Q_Disp = hf0_reac + hCp_reac
+        Q_Req  = hf0_prod + hCp_prod
+
+        delta = (Q_Disp - Q_Req)
+        return delta
+    
+    prodMol         = sum([n for n in prod_moles])
+    tSol            = newtonRaph(heat_balance, tGuess, tol=hStep, max_iter=10000, h=hStep)
+    molWeight_prod  = (sum([n * r.MolWeight for n,r in zip(prod_moles,prod_comps)]) / prodMol)*1e-3
+    cp_Mass         =  (sum([n * r.cp(tSol) for n,r in zip(prod_moles,prod_comps)]) / prodMol) / molWeight_prod
+    R_prod          = 8.31446261815324/molWeight_prod
+    cv_Mass         = cp_Mass - R_prod
+    gamma           = cp_Mass/cv_Mass
+    cChar           = np.sqrt(gamma * R_prod * tSol) / (gamma * np.sqrt((2 / (gamma + 1))**((gamma + 1)/(gamma - 1))))
+    return tSol, molWeight_prod, cp_Mass, cv_Mass, R_prod, gamma, cChar
 
 class polynomialCp:
     def __init__(self, component):
@@ -142,44 +181,95 @@ class polynomialCp:
             value = 0
         return value
     
+class TubularGrain:
+    def __init__(self, inputs):
+        # Lista de atributos que quieres asignar
+        attributes = [
+            "rIn_0b", "rOut", "rThrt", "lComb", 
+            "rho_b", "a", "n", "gamma", "R", "T1", "P1_min","P1_max",
+            "delta_r", "P0"
+        ]
+        
+        for attr, value in zip(attributes, inputs):
+            setattr(self, attr, value)
+        
+        self.P, self.G, self.M, self.t = self.combTime()
+        self.meanPressurem, self.meanMassFlow = self.mean_values()
+        self.combustion_time = float(self.t[-1])
+        self.combustion_mass = float(self.M[0])
 
-def integration(f,a,b,h):
-    return h * ( (f(a) + f(b))/2 + sum([f(a + k*h) for k in range(1, int((b - a)/h))]))
 
+    def combTime(self):
+
+        C = (((np.pi * self.rThrt**2 * self.gamma) / (self.rho_b * self.a * 1e-2)))
+        R = np.sqrt( (2/(self.gamma + 1))**((self.gamma - 1)/(self.gamma + 1)) / (self.gamma * self.R * self.T1) )
+
+        rt = np.arange(self.rIn_0b, self.rOut + self.delta_r, self.delta_r)
+        size = len(rt)
+
+        P  = np.zeros(size)
+        G  = np.zeros(size)
+        dt = np.zeros(size)
+        m  = np.zeros(size)
+
+
+        def Ab(ti):
+            return 2 * np.pi * self.lComb * rt[ti]
+
+        def M(ti):
+            return np.pi * self.rho_b * self.lComb * (self.rOut**2 - rt[ti]**2)
+
+        P[0] = self.P0
+        G[0] = Ab(0) * self.rho_b * self.a * P[0]**self.n * 1e-2
+        dt[0] = (M(0) - M(1)) / G[0]
+        m[0] = M(0)
+
+        def iterCalc(ti):
+            P_i = ((C / Ab(ti)) * R)**(1/(self.n - 1))
+            G_i = Ab(ti) * self.rho_b * self.a * P_i**self.n * 1e-2
+            m_i = M(ti)
+            dt_i = (M(ti - 1) - M(ti)) / G_i
+            return P_i, G_i, m_i ,dt_i
+
+        for i in range(1, size-1):
+            P[i], G[i], m[i], dt[i] = iterCalc(i)
+
+            if P[i] > self.P1_max or P[i] < self.P1_min:
+                return print("Error PMax")
+
+        P[-1], G[-1], m[-1] = self.P0, 0, 0
+
+        return P, G, m, np.cumsum(dt)
     
-def adiabaticTemp_calc(reac, prod, t0, tGuess, hStep):
-    if hStep <= 0:
-        return messagebox.showinfo("Error", "Valor de paso de integración no válido.")
+    def mean_values(self):
+        interval = self.t[-1] - self.t[0]
+        mean_pressure = float(discreteIntegration(self.P, self.t) / interval)
+        mean_massflow = float(discreteIntegration(self.G, self.t) / interval)
+        return mean_pressure, mean_massflow
     
+    def pressureGraph(self):
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.plot(self.t, self.P, label='Pressure',linewidth=2)
+        ax.set_xlabel('Time (s)')
+        ax.set_ylabel('Pressure (Pa)')
+        ax.set_title('Pressure vs Time')
+        ax.grid(True)
+        return fig
 
-    reac_moles = [item[0] for item in reac]
-    prod_moles = [item[0] for item in prod]
+    def massFlowGraph(self):
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.plot(self.t, self.G, label='Mass Flow Rate',linewidth=2)
+        ax.set_xlabel('Time (s)')
+        ax.set_ylabel('Mass Flow Rate (kg/s)')
+        ax.set_title('Mass Flow Rate vs Time')
+        ax.grid(True)
+        return fig
 
-    reac_comps = [polynomialCp(item[1]) for item in reac]
-    prod_comps = [polynomialCp(item[1]) for item in prod]
-
-    hf0_reac = sum([n * r.Hf0 for n,r in zip(reac_moles,reac_comps)])
-    hf0_prod = sum([n * p.Hf0 for n,p in zip(prod_moles,prod_comps)])
-
-    molWeight_prod = sum([n * r.MolWeight for n,r in zip(prod_moles,prod_comps)]) / sum([n for n in prod_moles])
-
-    def heat_balance(t):
-
-        hCp_reac = sum([n * integration(r.cp, 298, t0, hStep) for n,r in zip(reac_moles,reac_comps)])
-        hCp_prod = sum([n * integration(p.cp, 298, t,  hStep) for n,p in zip(prod_moles,prod_comps)])
-
-        Q_Disp = hf0_reac + hCp_reac
-        Q_Req  = hf0_prod + hCp_prod
-
-        delta = (Q_Disp - Q_Req)
-        return delta
-    
-    prodMol         = sum([n for n in prod_moles])
-    tSol            = newtonRaph(heat_balance, tGuess, tol=hStep, max_iter=10000, h=hStep)
-    molWeight_prod  = (sum([n * r.MolWeight for n,r in zip(prod_moles,prod_comps)]) / prodMol)*1e-3
-    cp_Mass         =  (sum([n * r.cp(tSol) for n,r in zip(prod_moles,prod_comps)]) / prodMol) / molWeight_prod
-    R_prod          = 8.31446261815324/molWeight_prod
-    cv_Mass         = cp_Mass - R_prod
-    gamma           = cp_Mass/cv_Mass
-    cChar           = np.sqrt(gamma * R_prod * tSol) / (gamma * np.sqrt((2 / (gamma + 1))**((gamma + 1)/(gamma - 1))))
-    return tSol, molWeight_prod, cp_Mass, cv_Mass, R_prod, gamma, cChar
+    def massTimeGraph(self):
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.plot(self.t, self.M, label='Mass',linewidth=2)
+        ax.set_xlabel('Time (s)')
+        ax.set_ylabel('Mass (kg)')
+        ax.set_title('Mass vs Time')
+        ax.grid(True)
+        return fig

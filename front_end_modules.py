@@ -692,15 +692,16 @@ class TermoquimicaWindow:
 class PropellantDesignModule:
     def __init__(self, content_frame):
         self.content_frame = content_frame
-        self.content_frame.grid_rowconfigure(0, weight=1)
-        self.content_frame.grid_rowconfigure(1, weight=2)
+        self.content_frame.grid_rowconfigure(0, weight=2)
+        self.content_frame.grid_rowconfigure(1, weight=6)
+        self.content_frame.grid_rowconfigure(2, weight=1)
         self.content_frame.grid_columnconfigure(0, weight=1)
         self.content_frame.grid_columnconfigure(1, weight=1)
 
         self.image_label = None
 
         # Crear frames dentro de content_frame
-        self.inputs_frame = ctk.CTkFrame(content_frame)
+        self.inputs_frame = ctk.CTkFrame(self.content_frame)
         self.inputs_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
         self.inputs_frame.grid_columnconfigure(0, weight=1)
         self.inputs_frame.grid_columnconfigure(1, weight=1)
@@ -739,12 +740,12 @@ class PropellantDesignModule:
         self.canvas = FigureCanvasTkAgg(plt.figure(), master=self.inputImageFrame)
         self.canvas.get_tk_widget().pack(fill="both", expand=True)
 
-        self.outputs_frame = ctk.CTkFrame(content_frame)
-        self.outputs_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        self.outputs_frame = ctk.CTkFrame(self.content_frame)
+        self.outputs_frame.grid(row=1, rowspan=2, column=0, padx=10, pady=10, sticky="nsew")
         self.outputs_frame.grid_rowconfigure(0, weight=1)
         self.outputs_frame.grid_columnconfigure(0, weight=1)
 
-        self.graphs_frame = ctk.CTkFrame(content_frame)
+        self.graphs_frame = ctk.CTkFrame(self.content_frame)
         self.graphs_frame.grid(row=0, column=1, rowspan=2, padx=10, pady=10, sticky="nsew")
         self.graphs_frame.grid_rowconfigure(0, weight=1)
         self.graphs_frame.grid_rowconfigure(1, weight=1)
@@ -753,12 +754,26 @@ class PropellantDesignModule:
 
         self.pressureFrame = ctk.CTkFrame(self.graphs_frame)
         self.pressureFrame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        self.pressureFrame.grid_propagate(False)
+        self.pressureFrame.configure(fg_color="white")
 
         self.massFlowFrame = ctk.CTkFrame(self.graphs_frame)
         self.massFlowFrame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        self.massFlowFrame.grid_propagate(False)
+        self.massFlowFrame.configure(fg_color="white")
 
         self.massTimeFrame = ctk.CTkFrame(self.graphs_frame)
         self.massTimeFrame.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
+        self.massTimeFrame.grid_propagate(False)
+        self.massTimeFrame.configure(fg_color="white")
+
+        self.buttonsFrame = ctk.CTkFrame(self.content_frame)
+        self.buttonsFrame.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
+        self.buttonsFrame.grid_rowconfigure(0, weight=1)  # Ensure buttons frame rows and columns expand correctly
+        self.buttonsFrame.grid_columnconfigure(0, weight=1)
+
+        self.calcButton = ctk.CTkButton(self.buttonsFrame, text="Calcular combustión", command=self.calculate_n_show)
+        self.calcButton.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
         self.tubular_widgets = []
         self.end_burner_widgets = []
@@ -770,10 +785,63 @@ class PropellantDesignModule:
         
         self.update_plot()
         self.update_entries("Tubular")
-
         
+    def calculate_n_show(self):
 
+        grainClasses = {
+            "Tubular": TubularGrain
+        }
 
+        grain_config = self.grainGeo_selector.get()
+        propellant_type = self.propellant_selector.get()
+
+        geo_Inputs = [
+            self.rIn_0b,
+            self.rOut,
+            self.rt,
+            self.lComb
+            ]
+
+        prop_Inputs = self.get_propellants_props(propellant_type) + [self.delta_r, self.P0]
+        inputs = geo_Inputs + prop_Inputs
+
+        combResults = grainClasses[grain_config](inputs)
+
+        pressure_fig = combResults.pressureGraph()
+        massflow_fig = combResults.massFlowGraph()
+        masstime_fig = combResults.massTimeGraph()
+
+        figs = [pressure_fig, massflow_fig, masstime_fig]
+        frames = [self.pressureFrame, self.massFlowFrame, self.massTimeFrame]
+
+        self.graph_labels = [None] * 3
+
+        for i, (fig, frame) in enumerate(zip(figs, frames)):
+            # Obtener el tamaño del frame
+            frame.update_idletasks()  # Asegurarse de que los tamaños están actualizados
+            width, height = frame.winfo_width(), frame.winfo_height()
+
+            # Ajustar el tamaño de la figura
+            fig.set_size_inches(width / fig.dpi, height / fig.dpi)
+
+            # Limpiar el canvas antes de dibujar
+            for widget in frame.winfo_children():
+                widget.destroy()
+
+            buf = io.BytesIO()
+            fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.1, dpi=300)
+            plt.close(fig)
+            buf.seek(0)
+            image = Image.open(buf)
+
+            ctk_image = ctk.CTkImage(light_image=image, dark_image=image, size=(width, height))
+
+            if self.graph_labels[i]:
+                self.graph_labels[i].destroy()
+
+            self.graph_labels[i] = ctk.CTkLabel(frame, text="", image=ctk_image)
+            self.graph_labels[i].image = ctk_image
+            self.graph_labels[i].grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
 
     def get_propellants(self):
         conn = sqlite3.connect('database.db')
@@ -783,6 +851,32 @@ class PropellantDesignModule:
         conn.close()
         propellants = [fila[0] for fila in resultados]
         return propellants
+    
+    def get_propellants_props(self, propellant):
+        conn = sqlite3.connect('database.db')
+        cursor = conn.cursor()
+
+        query = "SELECT Density, a, n, gamma, R, T_ad, P1_min, P1_max FROM propelente WHERE Propelente = ?"
+        cursor.execute(query, (propellant,))
+        
+        resultado = cursor.fetchone()
+        conn.close()
+
+        if resultado:
+            props = [
+                resultado[0],
+                resultado[1],
+                resultado[2],
+                resultado[3],
+                resultado[4],
+                resultado[5],
+                resultado[6],
+                resultado[7]
+            ]
+            return props
+        else:
+            # Retornar None si no se encuentra el propelente
+            return None
     
     def update_entries(self, selection):
         self.selection = selection
@@ -878,17 +972,20 @@ class PropellantDesignModule:
 
     def tubular_plot(self):
         try:
-            rIn_0b  = float(get_entry_value(self.tubular_entries[0]))
-            rOut    = float(get_entry_value(self.tubular_entries[1]))
-            delta_r = float(get_entry_value(self.tubular_entries[5]))
+            self.rIn_0b  = float(get_entry_value(self.tubular_entries[0]))
+            self.rOut    = float(get_entry_value(self.tubular_entries[1]))
+            self.rt    = float(get_entry_value(self.tubular_entries[2]))
+            self.lComb    = float(get_entry_value(self.tubular_entries[3]))
+            self.P0    = float(get_entry_value(self.tubular_entries[4]))
+            self.delta_r = float(get_entry_value(self.tubular_entries[5]))
 
             # Crear una figura y un eje
             height = self.inputImageFrame.winfo_height() / 100
             fig, ax = plt.subplots(figsize=(height, height))
 
             # Dibujar los círculos exteriores e interiores
-            outer_circle = plt.Circle((0, 0), rOut, color='r', fill=False, label='Outer Radius')
-            inner_circle = plt.Circle((0, 0), rIn_0b, color='b', fill=False, label='Initial Inner Radius')
+            outer_circle = plt.Circle((0, 0), self.rOut, color='r', fill=False, label='Outer Radius')
+            inner_circle = plt.Circle((0, 0), self.rIn_0b, color='b', fill=False, label='Initial Inner Radius')
 
             # Añadir los círculos al gráfico
             ax.add_artist(outer_circle)
@@ -896,10 +993,10 @@ class PropellantDesignModule:
 
             # Rellenar el área entre el círculo interior y exterior
             theta = np.linspace(0, 2 * np.pi, 100)
-            x_outer = rOut * np.cos(theta)
-            y_outer = rOut * np.sin(theta)
-            x_inner = rIn_0b * np.cos(theta)
-            y_inner = rIn_0b * np.sin(theta)
+            x_outer = self.rOut * np.cos(theta)
+            y_outer = self.rOut * np.sin(theta)
+            x_inner = self.rIn_0b * np.cos(theta)
+            y_inner = self.rIn_0b * np.sin(theta)
             ax.fill(np.concatenate([x_outer, x_inner[::-1]]),
                     np.concatenate([y_outer, y_inner[::-1]]),
                     color='gray', alpha=0.5)
@@ -908,15 +1005,15 @@ class PropellantDesignModule:
             colors = ['tab:red', 'tab:blue', 'tab:green']
             num_colors = len(colors)
             # Dibujar las líneas radiales internas
-            radii = np.linspace(rIn_0b, rOut, int(1 / delta_r))
+            radii = np.linspace(self.rIn_0b, self.rOut, int(1 / self.delta_r))
             for i, r in enumerate(radii):
                 color = colors[i % num_colors]
-                circle = plt.Circle((0, 0), r, color=color, linestyle='-', fill=False)
-                ax.add_artist(circle)
+                #circle = plt.Circle((0, 0), r, color=color, linestyle='-', fill=False)
+                #ax.add_artist(circle)
 
             # Establecer los límites del gráfico
-            ax.set_xlim(-rOut * 1.1, rOut * 1.1)
-            ax.set_ylim(-rOut * 1.1, rOut * 1.1)
+            ax.set_xlim(-self.rOut * 1.1, self.rOut * 1.1)
+            ax.set_ylim(-self.rOut * 1.1, self.rOut * 1.1)
             # Establecer el aspecto del gráfico para que sea igual
             ax.set_aspect('equal')
             # Añadir título y leyenda
