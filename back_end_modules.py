@@ -194,7 +194,7 @@ class TubularGrain:
             setattr(self, attr, value)
         
         self.P, self.G, self.M, self.t = self.combTime()
-        self.meanPressurem, self.meanMassFlow = self.mean_values()
+        self.meanPressure, self.meanMassFlow = self.mean_values()
         self.combustion_time = float(self.t[-1])
         self.combustion_mass = float(self.M[0])
 

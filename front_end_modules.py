@@ -692,7 +692,7 @@ class TermoquimicaWindow:
 class PropellantDesignModule:
     def __init__(self, content_frame):
         self.content_frame = content_frame
-        self.content_frame.grid_rowconfigure(0, weight=2)
+        self.content_frame.grid_rowconfigure(0, weight=15)
         self.content_frame.grid_rowconfigure(1, weight=6)
         self.content_frame.grid_rowconfigure(2, weight=1)
         self.content_frame.grid_columnconfigure(0, weight=1)
@@ -743,7 +743,56 @@ class PropellantDesignModule:
         self.outputs_frame = ctk.CTkFrame(self.content_frame)
         self.outputs_frame.grid(row=1, rowspan=2, column=0, padx=10, pady=10, sticky="nsew")
         self.outputs_frame.grid_rowconfigure(0, weight=1)
+        self.outputs_frame.grid_rowconfigure(1, weight=1)
+        self.outputs_frame.grid_rowconfigure(2, weight=1)
+        self.outputs_frame.grid_rowconfigure(3, weight=1)
+        self.outputs_frame.grid_rowconfigure(4, weight=1)
+        self.outputs_frame.grid_rowconfigure(5, weight=5)
         self.outputs_frame.grid_columnconfigure(0, weight=1)
+        self.outputs_frame.grid_columnconfigure(1, weight=1)
+
+
+        self.outputs_label = ctk.CTkLabel(self.outputs_frame, text="Resultados Numéricos")
+        self.outputs_label.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
+        
+
+        self.meanPressure_label = ctk.CTkLabel(self.outputs_frame, text="Presión Media (Pa):")
+        self.meanPressure_label.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        self.meanPressure_entry = ctk.CTkEntry(self.outputs_frame, state="readonly" )
+        self.meanPressure_entry.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
+
+        self.meanMassFlow_label = ctk.CTkLabel(self.outputs_frame, text="Flujo másico medio (kg/s):")
+        self.meanMassFlow_label.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
+        self.meanMassFlow_entry = ctk.CTkEntry(self.outputs_frame, state="readonly" )
+        self.meanMassFlow_entry.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
+
+        self.totalTime_label = ctk.CTkLabel(self.outputs_frame, text="Tiempo total de combustión (s): ")
+        self.totalTime_label.grid(row=3, column=0, padx=10, pady=10, sticky="nsew")
+        self.totalTime_entry = ctk.CTkEntry(self.outputs_frame, state="readonly" )
+        self.totalTime_entry.grid(row=3, column=1, padx=10, pady=10, sticky="nsew")
+
+        self.totalMass_label = ctk.CTkLabel(self.outputs_frame, text="Masa de propelente quemada (kg):")
+        self.totalMass_label.grid(row=4, column=0, padx=10, pady=10, sticky="nsew")
+        self.totalMass_entry = ctk.CTkEntry(self.outputs_frame, state="readonly" )
+        self.totalMass_entry.grid(row=4, column=1, padx=10, pady=10, sticky="nsew")
+
+        self.tree_frame = ctk.CTkFrame(self.outputs_frame)
+        self.tree_frame.grid(row=5, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
+        self.tree_frame.grid_rowconfigure(0, weight=1)
+        self.tree_frame.grid_columnconfigure(0, weight=1)
+
+        # Crear Treeview con Scrollbar
+        self.tree_scrollbar = tk.Scrollbar(self.tree_frame, orient="vertical")
+        self.tree = ttk.Treeview(self.tree_frame, columns=("Tiempo (s)", "Presión (Pa)", "Flujo Másico (kg/s)", "Masa (kg)"), show="headings", yscrollcommand=self.tree_scrollbar.set)
+        self.tree_scrollbar.config(command=self.tree.yview)
+        self.tree_scrollbar.pack(side="right", fill="y")
+        self.tree.pack(fill="both", expand=True)
+
+        for col in self.tree["columns"]:
+            self.tree.heading(col, text=col)
+            self.tree.column(col, anchor="center", width=100)
+
+
 
         self.graphs_frame = ctk.CTkFrame(self.content_frame)
         self.graphs_frame.grid(row=0, column=1, rowspan=2, padx=10, pady=10, sticky="nsew")
@@ -771,9 +820,17 @@ class PropellantDesignModule:
         self.buttonsFrame.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
         self.buttonsFrame.grid_rowconfigure(0, weight=1)  # Ensure buttons frame rows and columns expand correctly
         self.buttonsFrame.grid_columnconfigure(0, weight=1)
+        self.buttonsFrame.grid_columnconfigure(1, weight=1)
+        self.buttonsFrame.grid_columnconfigure(2, weight=4)
 
         self.calcButton = ctk.CTkButton(self.buttonsFrame, text="Calcular combustión", command=self.calculate_n_show)
-        self.calcButton.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        self.calcButton.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
+
+        self.exportDataButton = ctk.CTkButton(self.buttonsFrame, text="Exportar Resultados", command=self.calculate_n_show)
+        self.exportDataButton.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+
+        self.exportImagesButton = ctk.CTkButton(self.buttonsFrame, text="Exportar Imagenes", command=self.calculate_n_show)
+        self.exportImagesButton.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
         self.tubular_widgets = []
         self.end_burner_widgets = []
@@ -842,6 +899,37 @@ class PropellantDesignModule:
             self.graph_labels[i] = ctk.CTkLabel(frame, text="", image=ctk_image)
             self.graph_labels[i].image = ctk_image
             self.graph_labels[i].grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
+
+        # Mostrar resultados en los Entry
+        self.meanPressure_entry.configure(state="normal")
+        self.meanPressure_entry.delete(0, tk.END)
+        self.meanPressure_entry.insert(0, combResults.meanPressure)
+        self.meanPressure_entry.configure(state="readonly")
+
+        self.meanMassFlow_entry.configure(state="normal")
+        self.meanMassFlow_entry.delete(0, tk.END)
+        self.meanMassFlow_entry.insert(0, combResults.meanMassFlow)
+        self.meanMassFlow_entry.configure(state="readonly")
+
+        self.totalTime_entry.configure(state="normal")
+        self.totalTime_entry.delete(0, tk.END)
+        self.totalTime_entry.insert(0, combResults.combustion_time)
+        self.totalTime_entry.configure(state="readonly")
+
+        self.totalMass_entry.configure(state="normal")
+        self.totalMass_entry.delete(0, tk.END)
+        self.totalMass_entry.insert(0, combResults.combustion_mass)
+        self.totalMass_entry.configure(state="readonly")
+
+        # Limpiar Treeview
+        for row in self.tree.get_children():
+            self.tree.delete(row)
+
+        # Insertar nuevos datos en el Treeview
+        tree_data = [combResults.t, combResults.P, combResults.G, combResults.M]
+        for i in range(len(tree_data[0])):  # Asumiendo que todos los vectores tienen la misma longitud
+            row_data = [col[i] for col in tree_data]  # Crear una fila con elementos de cada vector en la misma posición
+            self.tree.insert("", "end", values=row_data)
 
     def get_propellants(self):
         conn = sqlite3.connect('database.db')
