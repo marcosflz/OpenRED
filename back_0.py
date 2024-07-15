@@ -1,6 +1,4 @@
 from imports import *
-from tkinter import messagebox
-import numpy as np
 
 def newtonRaph(f, x0, tol, max_iter, h):
     """

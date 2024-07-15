@@ -1,8 +1,16 @@
 from imports import *
 from functions import *
 
+from back_0 import *
+
+from front_0 import *
+from front_1 import *
+from front_2 import *
+from front_3 import *
+
+
 # Llamar a la función para inicializar la base de datos al iniciar el programa
-back_end_modules.initialize_database()
+initialize_database()
 
 global working_path
 global file_path
@@ -183,8 +191,8 @@ menu.add_cascade(label="Preferencias", menu=preferences_menu)
 
 database_menu = tk.Menu(menu, tearoff=0)
 menu.add_cascade(label="Base de Datos", menu=database_menu)
-database_menu.add_command(label="Termoquímica", command=lambda: front_end_modules.TermoquimicaWindow(main_frame))
-database_menu.add_command(label="Propelentes", command=lambda: front_end_modules.PropellantWindow(main_frame))
+database_menu.add_command(label="Termoquímica", command=lambda: TermoquimicaWindow(main_frame))
+database_menu.add_command(label="Propelentes", command=lambda: PropellantWindow(main_frame))
 
 # Crear el marco izquierdo para los botones
 tabs_frame = ctk.CTkFrame(main_frame)
@@ -207,10 +215,10 @@ def change_tab(tab_name):
 
 # Crear contenido para las pestañas
 tabs_content["tab_0"] = ctk.CTkFrame(content_frame)
-adiabatic_module_instance = front_end_modules.AdiabaticTempModule(tabs_content["tab_0"])
+adiabatic_module_instance = AdiabaticTempModule(tabs_content["tab_0"])
 
 tabs_content["tab_1"] = ctk.CTkFrame(content_frame)
-engineDesing_module_instance = front_end_modules.PropellantDesignModule(tabs_content["tab_1"])
+engineDesing_module_instance = PropellantDesignModule(tabs_content["tab_1"])
 
 tabs_content["tab_2"] = ctk.CTkLabel(content_frame, text="Contenido de la pestaña 3")
 

@@ -1,25 +1,27 @@
+import numpy as np
+
 import tkinter as tk
 from tkinter import ttk
+from tkinter import filedialog
+from tkinter import messagebox
+from tkinter import simpledialog
 import customtkinter as ctk
+
 from PIL import Image, ImageTk, ImageDraw, ImageOps
+
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
+
 import io
 import sqlite3
 import re
 import os
-
-import front_end_modules
-import back_end_modules
 import json
-from tkinter import filedialog
-
-from PIL import Image, ImageDraw, ImageOps
-import io
-import matplotlib.pyplot as plt
-from tkinter import messagebox
-from tkinter import simpledialog
 
 
-import numpy as np
-import threading
+
+
+
+
+
+
