@@ -1,13 +1,3 @@
-Voy a revisar el contenido del repositorio para obtener una buena comprensión del proyecto y así crear un README atractivo. Dame un momento.
-
-Comenzaré obteniendo información básica del repositorio.
-
-
-
-Gracias por tu paciencia. He revisado el contenido del repositorio y ahora tengo la información necesaria para crear un README atractivo. A continuación te presento una propuesta de README para tu proyecto:
-
----
-
 # Source
 
 ![Project Logo](https://example.com/logo.png) <!-- Puedes agregar un logo si tienes uno -->
