@@ -1,24 +1,55 @@
 from imports import *
-#Hola
+from functions import *
+
 # Llamar a la función para inicializar la base de datos al iniciar el programa
 back_end_modules.initialize_database()
 
-# Inicializar la aplicación
-main_frame = ctk.CTk()
-main_frame.geometry("1920x1080")
-main_frame.title("Display de la Reacción")
+global working_path
+global file_path
 
-# Diccionario para guardar las pestañas
-tabs_content = {}
-adiabatic_module_instance = None
+working_path = None
+file_path = None
+closing = False
 
 # Función para obtener el valor del Entry con un valor por defecto de 0 si está vacío
 def get_entry_value(entry):
     return entry.get() if entry.get() else '0'
 
-# Función para guardar la configuración
+
+
+def open_directory():
+    global working_path
+    global file_path
+    working_path = filedialog.askdirectory()
+    if working_path:
+        file_path = os.path.join(working_path, "config.json")
+        save_dir_path(working_path)
+        load_configuration(working_path)
+            
+
+def open_on_saving_directory():
+    global working_path
+    global file_path
+    working_path = filedialog.askdirectory()
+    if working_path:
+        file_path = os.path.join(working_path, "config.json")
+        if os.path.isfile(file_path):
+            messagebox.showerror("Error de directorio", "Ya existe un archivo de configuración, por favor selecciona otro directorio.", parent=main_frame)
+            return False
+        else:
+            save_dir_path(working_path)
+            return True
+
+
 def save_configuration():
-    file_path = filedialog.asksaveasfilename(defaultextension=".json", filetypes=[("JSON files", "*.json"), ("All files", "*.*")])
+    try:
+        file_path = os.path.join(working_path, "config.json")
+    except NameError:
+        if open_on_saving_directory():
+            file_path = os.path.join(working_path, "config.json")
+        else:
+            return 
+        
     if file_path:
         config = {
             "tabs": {
@@ -44,10 +75,9 @@ def save_configuration():
         with open(file_path, 'w') as config_file:
             json.dump(config, config_file)
 
-# Función para cargar la configuración
-def load_configuration():
-    file_path = filedialog.askopenfilename(defaultextension=".json", filetypes=[("JSON files", "*.json"), ("All files", "*.*")])
-    if file_path:
+def load_configuration(working_path):
+    file_path = os.path.join(working_path, "config.json")
+    if os.path.exists(file_path):
         try:
             with open(file_path, 'r') as config_file:
                 config = json.load(config_file)
@@ -114,16 +144,38 @@ def load_configuration():
         except Exception as e:
             print(f"Error loading configuration: {e}")
 
+def on_closing():
+    global closing
+    if not closing:
+        closing = True
+        #if 'file_path' not in globals():
+        answer = messagebox.askyesno("Guardar", "¿Deseas guardar la configuración antes de salir?")
+        if answer:
+            save_configuration()
+        clear_dir_path()
+        main_frame.after(100, main_frame.quit)  # Usar after para permitir que se completen las tareas pendientes
+        main_frame.quit()
+
+
+# Inicializar la aplicación
+main_frame = ctk.CTk()
+main_frame.geometry("1920x1080")
+main_frame.title("Display de la Reacción")
+
+# Diccionario para guardar las pestañas
+tabs_content = {}
+adiabatic_module_instance = None
+
 # Crear el menú usando tkinter
 menu = tk.Menu(main_frame)
 main_frame.config(menu=menu)
 
 file_menu = tk.Menu(menu, tearoff=0)
 menu.add_cascade(label="Archivo", menu=file_menu)
-file_menu.add_command(label="Abrir", command=load_configuration)
+file_menu.add_command(label="Abrir", command=open_directory)
 file_menu.add_command(label="Guardar", command=save_configuration)
 file_menu.add_separator()
-file_menu.add_command(label="Salir", command=main_frame.quit)
+file_menu.add_command(label="Salir", command=on_closing)
 
 preferences_menu = tk.Menu(menu, tearoff=0)
 menu.add_cascade(label="Preferencias", menu=preferences_menu)
@@ -145,16 +197,13 @@ content_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 # Configurar pesos para el grid
 main_frame.grid_rowconfigure(0, weight=1)
 main_frame.grid_columnconfigure(1, weight=1)
-#content_frame.grid_columnconfigure(0, weight=1)
-#content_frame.grid_columnconfigure(1, weight=1)
-#content_frame.grid_columnconfigure(2, weight=2)  
-#content_frame.grid_columnconfigure(3, weight=2)
 
 # Función para cambiar el contenido
 def change_tab(tab_name):
     for tab in tabs_content.values():
         tab.pack_forget()
     tabs_content[tab_name].pack(expand=True, fill="both")
+
 
 # Crear contenido para las pestañas
 tabs_content["tab_0"] = ctk.CTkFrame(content_frame)
@@ -179,7 +228,7 @@ for tab, tag in tabsList:
 change_tab(tabsList[0][1])
 
 # Vincular la función de guardado al evento de cierre de la ventana
-main_frame.protocol("WM_DELETE_WINDOW", main_frame.quit)
+main_frame.protocol("WM_DELETE_WINDOW", on_closing)
 
 # Ejecutar la aplicación
 main_frame.mainloop()

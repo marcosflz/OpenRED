@@ -18,6 +18,7 @@ from PIL import Image, ImageDraw, ImageOps
 import io
 import matplotlib.pyplot as plt
 from tkinter import messagebox
+from tkinter import simpledialog
 
 
 import numpy as np

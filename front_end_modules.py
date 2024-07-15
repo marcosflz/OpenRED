@@ -1,7 +1,12 @@
 from imports import *
 from back_end_modules import *
+from functions import *
+
 from tkinter import messagebox
 import matplotlib.pyplot as plt
+from tkinter import simpledialog
+import json
+
 
 
 def get_entry_value(entry):
@@ -276,6 +281,7 @@ class AdiabaticTempModule:
 
         # Actualizar el Treeview
         self.populate_treeview()
+        self.reassign_ids()
 
 
     def populate_treeview(self):
@@ -294,6 +300,7 @@ class AdiabaticTempModule:
         for row in rows:
             self.tree.insert("", "end", values=row)
 
+        self.reassign_ids()
         # Cerrar la conexión a la base de datos
         self.conn.close()
     
@@ -441,6 +448,26 @@ class AdiabaticTempModule:
             option_productos.destroy()
             self.producto_row -= 1
             self.update_reaction_label()
+
+    def reassign_ids(self):
+        # Obtener todos los registros ordenados por el ID actual
+        self.c.execute("SELECT * FROM propelente ORDER BY id")
+        records = self.c.fetchall()
+
+        # Reiniciar el contador de ID
+        new_id = 1
+
+        for record in records:
+            old_id = record[0]  # El ID actual
+            # Actualizar el registro con el nuevo ID
+            self.c.execute("""
+                UPDATE propelente 
+                SET id=? 
+                WHERE id=?
+            """, (new_id, old_id))
+            new_id += 1
+
+        self.conn.commit()
 
 class TermoquimicaWindow:
     instance = None  # Variable de clase para rastrear la instancia
@@ -691,6 +718,7 @@ class TermoquimicaWindow:
 
 class PropellantDesignModule:
     def __init__(self, content_frame):
+
         self.content_frame = content_frame
         self.content_frame.grid_rowconfigure(0, weight=15)
         self.content_frame.grid_rowconfigure(1, weight=6)
@@ -715,11 +743,14 @@ class PropellantDesignModule:
         self.inputsLabel = ctk.CTkLabel(self.inputs_frame, text="Inputs")
         self.inputsLabel.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky="nsew")
 
-        propellants = self.get_propellants()
+        
+        # Obtener los propelentes iniciales y configurar el OptionMenu
+        self.get_propellants()
         self.propellant_label = ctk.CTkLabel(self.inputs_frame, text="Propelente")
         self.propellant_label.grid(row=1, column=0, padx=(10, 5), pady=10, sticky="nsew")
-        self.propellant_selector = ctk.CTkOptionMenu(self.inputs_frame, values=propellants)
+        self.propellant_selector = ctk.CTkOptionMenu(self.inputs_frame, values=self.propellants)
         self.propellant_selector.grid(row=1, column=1, padx=(5, 10), pady=10, sticky="nsew")
+        self.propellant_selector.bind("<Enter>", self.update_propellant_menu)
 
         grains = ["Tubular", "End-Burner"]
         self.grainGeo_label = ctk.CTkLabel(self.inputs_frame, text="Geometría del grano")
@@ -734,11 +765,8 @@ class PropellantDesignModule:
         self.inputImageFrame.grid(row=1, column=2, rowspan=3, padx=10, pady=10, sticky="nsew")
         self.inputImageFrame.grid_propagate(False)
         self.inputImageFrame.configure(fg_color="white")
-        self.inputImageFrame.bind("<Enter>", lambda event: self.update_plot())
+        self.inputImageFrame.bind("<Enter>", lambda event: self.update_plot)
 
-        # Crear un canvas para mostrar la imagen
-        self.canvas = FigureCanvasTkAgg(plt.figure(), master=self.inputImageFrame)
-        self.canvas.get_tk_widget().pack(fill="both", expand=True)
 
         self.outputs_frame = ctk.CTkFrame(self.content_frame)
         self.outputs_frame.grid(row=1, rowspan=2, column=0, padx=10, pady=10, sticky="nsew")
@@ -792,8 +820,6 @@ class PropellantDesignModule:
             self.tree.heading(col, text=col)
             self.tree.column(col, anchor="center", width=100)
 
-
-
         self.graphs_frame = ctk.CTkFrame(self.content_frame)
         self.graphs_frame.grid(row=0, column=1, rowspan=2, padx=10, pady=10, sticky="nsew")
         self.graphs_frame.grid_rowconfigure(0, weight=1)
@@ -826,11 +852,8 @@ class PropellantDesignModule:
         self.calcButton = ctk.CTkButton(self.buttonsFrame, text="Calcular combustión", command=self.calculate_n_show)
         self.calcButton.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
 
-        self.exportDataButton = ctk.CTkButton(self.buttonsFrame, text="Exportar Resultados", command=self.calculate_n_show)
-        self.exportDataButton.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
-
-        self.exportImagesButton = ctk.CTkButton(self.buttonsFrame, text="Exportar Imagenes", command=self.calculate_n_show)
-        self.exportImagesButton.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        self.exportDataButton = ctk.CTkButton(self.buttonsFrame, text="Exportar Resultados", command=self.export_results)
+        self.exportDataButton.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
 
         self.tubular_widgets = []
         self.end_burner_widgets = []
@@ -843,6 +866,8 @@ class PropellantDesignModule:
         self.update_plot()
         self.update_entries("Tubular")
         
+
+
     def calculate_n_show(self):
 
         grainClasses = {
@@ -934,11 +959,16 @@ class PropellantDesignModule:
     def get_propellants(self):
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
-        cursor.execute("SELECT DISTINCT Propelente FROM propelente")
-        resultados = cursor.fetchall()
+        cursor.execute("SELECT id, Propelente FROM propelente")
+        results = cursor.fetchall()
         conn.close()
-        propellants = [fila[0] for fila in resultados]
-        return propellants
+        self.propellants = [f"{row[1]} ({row[0]})" for row in results]
+
+
+    def update_propellant_menu(self, event=None):
+        self.get_propellants()
+        self.propellant_selector.configure(values=self.propellants)
+
     
     def get_propellants_props(self, propellant):
         conn = sqlite3.connect('database.db')
@@ -987,7 +1017,6 @@ class PropellantDesignModule:
         # Actualizar el gráfico
         self.update_plot()
 
-
     def create_tubular_entries(self):
         # Crear entradas específicas para Tubular
         self.tubular_entries = []
@@ -1010,7 +1039,6 @@ class PropellantDesignModule:
             self.tubular_widgets.append(label)
             self.tubular_widgets.append(entry)
 
-
     def create_end_burner_entries(self):
         # Crear entradas específicas para End-Burner
 
@@ -1030,8 +1058,6 @@ class PropellantDesignModule:
             self.end_burner_entries.append(entry)
             self.end_burner_widgets.append(label)
             self.end_burner_widgets.append(entry)
-
-        
 
     def update_plot(self, event=None):
         if self.selection == 'Tubular':
@@ -1111,6 +1137,51 @@ class PropellantDesignModule:
             ax.set_axis_off()
 
         return fig
+    
+    def export_results(self):
+        working_path = get_dir_path()
+        if not working_path:
+            messagebox.showerror("Error", "No se ha seleccionado un directorio de trabajo.", parent=self.content_frame)
+            return
+        # Preguntar al usuario el nombre del archivo
+        file_name = simpledialog.askstring("Guardar archivo", "Introduce el nombre del archivo:", parent=self.content_frame)
+        
+        if file_name:
+            # Asegurarse de que el nombre del archivo termine con '.json'
+            if not file_name.endswith('.json'):
+                file_name += '.json'
+            
+            # Construir la ruta completa del archivo
+            file_path = os.path.join(working_path, file_name)
+            
+            # Recopilar datos a guardar
+            results = {
+            "meanPressure": float(self.meanPressure_entry.get()),
+            "meanMassFlow": float(self.meanMassFlow_entry.get()),
+            "totalTime": float(self.totalTime_entry.get()),
+            "totalMass": float(self.totalMass_entry.get()),
+            "tree_data": {
+                "Tiempo (s)": [float(self.tree.item(item)["values"][0]) for item in self.tree.get_children()],
+                "Presión (Pa)": [float(self.tree.item(item)["values"][1]) for item in self.tree.get_children()],
+                "Flujo Másico (kg/s)": [float(self.tree.item(item)["values"][2]) for item in self.tree.get_children()],
+                "Masa (kg)": [float(self.tree.item(item)["values"][3]) for item in self.tree.get_children()]
+            }
+        }
+
+            # Guardar datos del Treeview en columnas separadas
+            for item in self.tree.get_children():
+                item_values = self.tree.item(item)["values"]
+                results["tree_data"]["Tiempo (s)"].append(item_values[0])
+                results["tree_data"]["Presión (Pa)"].append(item_values[1])
+                results["tree_data"]["Flujo Másico (kg/s)"].append(item_values[2])
+                results["tree_data"]["Masa (kg)"].append(item_values[3])
+            
+            # Guardar datos en un archivo JSON
+            with open(file_path, 'w') as json_file:
+                json.dump(results, json_file)
+            
+            messagebox.showinfo("Guardar archivo", f"Resultados guardados en {file_path}", parent=self.content_frame)
+
 
 
 class PropellantWindow:
