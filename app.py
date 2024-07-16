@@ -52,7 +52,7 @@ def open_on_saving_directory():
 def save_configuration():
     try:
         file_path = os.path.join(working_path, "config.json")
-    except NameError:
+    except Exception:
         if open_on_saving_directory():
             file_path = os.path.join(working_path, "config.json")
         else:
@@ -168,6 +168,7 @@ def on_closing():
 # Inicializar la aplicación
 main_frame = ctk.CTk()
 main_frame.geometry("1920x1080")
+
 main_frame.title("Display de la Reacción")
 
 # Diccionario para guardar las pestañas

@@ -170,7 +170,8 @@ class PropellantDesignModule:
             self.rt,
             self.lComb
             ]
-
+        
+        propellant_type = re.sub(r'\s*\(\d+\)\s*', '', propellant_type)
         prop_Inputs = self.get_propellants_props(propellant_type) + [self.delta_r, self.P0]
         inputs = geo_Inputs + prop_Inputs
 
