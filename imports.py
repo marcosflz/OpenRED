@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.interpolate import interp1d
 
 import tkinter as tk
 from tkinter import ttk

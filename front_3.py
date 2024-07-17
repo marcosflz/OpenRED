@@ -11,7 +11,7 @@ class PropellantDesignModule:
         self.content_frame.grid_rowconfigure(1, weight=6)
         self.content_frame.grid_rowconfigure(2, weight=1)
         self.content_frame.grid_columnconfigure(0, weight=1)
-        self.content_frame.grid_columnconfigure(1, weight=1)
+        self.content_frame.grid_columnconfigure(1, weight=6)
 
         self.image_label = None
 
@@ -65,10 +65,12 @@ class PropellantDesignModule:
         self.outputs_frame.grid_rowconfigure(5, weight=5)
         self.outputs_frame.grid_columnconfigure(0, weight=1)
         self.outputs_frame.grid_columnconfigure(1, weight=1)
+        self.outputs_frame.grid_columnconfigure(2, weight=1)
+        self.outputs_frame.grid_columnconfigure(3, weight=1)
 
 
         self.outputs_label = ctk.CTkLabel(self.outputs_frame, text="Resultados Numéricos")
-        self.outputs_label.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
+        self.outputs_label.grid(row=0, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
         
 
         self.meanPressure_label = ctk.CTkLabel(self.outputs_frame, text="Presión Media (Pa):")
@@ -76,23 +78,45 @@ class PropellantDesignModule:
         self.meanPressure_entry = ctk.CTkEntry(self.outputs_frame, state="readonly" )
         self.meanPressure_entry.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
 
-        self.meanMassFlow_label = ctk.CTkLabel(self.outputs_frame, text="Flujo másico medio (kg/s):")
-        self.meanMassFlow_label.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
-        self.meanMassFlow_entry = ctk.CTkEntry(self.outputs_frame, state="readonly" )
-        self.meanMassFlow_entry.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
+        self.maxPressure_label = ctk.CTkLabel(self.outputs_frame, text="Presión Máxima (Pa):")
+        self.maxPressure_label.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
+        self.maxPressure_entry = ctk.CTkEntry(self.outputs_frame, state="readonly" )
+        self.maxPressure_entry.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
+
+        self.minPressure_label = ctk.CTkLabel(self.outputs_frame, text="Presión Mínima (Pa):")
+        self.minPressure_label.grid(row=3, column=0, padx=10, pady=10, sticky="nsew")
+        self.minPressure_entry = ctk.CTkEntry(self.outputs_frame, state="readonly" )
+        self.minPressure_entry.grid(row=3, column=1, padx=10, pady=10, sticky="nsew")
 
         self.totalTime_label = ctk.CTkLabel(self.outputs_frame, text="Tiempo total de combustión (s): ")
-        self.totalTime_label.grid(row=3, column=0, padx=10, pady=10, sticky="nsew")
+        self.totalTime_label.grid(row=4, column=0, padx=10, pady=10, sticky="nsew")
         self.totalTime_entry = ctk.CTkEntry(self.outputs_frame, state="readonly" )
-        self.totalTime_entry.grid(row=3, column=1, padx=10, pady=10, sticky="nsew")
+        self.totalTime_entry.grid(row=4, column=1, padx=10, pady=10, sticky="nsew")
+
+        
+        self.meanMassFlow_label = ctk.CTkLabel(self.outputs_frame, text="Flujo másico medio (kg/s):")
+        self.meanMassFlow_label.grid(row=1, column=2, padx=10, pady=10, sticky="nsew")
+        self.meanMassFlow_entry = ctk.CTkEntry(self.outputs_frame, state="readonly" )
+        self.meanMassFlow_entry.grid(row=1, column=3, padx=10, pady=10, sticky="nsew")
+
+        self.maxMassFlow_label = ctk.CTkLabel(self.outputs_frame, text="Flujo másico máximo (kg/s):")
+        self.maxMassFlow_label.grid(row=2, column=2, padx=10, pady=10, sticky="nsew")
+        self.maxMassFlow_entry = ctk.CTkEntry(self.outputs_frame, state="readonly" )
+        self.maxMassFlow_entry.grid(row=2, column=3, padx=10, pady=10, sticky="nsew")
+
+        self.minMassFlow_label = ctk.CTkLabel(self.outputs_frame, text="Flujo másico mínimo (kg/s):")
+        self.minMassFlow_label.grid(row=3, column=2, padx=10, pady=10, sticky="nsew")
+        self.minMassFlow_entry = ctk.CTkEntry(self.outputs_frame, state="readonly" )
+        self.minMassFlow_entry.grid(row=3, column=3, padx=10, pady=10, sticky="nsew")
 
         self.totalMass_label = ctk.CTkLabel(self.outputs_frame, text="Masa de propelente quemada (kg):")
-        self.totalMass_label.grid(row=4, column=0, padx=10, pady=10, sticky="nsew")
+        self.totalMass_label.grid(row=4, column=2, padx=10, pady=10, sticky="nsew")
         self.totalMass_entry = ctk.CTkEntry(self.outputs_frame, state="readonly" )
-        self.totalMass_entry.grid(row=4, column=1, padx=10, pady=10, sticky="nsew")
+        self.totalMass_entry.grid(row=4, column=3, padx=10, pady=10, sticky="nsew")
+
 
         self.tree_frame = ctk.CTkFrame(self.outputs_frame)
-        self.tree_frame.grid(row=5, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
+        self.tree_frame.grid(row=5, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
         self.tree_frame.grid_rowconfigure(0, weight=1)
         self.tree_frame.grid_columnconfigure(0, weight=1)
 
@@ -234,6 +258,26 @@ class PropellantDesignModule:
         self.totalMass_entry.insert(0, combResults.combustion_mass)
         self.totalMass_entry.configure(state="readonly")
 
+        self.maxPressure_entry.configure(state="normal")
+        self.maxPressure_entry.delete(0, tk.END)
+        self.maxPressure_entry.insert(0, combResults.Pmax)
+        self.maxPressure_entry.configure(state="readonly")
+
+        self.minPressure_entry.configure(state="normal")
+        self.minPressure_entry.delete(0, tk.END)
+        self.minPressure_entry.insert(0, combResults.Pmin)
+        self.minPressure_entry.configure(state="readonly")
+
+        self.maxMassFlow_entry.configure(state="normal")
+        self.maxMassFlow_entry.delete(0, tk.END)
+        self.maxMassFlow_entry.insert(0, combResults.Gmax)
+        self.maxMassFlow_entry.configure(state="readonly")
+
+        self.minMassFlow_entry.configure(state="normal")
+        self.minMassFlow_entry.delete(0, tk.END)
+        self.minMassFlow_entry.insert(0, combResults.Gmin)
+        self.minMassFlow_entry.configure(state="readonly")
+
         # Limpiar Treeview
         for row in self.tree.get_children():
             self.tree.delete(row)
@@ -243,6 +287,8 @@ class PropellantDesignModule:
         for i in range(len(tree_data[0])):  # Asumiendo que todos los vectores tienen la misma longitud
             row_data = [col[i] for col in tree_data]  # Crear una fila con elementos de cada vector en la misma posición
             self.tree.insert("", "end", values=row_data)
+
+
 
     def get_propellants(self):
         conn = sqlite3.connect('database.db')
@@ -440,29 +486,47 @@ class PropellantDesignModule:
                 file_name += '.json'
             
             # Construir la ruta completa del archivo
-            file_path = os.path.join(working_path, file_name)
-            
+            # file_path = os.path.join(working_path, file_name)
+
+            # Crear una carpeta llamada "resultados" dentro del directorio de trabajo
+            results_folder = os.path.join(working_path, "Engines")
+            os.makedirs(results_folder, exist_ok=True)
+
+            # Construir la ruta completa del archivo
+            file_path = os.path.join(results_folder, file_name)
+
             # Recopilar datos a guardar
-            results = {
-            "meanPressure": float(self.meanPressure_entry.get()),
-            "meanMassFlow": float(self.meanMassFlow_entry.get()),
-            "totalTime": float(self.totalTime_entry.get()),
-            "totalMass": float(self.totalMass_entry.get()),
-            "tree_data": {
-                "Tiempo (s)": [float(self.tree.item(item)["values"][0]) for item in self.tree.get_children()],
-                "Presión (Pa)": [float(self.tree.item(item)["values"][1]) for item in self.tree.get_children()],
-                "Flujo Másico (kg/s)": [float(self.tree.item(item)["values"][2]) for item in self.tree.get_children()],
-                "Masa (kg)": [float(self.tree.item(item)["values"][3]) for item in self.tree.get_children()]
+            tree_data = {
+                "Tiempo (s)": [],
+                "Presión (Pa)": [],
+                "Flujo Másico (kg/s)": [],
+                "Masa (kg)": []
             }
-        }
 
             # Guardar datos del Treeview en columnas separadas
             for item in self.tree.get_children():
-                item_values = self.tree.item(item)["values"]
-                results["tree_data"]["Tiempo (s)"].append(item_values[0])
-                results["tree_data"]["Presión (Pa)"].append(item_values[1])
-                results["tree_data"]["Flujo Másico (kg/s)"].append(item_values[2])
-                results["tree_data"]["Masa (kg)"].append(item_values[3])
+                values = self.tree.item(item)["values"]
+                tree_data["Tiempo (s)"].append(float(values[0]))
+                tree_data["Presión (Pa)"].append(float(values[1]))
+                tree_data["Flujo Másico (kg/s)"].append(float(values[2]))
+                tree_data["Masa (kg)"].append(float(values[3]))
+            
+            # Recopilar datos a guardar
+            results = {
+                "Propellant": re.sub(r'\s*\(\d+\)\s*', '', self.propellant_selector.get()),
+                "P0": self.P0,
+                "Rt": self.rt,
+                "meanPressure": float(self.meanPressure_entry.get()),
+                "maxPressure": float(self.maxPressure_entry.get()),
+                "minPressure": float(self.minPressure_entry.get()),
+                "meanMassFlow": float(self.meanMassFlow_entry.get()),
+                "maxMassFlow": float(self.maxMassFlow_entry.get()),
+                "minMassFlow": float(self.minMassFlow_entry.get()),
+                "totalTime": float(self.totalTime_entry.get()),
+                "totalMass": float(self.totalMass_entry.get()),
+                "tree_data": tree_data
+            }
+
             
             # Guardar datos en un archivo JSON
             with open(file_path, 'w') as json_file:

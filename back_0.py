@@ -193,6 +193,8 @@ class TubularGrain:
         
         self.P, self.G, self.M, self.t = self.combTime()
         self.meanPressure, self.meanMassFlow = self.mean_values()
+        self.Pmin, self.Pmax = np.min(self.P[1:-1]), np.max(self.P[1:-1])
+        self.Gmin, self.Gmax = np.min(self.G[1:-1]), np.max(self.G[1:-1])
         self.combustion_time = float(self.t[-1])
         self.combustion_mass = float(self.M[0])
 

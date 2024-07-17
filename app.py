@@ -7,6 +7,7 @@ from front_0 import *
 from front_1 import *
 from front_2 import *
 from front_3 import *
+from front_4 import *
 
 
 # Llamar a la función para inicializar la base de datos al iniciar el programa
@@ -221,13 +222,15 @@ adiabatic_module_instance = AdiabaticTempModule(tabs_content["tab_0"])
 tabs_content["tab_1"] = ctk.CTkFrame(content_frame)
 engineDesing_module_instance = PropellantDesignModule(tabs_content["tab_1"])
 
-tabs_content["tab_2"] = ctk.CTkLabel(content_frame, text="Contenido de la pestaña 3")
+tabs_content["tab_2"] = ctk.CTkFrame(content_frame)
+nozzleDesing_module_instance = NozzleDesingModule(tabs_content["tab_2"])
+
 
 # Crear botones para las pestañas
 tabsList = [
     ("Adiabatic Flame\n Temperature", "tab_0"),
     ("Engine Design", "tab_1"),
-    ("2", "tab_2")
+    ("Nozzle Desing", "tab_2")
 ]
 
 for tab, tag in tabsList:
