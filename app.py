@@ -129,7 +129,7 @@ def load_configuration(working_path):
             adiabatic_module_instance.temp_guess.insert(0, tab_0_config["temp_guess"])
             adiabatic_module_instance.update_reaction_label()
 
-        # Cargar configuración de tab_1
+            # Cargar configuración de tab_1
             engineDesing_module_instance.propellant_selector.set(tab_1_config["propellant"])
             engineDesing_module_instance.grainGeo_selector.set(tab_1_config["geoConfig"])
             engineDesing_module_instance.update_entries(tab_1_config["geoConfig"])

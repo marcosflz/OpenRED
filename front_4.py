@@ -52,11 +52,12 @@ class NozzleDesingModule:
         self.pressure_label.grid(row=3, column=0, padx=10, pady=10, sticky='nswe')
         self.pressure_entry = ctk.CTkEntry(self.inputs_frame)
         self.pressure_entry.grid(row=3, column=1, padx=10, pady=10, sticky='nswe')
+        self.pressure_entry.bind("<Return>", self.update_from_entry)
 
-        self.thrust_label = ctk.CTkLabel(self.inputs_frame, text="F - Punto Diseño (kg): ")
-        self.thrust_label.grid(row=4, column=0, padx=10, pady=10, sticky='nswe')
-        self.thrust_entry = ctk.CTkEntry(self.inputs_frame)
-        self.thrust_entry.grid(row=4, column=1, padx=10, pady=10, sticky='nswe')
+        self.nPoints_label = ctk.CTkLabel(self.inputs_frame, text="Puntos - Resolución: ")
+        self.nPoints_label.grid(row=4, column=0, padx=10, pady=10, sticky='nswe')
+        self.nPoints_entry = ctk.CTkEntry(self.inputs_frame)
+        self.nPoints_entry.grid(row=4, column=1, padx=10, pady=10, sticky='nswe')
 
         nozzles = ["TOPN-BN", "MOC-2D"]
         self.nozzleTypeMenu = ctk.CTkOptionMenu(self.inputs_frame, values=nozzles, command=self.update_options)
@@ -150,16 +151,29 @@ class NozzleDesingModule:
 
         self.update_plot()
 
-        
-
+    def update_from_entry(self, event):
+        try:
+            pressure_value = float(self.pressure_entry.get())
+            if pressure_value < self.minP or pressure_value > self.maxP:
+                messagebox.showerror("Valor introducido inválido", f"El valor debe estar entre {self.minP} y {self.maxP}.")
+            else:
+                self.pressureSlide_Bar.set(pressure_value)
+                self.update_plot()
+        except ValueError:
+            messagebox.showerror("Valor introducido inválido", "Por favor, introduce un número válido.")
 
     def toggle_slider(self):
         if self.pressureCheck_Box.get() == 1:
             self.pressureSlide_Bar.configure(state="disabled", button_color="gray", button_hover_color="gray")
             self.update_entry()
+            self.pressure_entry.configure(state="disabled")
+            self.pressureSlide_Bar.set(self.meanP)
+            
         else:
             self.pressureSlide_Bar.configure(state="normal", button_color="#1F6AA5", button_hover_color="#144870")
             self.update_entry()
+            self.pressure_entry.configure(state="normal")
+            
 
     def update_options(self, selection):
         self.selection = selection
@@ -183,6 +197,8 @@ class NozzleDesingModule:
         # Crear entradas específicas para Tubular
         self.TOPN_entries = []
         labels = [
+            "K1 (Factor Entrada):",
+            "K2 (Factor Garganta):",
             "θₜ (deg):",
             "θₑ (deg):",
             "% (L. Cono):"
