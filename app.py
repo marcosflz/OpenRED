@@ -15,15 +15,14 @@ initialize_database()
 
 global working_path
 global file_path
+closing = False
 
 working_path = None
 file_path = None
-closing = False
 
 # Función para obtener el valor del Entry con un valor por defecto de 0 si está vacío
 def get_entry_value(entry):
     return entry.get() if entry.get() else '0'
-
 
 
 def open_directory():
@@ -34,7 +33,7 @@ def open_directory():
         file_path = os.path.join(working_path, "config.json")
         save_dir_path(working_path)
         load_configuration(working_path)
-            
+
 
 def open_on_saving_directory():
     global working_path
@@ -57,17 +56,17 @@ def save_configuration():
         if open_on_saving_directory():
             file_path = os.path.join(working_path, "config.json")
         else:
-            return 
-        
+            return
+
     if file_path:
         config = {
             "tabs": {
                 "tab_0": {
-                    "reactivos"     : [(get_entry_value(entry), combo.get()) for entry, combo in adiabatic_module_instance.reactivos_widgets],
-                    "productos"     : [(get_entry_value(entry), combo.get()) for entry, combo in adiabatic_module_instance.productos_widgets],
-                    "initial_temp"  : get_entry_value(adiabatic_module_instance.initial_temp),
-                    "temp_Int_step" : get_entry_value(adiabatic_module_instance.temp_Int_step),
-                    "temp_guess"    : get_entry_value(adiabatic_module_instance.temp_guess)
+                    "reactivos": [(get_entry_value(entry), combo.get()) for entry, combo in adiabatic_module_instance.reactivos_widgets],
+                    "productos": [(get_entry_value(entry), combo.get()) for entry, combo in adiabatic_module_instance.productos_widgets],
+                    "initial_temp": get_entry_value(adiabatic_module_instance.initial_temp),
+                    "temp_Int_step": get_entry_value(adiabatic_module_instance.temp_Int_step),
+                    "temp_guess": get_entry_value(adiabatic_module_instance.temp_guess)
                 },
                 "tab_1": {
                     "propellant": engineDesing_module_instance.propellant_selector.get(),
@@ -83,6 +82,7 @@ def save_configuration():
         }
         with open(file_path, 'w') as config_file:
             json.dump(config, config_file)
+
 
 def load_configuration(working_path):
     file_path = os.path.join(working_path, "config.json")
@@ -153,11 +153,15 @@ def load_configuration(working_path):
         except Exception as e:
             print(f"Error loading configuration: {e}")
 
+
+def change_appearance_mode(mode):
+    ctk.set_appearance_mode(mode)
+
+
 def on_closing():
     global closing
     if not closing:
         closing = True
-        #if 'file_path' not in globals():
         answer = messagebox.askyesno("Guardar", "¿Deseas guardar la configuración antes de salir?")
         if answer:
             save_configuration()
@@ -169,8 +173,6 @@ def on_closing():
 # Inicializar la aplicación
 main_frame = ctk.CTk()
 main_frame.geometry("1920x1080")
-
-
 main_frame.title("Display de la Reacción")
 
 # Diccionario para guardar las pestañas
@@ -191,6 +193,8 @@ file_menu.add_command(label="Salir", command=on_closing)
 preferences_menu = tk.Menu(menu, tearoff=0)
 menu.add_cascade(label="Preferencias", menu=preferences_menu)
 
+preferences_menu.add_command(label="Modo Oscuro", command=lambda: change_appearance_mode("dark"))
+preferences_menu.add_command(label="Modo Claro", command=lambda: change_appearance_mode("light"))
 
 database_menu = tk.Menu(menu, tearoff=0)
 menu.add_cascade(label="Base de Datos", menu=database_menu)
