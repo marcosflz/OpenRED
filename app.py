@@ -170,6 +170,7 @@ def on_closing():
 main_frame = ctk.CTk()
 main_frame.geometry("1920x1080")
 
+
 main_frame.title("Display de la Reacción")
 
 # Diccionario para guardar las pestañas

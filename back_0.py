@@ -190,7 +190,7 @@ class TubularGrain:
         
         for attr, value in zip(attributes, inputs):
             setattr(self, attr, value)
-        
+   
         self.P, self.G, self.M, self.t = self.combTime()
         self.meanPressure, self.meanMassFlow = self.mean_values()
         self.Pmin, self.Pmax = np.min(self.P[1:-1]), np.max(self.P[1:-1])
@@ -235,7 +235,7 @@ class TubularGrain:
             P[i], G[i], m[i], dt[i] = iterCalc(i)
 
             if P[i] > self.P1_max or P[i] < self.P1_min:
-                return print("Error PMax")
+                return messagebox.showerror("Out of range","Error PMax - Valor de presion fuera del rango de operacion del propelente")
 
         P[-1], G[-1], m[-1] = self.P0, 0, 0
 
