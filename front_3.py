@@ -2,6 +2,7 @@ from imports import *
 from functions import *
 
 from back_0 import *
+from back_1 import *
 
 class PropellantDesignModule:
     def __init__(self, content_frame):
@@ -115,21 +116,37 @@ class PropellantDesignModule:
         self.totalMass_entry.grid(row=4, column=3, padx=10, pady=10, sticky="nsew")
 
 
+        #self.tree_frame = ctk.CTkFrame(self.outputs_frame)
+        #self.tree_frame.grid(row=5, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
+        #self.tree_frame.grid_rowconfigure(0, weight=1)
+        #self.tree_frame.grid_columnconfigure(0, weight=1)
+#
+        ## Crear Treeview con Scrollbar
+        #self.tree_scrollbar = tk.Scrollbar(self.tree_frame, orient="vertical")
+        #self.tree = ttk.Treeview(self.tree_frame, columns=("Tiempo (s)", "Presión (Pa)", "Flujo Másico (kg/s)", "Masa (kg)"), show="headings", #yscrollcommand=self.tree_scrollbar.set)
+        #self.tree_scrollbar.config(command=self.tree.yview)
+        #self.tree_scrollbar.pack(side="right", fill="y")
+        #self.tree.pack(fill="both", expand=True)
+#
+        #for col in self.tree["columns"]:
+        #    self.tree.heading(col, text=col)
+        #    self.tree.column(col, anchor="center", width=100)
+
         self.tree_frame = ctk.CTkFrame(self.outputs_frame)
         self.tree_frame.grid(row=5, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
         self.tree_frame.grid_rowconfigure(0, weight=1)
         self.tree_frame.grid_columnconfigure(0, weight=1)
 
-        # Crear Treeview con Scrollbar
-        self.tree_scrollbar = tk.Scrollbar(self.tree_frame, orient="vertical")
-        self.tree = ttk.Treeview(self.tree_frame, columns=("Tiempo (s)", "Presión (Pa)", "Flujo Másico (kg/s)", "Masa (kg)"), show="headings", yscrollcommand=self.tree_scrollbar.set)
-        self.tree_scrollbar.config(command=self.tree.yview)
-        self.tree_scrollbar.pack(side="right", fill="y")
-        self.tree.pack(fill="both", expand=True)
+        self.tree = ttk.Treeview(self.tree_frame, columns=("Tiempo (s)", "Presión (Pa)", "Flujo Másico (kg/s)", "Masa (kg)"), show="headings")
+        self.tree.grid(row=0, column=0, sticky="nsew")
 
         for col in self.tree["columns"]:
             self.tree.heading(col, text=col)
             self.tree.column(col, anchor="center", width=100)
+
+        self.tree_scrollbar = ctk.CTkScrollbar(self.tree_frame, orientation="vertical", command=self.tree.yview)
+        self.tree_scrollbar.grid(row=0, column=1, sticky="ns")
+        self.tree.configure(yscrollcommand=self.tree_scrollbar.set)
 
         self.graphs_frame = ctk.CTkFrame(self.content_frame)
         self.graphs_frame.grid(row=0, column=1, rowspan=2, padx=10, pady=10, sticky="nsew")

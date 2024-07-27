@@ -7,9 +7,9 @@ class NozzleDesingModule:
     def __init__(self, content_frame):
         self.content_frame = content_frame
         self.content_frame.grid_rowconfigure(0, weight=1)
-        self.content_frame.grid_rowconfigure(1, weight=5)
-        self.content_frame.grid_rowconfigure(2, weight=5)
-        self.content_frame.grid_rowconfigure(3, weight=5)
+        self.content_frame.grid_rowconfigure(1, weight=20)
+        self.content_frame.grid_rowconfigure(2, weight=20)
+        self.content_frame.grid_rowconfigure(3, weight=1)
         self.content_frame.grid_columnconfigure(0, weight=1)
         self.content_frame.grid_columnconfigure(1, weight=2)
 
@@ -17,7 +17,7 @@ class NozzleDesingModule:
         self.updateIteration = 0
 
         self.inputs_frame = ctk.CTkFrame(self.content_frame)
-        self.inputs_frame.grid(row=1, column=0, padx=10, pady=10, sticky='nswe')
+        self.inputs_frame.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
         self.inputs_frame.grid_rowconfigure(0,weight=1)
         self.inputs_frame.grid_rowconfigure(1,weight=1)
         self.inputs_frame.grid_rowconfigure(2,weight=1)
@@ -27,7 +27,7 @@ class NozzleDesingModule:
         self.inputs_frame.grid_rowconfigure(6,weight=1)
         self.inputs_frame.grid_columnconfigure(0,weight=1)
         self.inputs_frame.grid_columnconfigure(1,weight=1)
-        self.inputs_frame.grid_columnconfigure(2,weight=8)
+        self.inputs_frame.grid_columnconfigure(2,weight=15)
 
 
         self.inputsLabel = ctk.CTkLabel(self.inputs_frame, text="Inputs")
@@ -68,6 +68,7 @@ class NozzleDesingModule:
 
         self.pressureGraph_Frame = ctk.CTkFrame(self.inputs_frame)
         self.pressureGraph_Frame.grid(row=1, column=2, rowspan=6, padx=10, pady=10, sticky='nswe')
+        self.pressureGraph_Frame.grid_rowconfigure(0, weight=1)
         self.pressureGraph_Frame.configure(fg_color="white")
         self.pressureGraph_Frame.grid_propagate(False)
         self.pressureGraph_Frame.bind("<Enter>", command=self.update_plot)
@@ -75,15 +76,201 @@ class NozzleDesingModule:
         
 
 
-
         self.graphs_frame = ctk.CTkFrame(self.content_frame)
-        self.graphs_frame.grid(row=1, rowspan=2, column=1, padx=10, pady=10, sticky='nswe')
+        self.graphs_frame.grid(row=0, rowspan=3, column=1, padx=10, pady=10, sticky='nswe')
+        self.graphs_frame.grid_columnconfigure(0, weight=1)
+        self.graphs_frame.grid_rowconfigure(0, weight=1)
+
+        self.resultsTabs = ctk.CTkTabview(self.graphs_frame)
+        self.resultsTabs.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
+        self.resultsTabs.add("Características") 
+        self.resultsTabs.add("Puntos de Operación") 
+
+
+
+        self.characteristics_frame = ctk.CTkFrame(self.resultsTabs.tab("Características"))
+        self.characteristics_frame.pack(fill="both", expand=True)
+        self.characteristics_frame.grid_propagate(False)
+        self.characteristics_frame.grid_columnconfigure(0, weight=1)
+        self.characteristics_frame.grid_rowconfigure(0, weight=1)
+        self.characteristics_frame.grid_rowconfigure(1, weight=1)
+        self.characteristics_frame.grid_rowconfigure(2, weight=1)
+
+        self.thrustGraph_frame = ctk.CTkFrame(self.characteristics_frame)
+        self.thrustGraph_frame.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
+        self.thrustGraph_frame.configure(fg_color='white')
+
+        self.thrustCoefGraph_frame = ctk.CTkFrame(self.characteristics_frame)
+        self.thrustCoefGraph_frame.grid(row=1, column=0, padx=10, pady=10, sticky='nswe')
+        self.thrustCoefGraph_frame.configure(fg_color='white')
+
+        self.nozzleMapGraph_frame = ctk.CTkFrame(self.characteristics_frame)
+        self.nozzleMapGraph_frame.grid(row=2, column=0, padx=10, pady=10, sticky='nswe')
+        self.nozzleMapGraph_frame.configure(fg_color='white')
+
+
+
+        self.operating_points_frame = ctk.CTkFrame(self.resultsTabs.tab("Puntos de Operación"))
+        self.operating_points_frame.pack(fill="both", expand=True)
+        self.operating_points_frame.grid_propagate(False)
+        self.operating_points_frame.grid_columnconfigure(0, weight=1)
+        self.operating_points_frame.grid_rowconfigure(0, weight=8)
+        self.operating_points_frame.grid_rowconfigure(1, weight=8)
+        self.operating_points_frame.grid_rowconfigure(2, weight=8)
+        self.operating_points_frame.grid_rowconfigure(3, weight=1)
+
+        self.presMap_frame = ctk.CTkFrame(self.operating_points_frame)
+        self.presMap_frame.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
+        self.presMap_frame.configure(fg_color='white')
+
+        self.machMap_frame = ctk.CTkFrame(self.operating_points_frame)
+        self.machMap_frame.grid(row=1, column=0, padx=10, pady=10, sticky='nswe')
+        self.machMap_frame.configure(fg_color='white')
+
+        self.numericFrame = ctk.CTkFrame(self.operating_points_frame)
+        self.numericFrame.grid(row=2, column=0, padx=10, pady=10, sticky='nswe')
+        self.numericFrame.grid_rowconfigure(0, weight=1)
+        self.numericFrame.grid_rowconfigure(1, weight=1)
+        self.numericFrame.grid_rowconfigure(2, weight=1)
+        self.numericFrame.grid_rowconfigure(3, weight=1)
+        self.numericFrame.grid_columnconfigure(0, weight=1)
+        self.numericFrame.grid_columnconfigure(1, weight=1)
+        self.numericFrame.grid_columnconfigure(2, weight=1)
+        self.numericFrame.grid_columnconfigure(3, weight=1)
+
+
+        self.PR_Crit_0_Label = ctk.CTkLabel(self.numericFrame, text="(P0/P1t) - Choked")
+        self.PR_Crit_0_Label.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
+        self.PR_Crit_0_Entry = ctk.CTkEntry(self.numericFrame)
+        self.PR_Crit_0_Entry.grid(row=0, column=1, padx=10, pady=10, sticky='nswe')
+
+        self.PR_Crit_1_Label = ctk.CTkLabel(self.numericFrame, text="(Pe/P1t) - Subsónico")
+        self.PR_Crit_1_Label.grid(row=1, column=0, padx=10, pady=10, sticky='nswe')
+        self.PR_Crit_1_Entry = ctk.CTkEntry(self.numericFrame)
+        self.PR_Crit_1_Entry.grid(row=1, column=1, padx=10, pady=10, sticky='nswe')
+
+        self.PR_Crit_2_Label = ctk.CTkLabel(self.numericFrame, text="(Pe/P1t) - NS Salida")
+        self.PR_Crit_2_Label.grid(row=2, column=0, padx=10, pady=10, sticky='nswe')
+        self.PR_Crit_2_Entry = ctk.CTkEntry(self.numericFrame)
+        self.PR_Crit_2_Entry.grid(row=2, column=1, padx=10, pady=10, sticky='nswe')
+
+        self.PR_Crit_3_Label = ctk.CTkLabel(self.numericFrame, text="(Pe/P1t) - Optimo")
+        self.PR_Crit_3_Label.grid(row=3, column=0, padx=10, pady=10, sticky='nswe')
+        self.PR_Crit_3_Entry = ctk.CTkEntry(self.numericFrame)
+        self.PR_Crit_3_Entry.grid(row=3, column=1, padx=10, pady=10, sticky='nswe')
+
+
+
+        self.PR1_Label = ctk.CTkLabel(self.numericFrame, text="P0/P1t")
+        self.PR1_Label.grid(row=0, column=2, padx=10, pady=10, sticky='nswe')
+        self.PR1_Entry = ctk.CTkEntry(self.numericFrame)
+        self.PR1_Entry.grid(row=0, column=3, padx=10, pady=10, sticky='nswe')
+
+        self.PR2_Label = ctk.CTkLabel(self.numericFrame, text="Pe/P1t")
+        self.PR2_Label.grid(row=1, column=2, padx=10, pady=10, sticky='nswe')
+        self.PR2_Entry = ctk.CTkEntry(self.numericFrame)
+        self.PR2_Entry.grid(row=1, column=3, padx=10, pady=10, sticky='nswe')
+
+        self.PR3_Label = ctk.CTkLabel(self.numericFrame, text="Pe/P0")
+        self.PR3_Label.grid(row=2, column=2, padx=10, pady=10, sticky='nswe')
+        self.PR3_Entry = ctk.CTkEntry(self.numericFrame)
+        self.PR3_Entry.grid(row=2, column=3, padx=10, pady=10, sticky='nswe')
+
+        self.ThrustPerf_Label = ctk.CTkLabel(self.numericFrame, text="T/T(Op)")
+        self.ThrustPerf_Label.grid(row=3, column=2, padx=10, pady=10, sticky='nswe')
+        self.ThrustPerf_Entry = ctk.CTkEntry(self.numericFrame)
+        self.ThrustPerf_Entry.grid(row=3, column=3, padx=10, pady=10, sticky='nswe')
+
+
+
+        self.timeSlider_frame = ctk.CTkFrame(self.operating_points_frame)
+        self.timeSlider_frame.grid(row=3, column=0, padx=10, pady=10, sticky='nswe')
+        self.timeSlider_frame.grid_rowconfigure(0, weight=1)
+        self.timeSlider_frame.grid_columnconfigure(0, weight=1)
+        self.timeSlider_frame.grid_columnconfigure(1, weight=3)
+        self.timeSlider_frame.grid_columnconfigure(2, weight=1)
+
+        self.time_label = ctk.CTkLabel(self.timeSlider_frame, text="Tiempo (s)")
+        self.time_label.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
+
+        self.timeSlider = ctk.CTkSlider(self.timeSlider_frame, from_=0, to=1)
+        self.timeSlider.grid(row=0, column=1, padx=10, pady=10, sticky='nswe')
+
+        self.time_entry = ctk.CTkEntry(self.timeSlider_frame)
+        self.time_entry.grid(row=0, column=2, padx=10, pady=10, sticky='nswe')
+
+       
+
+
+        
+
+
+
+
+
+
+
+
+
 
         self.results_frame = ctk.CTkFrame(self.content_frame)
-        self.results_frame.grid(row=2, column=0, padx=10, pady=10, sticky='nswe')
+        self.results_frame.grid(row=1, rowspan=3, column=0, padx=10, pady=10, sticky='nswe')
+        self.results_frame.grid_rowconfigure(0, weight=1)
+        self.results_frame.grid_columnconfigure(0, weight=1)
+        self.results_frame.grid_columnconfigure(1, weight=1)
+        self.results_frame.grid_propagate(False)
 
+        self.numericResults_frame = ctk.CTkScrollableFrame(self.results_frame)
+        self.numericResults_frame.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
+        self.numericResults_frame.grid_columnconfigure(0, weight=1)
+        self.numericResults_frame.grid_columnconfigure(1, weight=1)
+        self.numericResults_label = ctk.CTkLabel(self.numericResults_frame, text="Resultados Numéricos")
+        self.numericResults_label.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
+
+        self.resultsEntries = {}
+        data = [
+            "DP. Thrust (kg)", "Med. Thrust (kg)", 
+            "CF (DP.)", "CF (Med.)",
+            "It", "Isp",
+            "Vs (DP.)", "Vs (Med.)",
+            "Ts (DP.)", "Ts (Med.)",
+            "Ps (DP.)", "Ps (Med.)",
+            "AR", "MS",
+            "Longitud (m)", "R1 (m)",
+            "Rt (m)", "R2 (m)"
+            ]
+        # Llamar a la función para añadir labels y entries
+        self.add_labels_and_entries(self.numericResults_frame, data)
+    
+  
+
+        # Crear TabView
+        self.tabview = ctk.CTkTabview(self.results_frame)
+        self.tabview.grid(row=0, column=1, padx=10, pady=10, sticky='nswe')
+
+        # Añadir pestaña
+        self.tabview.add("Resultados")
+        self.tabview.add("Geometria")
+
+        # Crear ScrollableFrame y Treeview en la pestaña "Resultados"
+        self._create_treeview_in_tab(self.tabview.tab("Resultados"), [("Tiempo (s)", "Empuje (kg)", "CF")])
+        
+        # Crear ScrollableFrame y Treeview en la pestaña "Geometria"
+        self._create_treeview_in_tab(self.tabview.tab("Geometria"), [("X (m)", "Y (m)", "AR")])
+
+    
         self.calcExport_frame = ctk.CTkFrame(self.content_frame)
         self.calcExport_frame.grid(row=3, column=1, padx=10, pady=10, sticky='nswe')
+        self.calcExport_frame.grid_columnconfigure(0, weight=1)
+        self.calcExport_frame.grid_columnconfigure(1, weight=2)
+        self.calcExport_frame.grid_rowconfigure(0, weight=1)
+
+        self.calcButton =  ctk.CTkButton(self.calcExport_frame, text="Calcular Resultados")
+        self.calcButton.grid(row=0, column=1, padx=10, pady=10, sticky='nswe')
+
+        self.exportData =  ctk.CTkButton(self.calcExport_frame, text="Exportar Datos")
+        self.exportData.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
+        
 
         self.TOPN_widgets = []
         self.MOC2D_widgets = []
@@ -92,6 +279,52 @@ class NozzleDesingModule:
         self.create_TOPN_entries()
         self.create_MOC2D_entries()
         self.update_options('TOPN-BN')
+
+    
+    def add_labels_and_entries(self, frame, data_list):
+        for i, text in enumerate(data_list):
+            label = ctk.CTkLabel(frame, text=text)
+            label.grid(row=i+1, column=0, padx=5, pady=5, sticky='w')
+            entry = ctk.CTkEntry(frame)
+            entry.grid(row=i+1, column=1, padx=5, pady=5, sticky='we')
+            # Guardar la referencia del entry en el diccionario
+            self.resultsEntries[text] = entry
+
+    def get_entryResults_values(self):
+        # Obtener los valores de los entries guardados en el diccionario
+        values = {key: entry.get() for key, entry in self.resultsEntries.items()}
+        return values
+
+
+
+    def _create_treeview_in_tab(self, tab, columns_list):
+        for i, columns in enumerate(columns_list):
+            tree_frame = ctk.CTkFrame(tab)
+            tree_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+            tree_frame.grid_rowconfigure(0, weight=1)
+            tree_frame.grid_columnconfigure(0, weight=1)
+
+            tree = ttk.Treeview(tree_frame, columns=columns, show="headings")
+            tree.grid(row=0, column=0, sticky="nsew")
+
+            for col in columns:
+                tree.heading(col, text=col)
+                tree.column(col, anchor="center", width=100)
+
+            tree_scrollbar = ctk.CTkScrollbar(tree_frame, orientation="vertical", command=tree.yview)
+            tree_scrollbar.grid(row=0, column=1, sticky="ns")
+            tree.configure(yscrollcommand=tree_scrollbar.set)
+
+        tab.grid_rowconfigure(len(columns_list) - 1, weight=1)
+        tab.grid_columnconfigure(0, weight=1)
+
+
+
+
+    def on_TimeSlide(self, value):
+        index = int(round(value))
+        self.time_entry.delete(0, tk.END)
+        self.time_entry.insert(0, str(self.t[index]))
 
     def get_engine_data(self):
         file_path = filedialog.askopenfilename(defaultextension=".json", filetypes=[("JSON files", "*.json"), ("All files", "*.*")])
@@ -134,6 +367,12 @@ class NozzleDesingModule:
             self.pressureCheck_Box.configure(state="normal")
             self.pressureCheck_Box.select()
             self.toggle_slider()
+
+            self.timeSlider.configure(from_=0, to=len(self.t)-1, number_of_steps=len(self.t)-1 , command=self.on_TimeSlide)
+            self.timeSlider.set(self.t[0])
+            self.time_entry.delete(0, tk.END)
+            self.time_entry.insert(0, str(self.t[0]))
+            
 
     def update_slider(self):
         if self.P:
@@ -201,7 +440,8 @@ class NozzleDesingModule:
             "K2 (Factor Garganta):",
             "θₜ (deg):",
             "θₑ (deg):",
-            "% (L. Cono):"
+            "% (L. Cono):",
+            "% (Entrada):"
         ]
 
         for i, label_text in enumerate(labels):
@@ -237,7 +477,7 @@ class NozzleDesingModule:
         try:
             # Crear una figura y un eje
             height, width = self.pressureGraph_Frame.winfo_height() / 100, self.pressureGraph_Frame.winfo_width() / 100
-            fig, ax = plt.subplots(figsize=(width, width))
+            fig, ax = plt.subplots(figsize=(width, height))
 
             # Dibujar los círculos exteriores e interiores
             ax.plot(self.t, self.P)

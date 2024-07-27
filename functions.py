@@ -48,3 +48,92 @@ def clear_dir_path():
 
 
 
+def newtonRaph(f, x0, tol, max_iter, h):
+    """
+    Método de Newton-Raphson para encontrar las raíces de una función.
+    Args:
+    f: función objetivo.
+    x0: valor inicial para la raíz.
+    tol: tolerancia para la convergencia.
+    max_iter: número máximo de iteraciones.
+    h: paso pequeño para la derivada numérica.
+    Returns:
+    La raíz aproximada de la función.
+    """
+    def fp(f, x, h):
+        return (f(x + h) - f(x - h)) / (2 * h)
+
+    x = x0
+    for i in range(max_iter):
+        fx = f(x)
+        dfx = fp(f, x, h)
+
+        if dfx == 0:
+            return messagebox.showinfo("Error", "Derivada nula. El método de Newton-Raphson no puede continuar.")
+
+        x_new = x - fx / dfx
+
+        if abs(x_new - x) < tol:
+            return x_new
+
+        x = x_new
+
+    return messagebox.showinfo("Error", "El método de Newton-Raphson no convergió en el número máximo de iteraciones.")
+
+def integration(f,a,b,h):
+    return h * ( (f(a) + f(b))/2 + sum([f(a + k*h) for k in range(1, int((b - a)/h))]))
+
+def discreteIntegration(fs, xs):
+    return sum([(xs[i+1] - xs[i]) * (fs[i+1] + fs[i]) / 2 for i in range(len(fs)-1)])
+
+def initialize_database():
+    db_filename = 'database.db'
+    conn = sqlite3.connect(db_filename)
+    c = conn.cursor()
+
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS termoquimica (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            Component TEXT,
+            MolWeight NUMERIC,
+            Hf0 NUMERIC,
+            minColdTemp NUMERIC,
+            maxColdTemp NUMERIC,
+            minHotTemp NUMERIC,
+            maxHotTemp NUMERIC,
+            a1_cold NUMERIC,
+            a2_cold NUMERIC,
+            a3_cold NUMERIC,
+            a4_cold NUMERIC,
+            a5_cold NUMERIC,
+            a1_hot NUMERIC,
+            a2_hot NUMERIC,
+            a3_hot NUMERIC,
+            a4_hot NUMERIC,
+            a5_hot NUMERIC
+        )
+    ''')
+
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS propelente (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            Propelente TEXT,
+            T_ad NUMERIC,
+            MolWeight NUMERIC,
+            Cp NUMERIC,
+            Cv NUMERIC,
+            R NUMERIC,
+            gamma NUMERIC,
+            cChar NUMERIC,
+            Density NUMERIC,
+            P1_min NUMERIC,
+            P1_max NUMERIC,
+            a NUMERIC,
+            n NUMERIC
+        )
+    ''')
+
+    conn.commit()
+    conn.close()
+
+
