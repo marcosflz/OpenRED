@@ -79,6 +79,17 @@ def save_configuration():
                     "tubular_P0": get_entry_value(engineDesing_module_instance.tubular_entries[4]),
                     "tubular_dr": get_entry_value(engineDesing_module_instance.tubular_entries[5]),
                 },
+                "tab_2": {
+                    "engine_config": nozzleDesing_module_instance.file_path_label.cget("text"),
+                    "P1": get_entry_value(nozzleDesing_module_instance.pressure_entry),
+                    "n_res":get_entry_value(nozzleDesing_module_instance.nPoints_entry),
+                    "TOPBN_K1_factor": get_entry_value(nozzleDesing_module_instance.TOPN_entries[0]),
+                    "TOPBN_K2_factor": get_entry_value(nozzleDesing_module_instance.TOPN_entries[1]),
+                    "TOPBN_theta_t": get_entry_value(nozzleDesing_module_instance.TOPN_entries[2]),
+                    "TOPBN_theta_e": get_entry_value(nozzleDesing_module_instance.TOPN_entries[3]),
+                    "TOPBN_percentL": get_entry_value(nozzleDesing_module_instance.TOPN_entries[4]),
+                    "TOPBN_percentIn": get_entry_value(nozzleDesing_module_instance.TOPN_entries[5]),
+                }
             }
         }
         with open(file_path, 'w') as config_file:
@@ -95,6 +106,8 @@ def load_configuration(working_path):
             # Restaurar la configuración de las pestañas
             tab_0_config = config["tabs"]["tab_0"]
             tab_1_config = config["tabs"]["tab_1"]
+            tab_2_config = config["tabs"]["tab_2"]
+
 
             # Clear existing widgets
             for entry, combo in adiabatic_module_instance.reactivos_widgets:
@@ -148,6 +161,26 @@ def load_configuration(working_path):
             engineDesing_module_instance.tubular_entries[5].delete(0, tk.END)
             engineDesing_module_instance.tubular_entries[5].insert(0, tab_1_config["tubular_dr"])
             engineDesing_module_instance.update_plot()
+
+            # Cargar configuracion de tab_2
+            engine_path = os.path.join(working_path, "Engines", tab_2_config["engine_config"])
+            nozzleDesing_module_instance.get_engine_data(on_load=True, file=engine_path)
+            nozzleDesing_module_instance.pressure_entry.delete(0, tk.END)
+            nozzleDesing_module_instance.pressure_entry.insert(0, tab_2_config["P1"])
+            nozzleDesing_module_instance.nPoints_entry.delete(0, tk.END)
+            nozzleDesing_module_instance.nPoints_entry.insert(0, tab_2_config["n_res"])
+            nozzleDesing_module_instance.TOPN_entries[0].delete(0, tk.END)
+            nozzleDesing_module_instance.TOPN_entries[0].insert(0, tab_2_config["TOPBN_K1_factor"])
+            nozzleDesing_module_instance.TOPN_entries[1].delete(0, tk.END)
+            nozzleDesing_module_instance.TOPN_entries[1].insert(0, tab_2_config["TOPBN_K2_factor"])
+            nozzleDesing_module_instance.TOPN_entries[2].delete(0, tk.END)
+            nozzleDesing_module_instance.TOPN_entries[2].insert(0, tab_2_config["TOPBN_theta_t"])
+            nozzleDesing_module_instance.TOPN_entries[3].delete(0, tk.END)
+            nozzleDesing_module_instance.TOPN_entries[3].insert(0, tab_2_config["TOPBN_theta_e"])
+            nozzleDesing_module_instance.TOPN_entries[4].delete(0, tk.END)
+            nozzleDesing_module_instance.TOPN_entries[4].insert(0, tab_2_config["TOPBN_percentL"])
+            nozzleDesing_module_instance.TOPN_entries[5].delete(0, tk.END)
+            nozzleDesing_module_instance.TOPN_entries[5].insert(0, tab_2_config["TOPBN_percentIn"])
 
         except FileNotFoundError:
             print("No previous configuration found. Starting with default values.")

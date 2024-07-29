@@ -2,6 +2,8 @@ from imports import *
 from functions import *
 
 from back_0 import *
+from back_1 import *
+from back_2 import *
 
 class NozzleDesingModule:
     def __init__(self, content_frame):
@@ -183,35 +185,23 @@ class NozzleDesingModule:
 
 
 
-        self.timeSlider_frame = ctk.CTkFrame(self.operating_points_frame)
-        self.timeSlider_frame.grid(row=3, column=0, padx=10, pady=10, sticky='nswe')
-        self.timeSlider_frame.grid_rowconfigure(0, weight=1)
-        self.timeSlider_frame.grid_columnconfigure(0, weight=1)
-        self.timeSlider_frame.grid_columnconfigure(1, weight=3)
-        self.timeSlider_frame.grid_columnconfigure(2, weight=1)
+        self.pressureSlider_frame = ctk.CTkFrame(self.operating_points_frame)
+        self.pressureSlider_frame.grid(row=3, column=0, padx=10, pady=10, sticky='nswe')
+        self.pressureSlider_frame.grid_rowconfigure(0, weight=1)
+        self.pressureSlider_frame.grid_columnconfigure(0, weight=1)
+        self.pressureSlider_frame.grid_columnconfigure(1, weight=3)
+        self.pressureSlider_frame.grid_columnconfigure(2, weight=1)
 
-        self.time_label = ctk.CTkLabel(self.timeSlider_frame, text="Tiempo (s)")
-        self.time_label.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
+        self.pressure2_label = ctk.CTkLabel(self.pressureSlider_frame, text="Presión (Pa)")
+        self.pressure2_label.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
 
-        self.timeSlider = ctk.CTkSlider(self.timeSlider_frame, from_=0, to=1)
-        self.timeSlider.grid(row=0, column=1, padx=10, pady=10, sticky='nswe')
+        self.pressureSlider = ctk.CTkSlider(self.pressureSlider_frame, from_=0, to=1)
+        self.pressureSlider.grid(row=0, column=1, padx=10, pady=10, sticky='nswe')
 
-        self.time_entry = ctk.CTkEntry(self.timeSlider_frame)
-        self.time_entry.grid(row=0, column=2, padx=10, pady=10, sticky='nswe')
+        self.pressure2_entry = ctk.CTkEntry(self.pressureSlider_frame)
+        self.pressure2_entry.grid(row=0, column=2, padx=10, pady=10, sticky='nswe')
 
-       
-
-
-        
-
-
-
-
-
-
-
-
-
+    
 
         self.results_frame = ctk.CTkFrame(self.content_frame)
         self.results_frame.grid(row=1, rowspan=3, column=0, padx=10, pady=10, sticky='nswe')
@@ -236,7 +226,7 @@ class NozzleDesingModule:
             "Ts (DP.)", "Ts (Med.)",
             "Ps (DP.)", "Ps (Med.)",
             "AR", "MS",
-            "Longitud (m)", "R1 (m)",
+            "Longitud (m)",
             "Rt (m)", "R2 (m)"
             ]
         # Llamar a la función para añadir labels y entries
@@ -265,7 +255,7 @@ class NozzleDesingModule:
         self.calcExport_frame.grid_columnconfigure(1, weight=2)
         self.calcExport_frame.grid_rowconfigure(0, weight=1)
 
-        self.calcButton =  ctk.CTkButton(self.calcExport_frame, text="Calcular Resultados")
+        self.calcButton =  ctk.CTkButton(self.calcExport_frame, text="Calcular Resultados", command=self.calculate_n_show)
         self.calcButton.grid(row=0, column=1, padx=10, pady=10, sticky='nswe')
 
         self.exportData =  ctk.CTkButton(self.calcExport_frame, text="Exportar Datos")
@@ -279,6 +269,116 @@ class NozzleDesingModule:
         self.create_TOPN_entries()
         self.create_MOC2D_entries()
         self.update_options('TOPN-BN')
+
+    def start_calculate_n_show(self):
+        threading.Thread(target=self.calculate_n_show).start()
+
+    def create_progress_window(self):
+        self.progress_window = ctk.CTkToplevel(self.content_frame)
+        self.progress_window.title("Progreso")
+        
+        self.progress_var = ctk.DoubleVar()
+
+        # Frame para la barra de progreso y el porcentaje
+        self.progress_frame = ctk.CTkFrame(self.progress_window)
+        self.progress_frame.grid(padx=20, pady=20, sticky='nswe')
+
+        # Barra de progreso
+        self.progress_bar = ctk.CTkProgressBar(self.progress_frame, variable=self.progress_var)
+        self.progress_bar.grid(row=0, column=0, padx=10, pady=10, sticky='ew')
+
+        # Etiqueta de porcentaje
+        self.progress_label = ctk.CTkLabel(self.progress_frame, text="0%")
+        self.progress_label.grid(row=0, column=1, padx=10, pady=10, sticky='w')
+
+        self.progress_frame.grid_columnconfigure(0, weight=1)
+
+        # Calcular el tamaño del progress_frame para ajustar la ventana
+        self.progress_frame.update_idletasks()
+        frame_width = self.progress_frame.winfo_reqwidth() * 1.4 # Sumar padding
+        frame_height = self.progress_frame.winfo_reqheight() * 2  # Sumar padding
+
+        # Calcular el centro de la pantalla
+        screen_width = self.progress_window.winfo_screenwidth()
+        screen_height = self.progress_window.winfo_screenheight()
+        position_top = int(screen_height / 2 - frame_height / 2)
+        position_right = int(screen_width / 2 - frame_width / 2)
+        
+        self.progress_window.geometry(f"{int(frame_width)}x{int(frame_height)}+{position_right}+{position_top}")
+
+        self.progress_window.transient(self.content_frame)
+        self.progress_window.grab_set()
+
+        # Manejar el cierre de la ventana de progreso
+        self.progress_window.protocol("WM_DELETE_WINDOW", self.on_progress_window_close)
+
+
+    def on_progress_window_close(self):
+        self.calculation_running = False
+        self.progress_window.destroy()
+
+    def update_progress(self, progress):
+        self.content_frame.after(0, self._update_progress, progress)
+
+    def _update_progress(self, progress):
+        self.progress_var.set(progress)
+        self.progress_label.configure(text=f"Progreso: {int(progress * 100)}%")
+        self.progress_window.update_idletasks()
+
+    def run_TOPBN_loop(self, total_steps):
+        for i, P_Off in enumerate(self.calculatedNozzle.P_t):
+                if not self.calculation_running:
+                    break  # Detener el cálculo si la ventana de progreso se ha cerrado
+                
+                self.calculatedNozzle.M2_t[i] = self.calculatedNozzle.opPoint_plot(P_Off)["Mach"][-1]
+                self.calculatedNozzle.P2_t[i] = P_Off / self.calculatedNozzle.P_ratio(self.calculatedNozzle.M2_t[i])
+                self.calculatedNozzle.T2_t[i] = self.calculatedNozzle.T1 / (1 + (self.calculatedNozzle.gamma - 1)/2 * self.calculatedNozzle.M2_t[i]**2)
+                self.calculatedNozzle.V2_t[i] = self.calculatedNozzle.M2_t[i] * np.sqrt(self.calculatedNozzle.gamma * self.calculatedNozzle.R * self.calculatedNozzle.T2_t[i])
+                
+                F1 = self.calculatedNozzle.G_t[i] * self.calculatedNozzle.V2_t[i]
+                F2 = self.calculatedNozzle.A2 * (self.calculatedNozzle.P2_t[i] - self.calculatedNozzle.P0)
+
+                self.calculatedNozzle.F_t[i] = F1 + F2
+                self.calculatedNozzle.CF_t[i] = self.calculatedNozzle.F_t[i] / (self.calculatedNozzle.At * P_Off)
+
+                # Actualizar la barra de progreso
+                progress = (i + 1) / total_steps
+                self.update_progress(progress)
+
+    def calculate_n_show(self):
+        self.create_progress_window()
+        self.progress_var.set(0)
+        total_steps = len(self.P)
+        self.calculation_running = True
+
+        def run_calculations():
+            nozzleClasses = {
+                "TOPN-BN": BellNozzle
+            }
+
+            engine_config = self.file_path_label.cget("text")
+            nozzle_config = self.nozzleTypeMenu.get()
+            P1 = float(self.pressure_entry.get())
+            n = float(self.nPoints_entry.get())
+            defaultState = self.pressureCheck_Box.get()
+            specInputs = []
+
+            if nozzle_config == "TOPN-BN":
+                nozzleEntries = self.TOPN_entries
+                loop_func = self.run_TOPBN_loop
+
+            for entry in nozzleEntries:
+                specInputs.append(float(entry.get()))
+
+            self.calculatedNozzle = nozzleClasses[nozzle_config](defaultState, P1, n, engine_config, specInputs)
+            loop_func(total_steps)
+
+            # Cerrar la ventana de progreso al completar
+            if self.calculation_running:
+                self.progress_window.destroy()
+                self.calculation_running = False
+
+        threading.Thread(target=run_calculations).start()
 
     
     def add_labels_and_entries(self, frame, data_list):
@@ -321,13 +421,17 @@ class NozzleDesingModule:
 
 
 
-    def on_TimeSlide(self, value):
-        index = int(round(value))
-        self.time_entry.delete(0, tk.END)
-        self.time_entry.insert(0, str(self.t[index]))
+    def on_PressureSlide(self, value):
+        self.pressure2_entry.delete(0, tk.END)
+        self.pressure2_entry.insert(0, str(value))
 
-    def get_engine_data(self):
-        file_path = filedialog.askopenfilename(defaultextension=".json", filetypes=[("JSON files", "*.json"), ("All files", "*.*")])
+    def get_engine_data(self, on_load=False, file=None):
+
+        if not on_load:
+            file_path = filedialog.askopenfilename(defaultextension=".json", filetypes=[("JSON files", "*.json"), ("All files", "*.*")])
+        else:
+            file_path = file
+
         if file_path:
             file_name = os.path.basename(file_path)
 
@@ -368,10 +472,12 @@ class NozzleDesingModule:
             self.pressureCheck_Box.select()
             self.toggle_slider()
 
-            self.timeSlider.configure(from_=0, to=len(self.t)-1, number_of_steps=len(self.t)-1 , command=self.on_TimeSlide)
-            self.timeSlider.set(self.t[0])
-            self.time_entry.delete(0, tk.END)
-            self.time_entry.insert(0, str(self.t[0]))
+            self.pressureSlider.configure(from_=self.P0, to=self.maxP, state='normal', command=self.on_PressureSlide)
+            self.pressureSlider.set(self.P0)
+            self.pressure2_entry.delete(0, tk.END)
+            self.pressure2_entry.insert(0, str(self.P0))
+
+   
             
 
     def update_slider(self):
@@ -435,7 +541,7 @@ class NozzleDesingModule:
     def create_TOPN_entries(self):
         # Crear entradas específicas para Tubular
         self.TOPN_entries = []
-        labels = [
+        self.TOPN_labels = [
             "K1 (Factor Entrada):",
             "K2 (Factor Garganta):",
             "θₜ (deg):",
@@ -444,7 +550,7 @@ class NozzleDesingModule:
             "% (Entrada):"
         ]
 
-        for i, label_text in enumerate(labels):
+        for i, label_text in enumerate(self.TOPN_labels):
             label = ctk.CTkLabel(self.nozzleOptions, text=label_text)
             label.grid(row=i, column=0, padx=10, pady=5, sticky="nsew")
             entry = ctk.CTkEntry(self.nozzleOptions)
@@ -456,13 +562,13 @@ class NozzleDesingModule:
     def create_MOC2D_entries(self):
         # Crear entradas específicas para End-Burner
         self.MOC2D_entries = []
-        labels = [
+        self.MOC2D_labels = [
             "End-Burner Param 1:",
             "End-Burner Param 2:",
             "End-Burner Param 3:"
         ]
 
-        for i, label_text in enumerate(labels):
+        for i, label_text in enumerate(self.MOC2D_labels):
             label = ctk.CTkLabel(self.nozzleOptions, text=label_text)
             label.grid(row=i, column=0, padx=10, pady=5, sticky="nsew")
             entry = ctk.CTkEntry(self.nozzleOptions)
