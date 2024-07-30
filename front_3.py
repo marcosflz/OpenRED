@@ -53,8 +53,7 @@ class PropellantDesignModule:
         self.inputImageFrame.grid(row=1, column=2, rowspan=3, padx=10, pady=10, sticky="nsew")
         self.inputImageFrame.grid_propagate(False)
         self.inputImageFrame.configure(fg_color="white")
-        self.inputImageFrame.bind("<Enter>", lambda event: self.update_plot)
-
+        self.inputImageFrame.bind("<Button-1>", self.update_plot)
 
         self.outputs_frame = ctk.CTkFrame(self.content_frame)
         self.outputs_frame.grid(row=1, rowspan=2, column=0, padx=10, pady=10, sticky="nsew")
@@ -228,31 +227,34 @@ class PropellantDesignModule:
         self.graph_labels = [None] * 3
 
         for i, (fig, frame) in enumerate(zip(figs, frames)):
-            # Obtener el tamaño del frame
-            frame.update_idletasks()  # Asegurarse de que los tamaños están actualizados
-            width, height = frame.winfo_width(), frame.winfo_height()
+            insert_fig(fig, frame)
 
-            # Ajustar el tamaño de la figura
-            fig.set_size_inches(width / fig.dpi, height / fig.dpi)
-
-            # Limpiar el canvas antes de dibujar
-            for widget in frame.winfo_children():
-                widget.destroy()
-
-            buf = io.BytesIO()
-            fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.1, dpi=300)
-            plt.close(fig)
-            buf.seek(0)
-            image = Image.open(buf)
-
-            ctk_image = ctk.CTkImage(light_image=image, dark_image=image, size=(width, height))
-
-            if self.graph_labels[i]:
-                self.graph_labels[i].destroy()
-
-            self.graph_labels[i] = ctk.CTkLabel(frame, text="", image=ctk_image)
-            self.graph_labels[i].image = ctk_image
-            self.graph_labels[i].grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
+        #for i, (fig, frame) in enumerate(zip(figs, frames)):
+        #    # Obtener el tamaño del frame
+        #    frame.update_idletasks()  # Asegurarse de que los tamaños están actualizados
+        #    width, height = frame.winfo_width(), frame.winfo_height()
+#
+        #    # Ajustar el tamaño de la figura
+        #    fig.set_size_inches(width / fig.dpi, height / fig.dpi)
+#
+        #    # Limpiar el canvas antes de dibujar
+        #    for widget in frame.winfo_children():
+        #        widget.destroy()
+#
+        #    buf = io.BytesIO()
+        #    fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.1, dpi=300)
+        #    plt.close(fig)
+        #    buf.seek(0)
+        #    image = Image.open(buf)
+#
+        #    ctk_image = ctk.CTkImage(light_image=image, dark_image=image, size=(width, height))
+#
+        #    if self.graph_labels[i]:
+        #        self.graph_labels[i].destroy()
+#
+        #    self.graph_labels[i] = ctk.CTkLabel(frame, text="", image=ctk_image)
+        #    self.graph_labels[i].image = ctk_image
+        #    self.graph_labels[i].grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
 
         # Mostrar resultados en los Entry
         self.meanPressure_entry.configure(state="normal")
@@ -413,27 +415,49 @@ class PropellantDesignModule:
     def update_plot(self, event=None):
         if self.selection == 'Tubular':
             fig = self.tubular_plot()
+        insert_fig(fig, frame=self.inputImageFrame, resize='Auto')
+
+#        for widget in self.inputImageFrame.winfo_children():
+#            widget.destroy()
+#
+#        # Crear un nuevo canvas de FigureCanvasTkAgg
+#        canvas = FigureCanvasTkAgg(fig, master=self.inputImageFrame)
+#        canvas.draw()
+#        canvas.get_tk_widget().pack(side=ctk.TOP, fill=ctk.BOTH, expand=1)
+#
+#        # Ajustar el tamaño del canvas al tamaño del frame
+#        canvas.get_tk_widget().grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
+#        self.inputImageFrame.grid_rowconfigure(0, weight=1)
+#        self.inputImageFrame.grid_columnconfigure(0, weight=1)
+#
+#        # Redimensionar la figura para ajustarse al tamaño del frame
+#        def on_resize(event, canvas=canvas):
+#            width, height = event.width, event.height
+#            fig.set_size_inches(width / fig.dpi, height / fig.dpi)
+#            canvas.draw()
+#
+#        self.inputImageFrame.bind("<Configure>", on_resize)
         
-        # Limpiar el canvas antes de dibujar
-        for widget in self.inputImageFrame.winfo_children():
-            widget.destroy()
-
-        buf = io.BytesIO()
-        fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.1, dpi=300)
-        plt.close(fig)
-        buf.seek(0)
-        image = Image.open(buf)
-
-        display_width, display_height = self.inputImageFrame.winfo_width(), self.inputImageFrame.winfo_height()
-        ctk_image = ctk.CTkImage(light_image=image, dark_image=image, size=(display_height, display_height))
-
-        if self.image_label:
-            self.image_label.destroy()
-
-        self.image_label = ctk.CTkLabel(self.inputImageFrame, text="", image=ctk_image)
-        self.image_label.image = ctk_image
-        pad4x = (display_width-display_height)/2 - 0.05 * (display_width-display_height)/2
-        self.image_label.grid(row=0, column=0, padx=(pad4x, pad4x), pady=0, sticky="nsew")
+        ## Limpiar el canvas antes de dibujar
+        #for widget in self.inputImageFrame.winfo_children():
+        #    widget.destroy()
+#
+        #buf = io.BytesIO()
+        #fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.1, dpi=300)
+        #plt.close(fig)
+        #buf.seek(0)
+        #image = Image.open(buf)
+#
+        #display_width, display_height = self.inputImageFrame.winfo_width(), self.inputImageFrame.winfo_height()
+        #ctk_image = ctk.CTkImage(light_image=image, dark_image=image, size=(display_height, display_height))
+#
+        #if self.image_label:
+        #    self.image_label.destroy()
+#
+        #self.image_label = ctk.CTkLabel(self.inputImageFrame, text="", image=ctk_image)
+        #self.image_label.image = ctk_image
+        #pad4x = (display_width-display_height)/2 - 0.05 * (display_width-display_height)/2
+        #self.image_label.grid(row=0, column=0, padx=(pad4x, pad4x), pady=0, sticky="nsew")
 
     def tubular_plot(self):
         try:

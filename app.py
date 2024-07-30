@@ -81,6 +81,7 @@ def save_configuration():
                 },
                 "tab_2": {
                     "engine_config": nozzleDesing_module_instance.file_path_label.cget("text"),
+                    "SwitchState":nozzleDesing_module_instance.pressureCheck_Box.get(),
                     "P1": get_entry_value(nozzleDesing_module_instance.pressure_entry),
                     "n_res":get_entry_value(nozzleDesing_module_instance.nPoints_entry),
                     "TOPBN_K1_factor": get_entry_value(nozzleDesing_module_instance.TOPN_entries[0]),
@@ -167,6 +168,27 @@ def load_configuration(working_path):
             nozzleDesing_module_instance.get_engine_data(on_load=True, file=engine_path)
             nozzleDesing_module_instance.pressure_entry.delete(0, tk.END)
             nozzleDesing_module_instance.pressure_entry.insert(0, tab_2_config["P1"])
+
+            if tab_2_config["SwitchState"] == 1:
+                nozzleDesing_module_instance.pressureCheck_Box.configure(state="normal")
+                nozzleDesing_module_instance.pressureCheck_Box.select()  
+                nozzleDesing_module_instance.pressureSlide_Bar.configure(state="disabled", button_color="gray", button_hover_color="gray")
+                nozzleDesing_module_instance.pressure_entry.delete(0, tk.END)
+                nozzleDesing_module_instance.pressure_entry.insert(0, str(nozzleDesing_module_instance.meanP))
+                nozzleDesing_module_instance.pressure_entry.configure(state="disabled")
+                nozzleDesing_module_instance.pressureSlide_Bar.set(nozzleDesing_module_instance.meanP)
+            else:
+                nozzleDesing_module_instance.pressureCheck_Box.configure(state="normal")
+                nozzleDesing_module_instance.pressureCheck_Box.deselect()    
+                nozzleDesing_module_instance.pressureSlide_Bar.configure(state="normal", button_color="#1F6AA5", button_hover_color="#144870")
+                nozzleDesing_module_instance.pressureSlide_Bar.set(float(tab_2_config["P1"]))
+                nozzleDesing_module_instance.pressure_entry.delete(0, tk.END)
+                nozzleDesing_module_instance.pressure_entry.insert(0, str(tab_2_config["P1"]))
+                nozzleDesing_module_instance.pressure_entry.configure(state="normal")
+
+            
+            nozzleDesing_module_instance.update_plot()
+
             nozzleDesing_module_instance.nPoints_entry.delete(0, tk.END)
             nozzleDesing_module_instance.nPoints_entry.insert(0, tab_2_config["n_res"])
             nozzleDesing_module_instance.TOPN_entries[0].delete(0, tk.END)

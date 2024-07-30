@@ -93,8 +93,8 @@ class BellNozzle:
 
         
 
-    def opPoint_plot(self, P_Off):
-        PR_OffD = round(self.P0 / P_Off, 6)
+    def opPoint_plot(self, P_Off, P0):
+        PR_OffD = round(P0 / P_Off, 6)
         PR_Crit0 = round(self.PR_crit ** -1, 6)
         PR_Crit1 = round(self.PRatio_1, 6)
         PR_Crit2 = round(self.PRatio_2, 6)
@@ -104,18 +104,18 @@ class BellNozzle:
             Mx = [0, 0]
             Px = [1, 1]
             xNozzle = [self.geo_Nozzle[0, 0], self.geo_Nozzle[-1, 0]]
-            return {'Mach': Mx, 'PR': Px, 'x': xNozzle}
+            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': self.P0}
 
-        def subSonicOperation(P_Off):
-            Mt = np.sqrt((2 / (self.gamma - 1)) * ((P_Off / self.P0) ** ((self.gamma - 1) / self.gamma) - 1))
+        def subSonicOperation(P_Off,P0):
+            Mt = np.sqrt((2 / (self.gamma - 1)) * ((P_Off / P0) ** ((self.gamma - 1) / self.gamma) - 1))
             At_Astar = self.f_AR(Mt, 0)
             Ax_Astar = self.AR_x * At_Astar
             Mx = np.array([fsolve(self.f_AR, 0.25, args=(AR,))[0] for AR in Ax_Astar])
             Px = self.P_ratio(Mx) ** -1
             xNozzle = self.geo_Nozzle[:, 0]
-            return {'Mach': Mx, 'PR': Px, 'x': xNozzle}
+            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': self.P0}
 
-        def inShockOperation(P_Off):
+        def inShockOperation(P_Off,P0):
             x = self.geo_Nozzle[self.throatIndex:, 0]
             AR = self.AR_x[self.throatIndex:]
             f_ARx = interp1d(x, AR, kind='linear')
@@ -144,14 +144,14 @@ class BellNozzle:
                 Pe_P0 = P1_P0 * P2_P1 * P2t_P2 * Pe_P2t
                 Pe = Pe_P0 * P_Off
 
-                err = abs(Pe - self.P0)
+                err = abs(Pe - P0)
 
                 if err < tolerance:
                     break
-                elif Pe < self.P0:
-                    x_guess -= step * err / self.P0
+                elif Pe < P0:
+                    x_guess -= step * err / P0
                 else:
-                    x_guess += step * err / self.P0
+                    x_guess += step * err / P0
 
                 i += 1
 
@@ -174,46 +174,46 @@ class BellNozzle:
             xNozzle_Sub_NS = self.geo_Nozzle[xIndex - 1:, 0]
             xNozzle = np.concatenate((xNozzle_Sub, xNozzle_Sup_NS, xNozzle_Sub_NS))
 
-            return {'Mach': Mx, 'PR': Px, 'x': xNozzle}
+            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': self.P0}
 
         def exitShockOperation():
             Mx = np.append(self.M_x_Sup, self.M2NS(self.M_x_Sup[-1]))
             Px = np.append(self.PRatio_Sup_Curve, PR_Crit2)
             xNozzle = np.append(self.geo_Nozzle[:, 0], self.geo_Nozzle[-1, 0])
-            return {'Mach': Mx, 'PR': Px, 'x': xNozzle}
+            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': self.P0}
 
-        def overExpansionOperation(P_Off):
+        def overExpansionOperation(P_Off,P0):
             Me = self.M2
             Pe = P_Off / self.P_ratio(Me)
-            Pe_P0 = Pe / self.P0
+            Pe_P0 = Pe / P0
             Mx = np.concatenate((self.M_x_Sup, [Me, Me]))
             Px = np.concatenate((self.P_ratio(self.M_x_Sup) ** -1, [PR_Crit3, PR_Crit3 + PR_Crit2 * (1 - Pe_P0)]))
             xNozzle = np.concatenate((self.geo_Nozzle[:, 0], [self.geo_Nozzle[-1, 0], self.geo_Nozzle[-1, 0]]))
             return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe}
 
-        def desingPointOperation(P_Off):
+        def desingPointOperation(P_Off,P0):
             Pe = P_Off / self.P_ratio(self.M2)
             return {'Mach': self.M_x_Sup, 'PR': self.P_ratio(self.M_x_Sup) ** -1, 'x': self.geo_Nozzle[:, 0], 'Pe': Pe}
 
-        def underExpOperation(P_Off):
+        def underExpOperation(P_Off,P0):
             Me = self.M2
             Pe = P_Off / self.P_ratio(Me)
             Mx = np.concatenate((self.M_x_Sup, [Me, Me]))
-            Px = np.concatenate((self.P_ratio(self.M_x_Sup) ** -1, [PR_Crit3, self.P0 / P_Off]))
+            Px = np.concatenate((self.P_ratio(self.M_x_Sup) ** -1, [PR_Crit3, P0 / P_Off]))
             xNozzle = np.concatenate((self.geo_Nozzle[:, 0], [self.geo_Nozzle[-1, 0], self.geo_Nozzle[-1, 0]]))
             return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe}
 
-        subSonicOp = subSonicOperation(P_Off)
+        subSonicOp = subSonicOperation(P_Off,P0)
 
         try:
-            inShockOp = inShockOperation(P_Off)
+            inShockOp = inShockOperation(P_Off,P0)
         except ValueError:
             inShockOp = {'PR': [0, 0]}
 
         exitShockOp = exitShockOperation()
-        overExpOp = overExpansionOperation(P_Off)
-        desingOp = desingPointOperation(P_Off)
-        underExpOp = underExpOperation(P_Off)
+        overExpOp = overExpansionOperation(P_Off,P0)
+        desingOp = desingPointOperation(P_Off,P0)
+        underExpOp = underExpOperation(P_Off,P0)
 
         if PR_OffD >= 1:
             return noFireOperation()
@@ -224,11 +224,11 @@ class BellNozzle:
                 return exitShockOp
             else:
                 return inShockOp
-        elif overExpOp['Pe'] < self.P0:
+        elif overExpOp['Pe'] < P0:
             return overExpOp
-        elif abs(desingOp['Pe'] - self.P0) < 1e-2:
+        elif abs(desingOp['Pe'] - P0) < 1e-2:
             return desingOp
-        elif underExpOp['Pe'] > self.P0:
+        elif underExpOp['Pe'] > P0:
             return underExpOp
         else:
             return None
@@ -321,11 +321,10 @@ class BellNozzle:
         ax.set_xlabel(r'$x(m)$')
         ax.set_ylabel(r'$y(m)$')
         ax.set_title('TOP-Nozzle')
-        ax.axis('equal')
         ax.grid(True, which='both', linestyle='--', color='gray', linewidth=0.5)
-        plt.show()
+        return fig
     
-    def mach_plot(self, P_Off=0):
+    def mach_plot(self, P_Off=0, P0=101325):
         fig, ax = plt.subplots(figsize=(10, 6))
 
         # Map On-Design
@@ -345,7 +344,7 @@ class BellNozzle:
         ax.scatter(xExit, AShock_M, color='k', marker='o')
 
         if P_Off:
-            offDesing_Dic = self.opPoint_plot(P_Off)
+            offDesing_Dic = self.opPoint_plot(P_Off, P0)
             offDesing_Mach = offDesing_Dic.get("Mach", [])
             xNozzle_off = offDesing_Dic.get("x", [])
             ax.plot(xNozzle_off, offDesing_Mach, label='Off-Design Mach', linestyle='--', color='tab:red', lw=3)
@@ -354,11 +353,11 @@ class BellNozzle:
         ax.set_xlabel('Nozzle Position')
         ax.set_ylabel('Mach Number')
         ax.set_title('Mach Number Distribution Along the Nozzle')
-        ax.legend()
+        #ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))  # Mover la leyenda a la derecha
         ax.grid(True, which='both', linestyle='--', color='gray', linewidth=0.5)
-        plt.show()
+        return fig
 
-    def pres_plot(self, P_Off=0):
+    def pres_plot(self, P_Off=0, P0=101325):
         fig, ax = plt.subplots(figsize=(10, 6))
 
         # Map On-Design
@@ -378,7 +377,7 @@ class BellNozzle:
         ax.scatter(xExit, AShock_PR, color='k', marker='o')
 
         if P_Off:
-            offDesing_Dic = self.opPoint_plot(P_Off)
+            offDesing_Dic = self.opPoint_plot(P_Off,P0)
             offDesing_Pres = offDesing_Dic.get("PR", [])
             xNozzle_off = offDesing_Dic.get("x", [])
             ax.plot(xNozzle_off, offDesing_Pres, label='Off-Design Pressure Ratio', linestyle='--', color='tab:red', lw=3)
@@ -387,14 +386,13 @@ class BellNozzle:
         ax.set_xlabel('Nozzle Position')
         ax.set_ylabel('Pressure Ratio')
         ax.set_title('Pressure Ratio Distribution Along the Nozzle')
-        ax.legend()
+        #ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))  # Mover la leyenda a la derecha
         ax.grid(True, which='both', linestyle='--', color='gray', linewidth=0.5)
-        plt.show()
+        return fig
 
     def time_results(self):
 
         totalIters = len(self.P_t)
-
         self.M2_t  = np.zeros(totalIters)
         self.P2_t  = np.zeros(totalIters)
         self.T2_t  = np.zeros(totalIters)
@@ -402,28 +400,16 @@ class BellNozzle:
         self.CF_t  = np.zeros(totalIters)
         self.V2_t  = np.zeros(totalIters)
 
-        
-        #for i, P_Off in enumerate(self.P_t):
-        #    print(i)
-        #    self.M2_t[i] = self.opPoint_plot(P_Off)["Mach"][-1]
-        #    self.P2_t[i] = P_Off / self.P_ratio(self.M2_t[i])
-        #    self.T2_t[i] = self.T1 / (1 + (self.gamma - 1)/2 * self.M2_t[i]**2)
-        #    self.V2_t[i] = self.M2_t[i] * np.sqrt(self.gamma * self.R * self.T2_t[i])
-        #    
-        #    F1 = self.G_t[i] * self.V2_t[i]
-        #    F2 = self.A2 * (self.P2_t[i] - self.P0)
-        #    self.F_t[i] = F1 + F2
-        #    self.CF_t[i] = self.F_t[i] / (self.At * P_Off)
 
     def calculated_results(self):
         dt = self.t[-1] - self.t[0]
 
         DP_Thrust = self.F_kg
-        Med_Thrust = discreteIntegration(self.F_t, self.t) / dt
+        Med_Thrust = discreteIntegration(self.F_t, self.t) / (dt * 9.80665)
 
-        DP_CF = self.F_kg / (self.At * self.P1)
+        DP_CF = self.F_kg * 9.80665 / (self.At * self.P1)
         Med_CF = discreteIntegration(self.CF_t, self.t) / dt
-
+        
         DP_Vs = self.V2
         Med_Vs = discreteIntegration(self.V2_t, self.t) / dt
 
@@ -433,7 +419,7 @@ class BellNozzle:
         DP_Ps = self.P1 / self.P_ratio(self.M2)
         Med_Ps = discreteIntegration(self.P2_t, self.t) / dt
 
-        It = Med_Thrust * dt
+        It = Med_Thrust * 9.80665 * dt
         Isp = It / (self.mass * 9.80665)
 
         AR = self.e
@@ -463,7 +449,26 @@ class BellNozzle:
             R2
         ]
 
-        return data
+        time_data = [
+            self.t,
+            self.F_t / 9.80665,
+            self.CF_t
+        ]
+
+        geo_data = [
+            self.geo_Nozzle[:,0],
+            self.geo_Nozzle[:,1],
+            self.AR_x
+        ]
+
+        PR_data = [
+            self.PR_crit**-1,
+            self.PRatio_1,
+            self.PRatio_2,
+            self.PRatio_3
+        ]
+
+        return data, time_data, geo_data, PR_data
 
     def thrust_plot(self):
         fig, ax = plt.subplots(figsize=(10, 6))
@@ -472,7 +477,6 @@ class BellNozzle:
         ax.set_xlabel('Nozzle Position')
         ax.set_ylabel('Pressure Ratio')
         ax.set_title('Pressure Ratio Distribution Along the Nozzle')
-        ax.legend()
         ax.grid(True, which='both', linestyle='--', color='gray', linewidth=0.5)
         return fig
 
@@ -484,9 +488,7 @@ class BellNozzle:
         ax.set_xlabel('Nozzle Position')
         ax.set_ylabel('Pressure Ratio')
         ax.set_title('Pressure Ratio Distribution Along the Nozzle')
-        ax.legend()
         ax.grid(True, which='both', linestyle='--', color='gray', linewidth=0.5)
-        plt.show()
         return fig
 
     

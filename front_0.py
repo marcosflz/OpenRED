@@ -350,33 +350,35 @@ class AdiabaticTempModule:
 
             fontsize -= 1
 
-        fig.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+        insert_fig(fig, self.display_frame)
 
-        buf = io.BytesIO()
-        fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.1, dpi=300)
-        plt.close(fig)
-        buf.seek(0)
-        image = Image.open(buf)
-
-        display_width, display_height = self.display_frame.winfo_width(), self.display_frame.winfo_height()
-        image = image.resize((display_width, display_height), Image.LANCZOS)
-
-        radius = 10
-        mask = Image.new('L', (display_width, display_height), 0)
-        draw = ImageDraw.Draw(mask)
-        draw.rounded_rectangle([(0, 0), (display_width, display_height)], radius, fill=255)
-
-        rounded_image = ImageOps.fit(image, mask.size, centering=(0.5, 0.5))
-        rounded_image.putalpha(mask)
-
-        ctk_image = ctk.CTkImage(light_image=rounded_image, dark_image=rounded_image, size=(display_width, display_height))
-
-        if self.label:
-            self.label.destroy()
-
-        self.label = ctk.CTkLabel(self.display_frame, text="", image=ctk_image)
-        self.label.image = ctk_image
-        self.label.grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
+#        fig.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+#
+#        buf = io.BytesIO()
+#        fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.1, dpi=300)
+#        plt.close(fig)
+#        buf.seek(0)
+#        image = Image.open(buf)
+#
+#        display_width, display_height = self.display_frame.winfo_width(), self.display_frame.winfo_height()
+#        image = image.resize((display_width, display_height), Image.LANCZOS)
+#
+#        radius = 10
+#        mask = Image.new('L', (display_width, display_height), 0)
+#        draw = ImageDraw.Draw(mask)
+#        draw.rounded_rectangle([(0, 0), (display_width, display_height)], radius, fill=255)
+#
+#        rounded_image = ImageOps.fit(image, mask.size, centering=(0.5, 0.5))
+#        rounded_image.putalpha(mask)
+#
+#        ctk_image = ctk.CTkImage(light_image=rounded_image, dark_image=rounded_image, size=(display_width, display_height))
+#
+#        if self.label:
+#            self.label.destroy()
+#
+#        self.label = ctk.CTkLabel(self.display_frame, text="", image=ctk_image)
+#        self.label.image = ctk_image
+#        self.label.grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
 
     def add_reactivo(self):
         components, self.latexMap = get_database_components()  # Obtén ambos valores

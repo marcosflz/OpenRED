@@ -18,6 +18,10 @@ class NozzleDesingModule:
         self.image_label = None
         self.updateIteration = 0
 
+        # Variables para el control de la frecuencia de actualización
+        self.last_update_time = 0
+        self.update_interval = 100  # Milisegundos
+
         self.inputs_frame = ctk.CTkFrame(self.content_frame)
         self.inputs_frame.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
         self.inputs_frame.grid_rowconfigure(0,weight=1)
@@ -73,8 +77,7 @@ class NozzleDesingModule:
         self.pressureGraph_Frame.grid_rowconfigure(0, weight=1)
         self.pressureGraph_Frame.configure(fg_color="white")
         self.pressureGraph_Frame.grid_propagate(False)
-        self.pressureGraph_Frame.bind("<Enter>", command=self.update_plot)
-
+        self.pressureGraph_Frame.bind("<Button-1>", self.update_plot)
         
 
 
@@ -99,107 +102,130 @@ class NozzleDesingModule:
         self.characteristics_frame.grid_rowconfigure(2, weight=1)
 
         self.thrustGraph_frame = ctk.CTkFrame(self.characteristics_frame)
-        self.thrustGraph_frame.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
+        self.thrustGraph_frame.grid(row=1, column=0, padx=10, pady=10, sticky='nswe')
+        self.thrustGraph_frame.grid_propagate(False)
         self.thrustGraph_frame.configure(fg_color='white')
 
         self.thrustCoefGraph_frame = ctk.CTkFrame(self.characteristics_frame)
-        self.thrustCoefGraph_frame.grid(row=1, column=0, padx=10, pady=10, sticky='nswe')
+        self.thrustCoefGraph_frame.grid(row=2, column=0, padx=10, pady=10, sticky='nswe')
+        self.thrustCoefGraph_frame.grid_propagate(False)
         self.thrustCoefGraph_frame.configure(fg_color='white')
 
-        self.nozzleMapGraph_frame = ctk.CTkFrame(self.characteristics_frame)
-        self.nozzleMapGraph_frame.grid(row=2, column=0, padx=10, pady=10, sticky='nswe')
-        self.nozzleMapGraph_frame.configure(fg_color='white')
+        self.nozzleGeoGraph_frame = ctk.CTkFrame(self.characteristics_frame)
+        self.nozzleGeoGraph_frame.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
+        self.nozzleGeoGraph_frame.grid_propagate(False)
+        self.nozzleGeoGraph_frame.configure(fg_color='white')
 
 
 
         self.operating_points_frame = ctk.CTkFrame(self.resultsTabs.tab("Puntos de Operación"))
         self.operating_points_frame.pack(fill="both", expand=True)
         self.operating_points_frame.grid_propagate(False)
-        self.operating_points_frame.grid_columnconfigure(0, weight=1)
-        self.operating_points_frame.grid_rowconfigure(0, weight=8)
-        self.operating_points_frame.grid_rowconfigure(1, weight=8)
-        self.operating_points_frame.grid_rowconfigure(2, weight=8)
-        self.operating_points_frame.grid_rowconfigure(3, weight=1)
+        self.operating_points_frame.grid_columnconfigure(0, weight=100)
+        self.operating_points_frame.grid_columnconfigure(1, weight=1)
+        self.operating_points_frame.grid_rowconfigure(0, weight=50)
+        self.operating_points_frame.grid_rowconfigure(1, weight=50)
+        self.operating_points_frame.grid_rowconfigure(2, weight=1)
+        
 
         self.presMap_frame = ctk.CTkFrame(self.operating_points_frame)
-        self.presMap_frame.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
+        self.presMap_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky='nswe')
+        self.presMap_frame.grid_propagate(False)
         self.presMap_frame.configure(fg_color='white')
 
         self.machMap_frame = ctk.CTkFrame(self.operating_points_frame)
-        self.machMap_frame.grid(row=1, column=0, padx=10, pady=10, sticky='nswe')
+        self.machMap_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky='nswe')
+        self.machMap_frame.grid_propagate(False)
         self.machMap_frame.configure(fg_color='white')
 
-        self.numericFrame = ctk.CTkFrame(self.operating_points_frame)
-        self.numericFrame.grid(row=2, column=0, padx=10, pady=10, sticky='nswe')
+        self.numericFrame = ctk.CTkFrame(self.operating_points_frame, height=50)
+        self.numericFrame.grid(row=2, column=0, padx=5, pady=5, sticky='nswe')
         self.numericFrame.grid_rowconfigure(0, weight=1)
         self.numericFrame.grid_rowconfigure(1, weight=1)
         self.numericFrame.grid_rowconfigure(2, weight=1)
         self.numericFrame.grid_rowconfigure(3, weight=1)
-        self.numericFrame.grid_columnconfigure(0, weight=1)
-        self.numericFrame.grid_columnconfigure(1, weight=1)
-        self.numericFrame.grid_columnconfigure(2, weight=1)
-        self.numericFrame.grid_columnconfigure(3, weight=1)
+        self.numericFrame.grid_columnconfigure(0, weight=10)
+        self.numericFrame.grid_columnconfigure(1, weight=10)
+        self.numericFrame.grid_columnconfigure(2, weight=10)
+        self.numericFrame.grid_columnconfigure(3, weight=10)
+        self.numericFrame.grid_columnconfigure(4, weight=1)
 
+        entry_height = 5
+        pad = 10
 
         self.PR_Crit_0_Label = ctk.CTkLabel(self.numericFrame, text="(P0/P1t) - Choked")
-        self.PR_Crit_0_Label.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
-        self.PR_Crit_0_Entry = ctk.CTkEntry(self.numericFrame)
-        self.PR_Crit_0_Entry.grid(row=0, column=1, padx=10, pady=10, sticky='nswe')
+        self.PR_Crit_0_Label.grid(row=0, column=0, padx=pad, pady=pad, sticky='nswe')
+        self.PR_Crit_0_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
+        self.PR_Crit_0_Entry.grid(row=0, column=1, padx=pad, pady=pad, sticky='nswe')
 
         self.PR_Crit_1_Label = ctk.CTkLabel(self.numericFrame, text="(Pe/P1t) - Subsónico")
-        self.PR_Crit_1_Label.grid(row=1, column=0, padx=10, pady=10, sticky='nswe')
-        self.PR_Crit_1_Entry = ctk.CTkEntry(self.numericFrame)
-        self.PR_Crit_1_Entry.grid(row=1, column=1, padx=10, pady=10, sticky='nswe')
+        self.PR_Crit_1_Label.grid(row=1, column=0, padx=pad, pady=pad, sticky='nswe')
+        self.PR_Crit_1_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
+        self.PR_Crit_1_Entry.grid(row=1, column=1, padx=pad, pady=pad, sticky='nswe')
 
         self.PR_Crit_2_Label = ctk.CTkLabel(self.numericFrame, text="(Pe/P1t) - NS Salida")
-        self.PR_Crit_2_Label.grid(row=2, column=0, padx=10, pady=10, sticky='nswe')
-        self.PR_Crit_2_Entry = ctk.CTkEntry(self.numericFrame)
-        self.PR_Crit_2_Entry.grid(row=2, column=1, padx=10, pady=10, sticky='nswe')
+        self.PR_Crit_2_Label.grid(row=2, column=0, padx=pad, pady=pad, sticky='nswe')
+        self.PR_Crit_2_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
+        self.PR_Crit_2_Entry.grid(row=2, column=1, padx=pad, pady=pad, sticky='nswe')
 
         self.PR_Crit_3_Label = ctk.CTkLabel(self.numericFrame, text="(Pe/P1t) - Optimo")
-        self.PR_Crit_3_Label.grid(row=3, column=0, padx=10, pady=10, sticky='nswe')
-        self.PR_Crit_3_Entry = ctk.CTkEntry(self.numericFrame)
-        self.PR_Crit_3_Entry.grid(row=3, column=1, padx=10, pady=10, sticky='nswe')
+        self.PR_Crit_3_Label.grid(row=3, column=0, padx=pad, pady=pad, sticky='nswe')
+        self.PR_Crit_3_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
+        self.PR_Crit_3_Entry.grid(row=3, column=1, padx=pad, pady=pad, sticky='nswe')
 
+        self.PR1_Label = ctk.CTkLabel(self.numericFrame, text="P0/P1t (Cap. Exp.)")
+        self.PR1_Label.grid(row=0, column=2, padx=pad, pady=pad, sticky='nswe')
+        self.PR1_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
+        self.PR1_Entry.grid(row=0, column=3, padx=pad, pady=pad, sticky='nswe')
 
+        self.PR2_Label = ctk.CTkLabel(self.numericFrame, text="Pe/P1t (Salida/Comb.)")
+        self.PR2_Label.grid(row=1, column=2, padx=pad, pady=pad, sticky='nswe')
+        self.PR2_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
+        self.PR2_Entry.grid(row=1, column=3, padx=pad, pady=pad, sticky='nswe')
 
-        self.PR1_Label = ctk.CTkLabel(self.numericFrame, text="P0/P1t")
-        self.PR1_Label.grid(row=0, column=2, padx=10, pady=10, sticky='nswe')
-        self.PR1_Entry = ctk.CTkEntry(self.numericFrame)
-        self.PR1_Entry.grid(row=0, column=3, padx=10, pady=10, sticky='nswe')
+        self.PR3_Label = ctk.CTkLabel(self.numericFrame, text="Pe/P0 (Salida/Amb.)")
+        self.PR3_Label.grid(row=2, column=2, padx=pad, pady=pad, sticky='nswe')
+        self.PR3_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
+        self.PR3_Entry.grid(row=2, column=3, padx=pad, pady=pad, sticky='nswe')
 
-        self.PR2_Label = ctk.CTkLabel(self.numericFrame, text="Pe/P1t")
-        self.PR2_Label.grid(row=1, column=2, padx=10, pady=10, sticky='nswe')
-        self.PR2_Entry = ctk.CTkEntry(self.numericFrame)
-        self.PR2_Entry.grid(row=1, column=3, padx=10, pady=10, sticky='nswe')
+        self.ThrustPerf_Label = ctk.CTkLabel(self.numericFrame, text="T/T(Op) (Rend. %)")
+        self.ThrustPerf_Label.grid(row=3, column=2, padx=pad, pady=pad, sticky='nswe')
+        self.ThrustPerf_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
+        self.ThrustPerf_Entry.grid(row=3, column=3, padx=pad, pady=pad, sticky='nswe')
 
-        self.PR3_Label = ctk.CTkLabel(self.numericFrame, text="Pe/P0")
-        self.PR3_Label.grid(row=2, column=2, padx=10, pady=10, sticky='nswe')
-        self.PR3_Entry = ctk.CTkEntry(self.numericFrame)
-        self.PR3_Entry.grid(row=2, column=3, padx=10, pady=10, sticky='nswe')
-
-        self.ThrustPerf_Label = ctk.CTkLabel(self.numericFrame, text="T/T(Op)")
-        self.ThrustPerf_Label.grid(row=3, column=2, padx=10, pady=10, sticky='nswe')
-        self.ThrustPerf_Entry = ctk.CTkEntry(self.numericFrame)
-        self.ThrustPerf_Entry.grid(row=3, column=3, padx=10, pady=10, sticky='nswe')
-
-
-
-        self.pressureSlider_frame = ctk.CTkFrame(self.operating_points_frame)
-        self.pressureSlider_frame.grid(row=3, column=0, padx=10, pady=10, sticky='nswe')
+        self.pressureSlider_frame = ctk.CTkFrame(self.numericFrame, height=175, width=85)  # Set height here
+        self.pressureSlider_frame.grid(row=0, rowspan=4, column=4, padx=5, pady=5, sticky='nswe')
         self.pressureSlider_frame.grid_rowconfigure(0, weight=1)
+        self.pressureSlider_frame.grid_rowconfigure(1, weight=5)
+        self.pressureSlider_frame.grid_rowconfigure(2, weight=1)
         self.pressureSlider_frame.grid_columnconfigure(0, weight=1)
-        self.pressureSlider_frame.grid_columnconfigure(1, weight=3)
-        self.pressureSlider_frame.grid_columnconfigure(2, weight=1)
+        self.pressureSlider_frame.grid_columnconfigure(1, weight=1)
+        self.pressureSlider_frame.grid_propagate(False)  # Prevent resizing
 
-        self.pressure2_label = ctk.CTkLabel(self.pressureSlider_frame, text="Presión (Pa)")
-        self.pressure2_label.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
+        self.offDesingPressure_label = ctk.CTkLabel(self.pressureSlider_frame, text="P1t")
+        self.offDesingPressure_label.grid(row=0, column=0, padx=pad, pady=pad, sticky='nswe')
+        self.offDesingPressureSlider = ctk.CTkSlider(self.pressureSlider_frame, from_=0, to=1, orientation='vertical', number_of_steps=100)
+        self.offDesingPressureSlider.set(1)
+        self.offDesingPressureSlider.bind('<B1-Motion>', self.updatePercentLabels)
+        self.offDesingPressureSlider.bind('<Leave>', self.updateMapPlots)
+        self.offDesingPressureSlider.grid(row=1, column=0, padx=pad, pady=pad, sticky='nswe')
 
-        self.pressureSlider = ctk.CTkSlider(self.pressureSlider_frame, from_=0, to=1)
-        self.pressureSlider.grid(row=0, column=1, padx=10, pady=10, sticky='nswe')
+        self.offDesingPressure0_label = ctk.CTkLabel(self.pressureSlider_frame, text="P0")
+        self.offDesingPressure0_label.grid(row=0, column=1, padx=pad, pady=pad, sticky='nswe')
+        self.offDesingPressure0Slider = ctk.CTkSlider(self.pressureSlider_frame, from_=0, to=1, orientation='vertical', number_of_steps=100)
+        self.offDesingPressure0Slider.grid(row=1, column=1, padx=pad, pady=pad, sticky='nswe')
+        self.offDesingPressure0Slider.set(1)
+        self.offDesingPressure0Slider.bind('<B1-Motion>', self.updatePercentLabels)
+        self.offDesingPressure0Slider.bind('<Leave>', self.updateMapPlots)
 
-        self.pressure2_entry = ctk.CTkEntry(self.pressureSlider_frame)
-        self.pressure2_entry.grid(row=0, column=2, padx=10, pady=10, sticky='nswe')
+        p1p_init = f"{self.offDesingPressureSlider.get():.2f}"
+        p0p_init = f"{self.offDesingPressure0Slider.get():.2f}"
+
+        self.offDesingPressurePercent_label = ctk.CTkLabel(self.pressureSlider_frame, text=p1p_init)
+        self.offDesingPressurePercent_label.grid(row=2, column=0, padx=pad, pady=pad, sticky='nswe')
+        self.offDesingPressure0Percent_label = ctk.CTkLabel(self.pressureSlider_frame, text=p0p_init)
+        self.offDesingPressure0Percent_label.grid(row=2, column=1, padx=pad, pady=pad, sticky='nswe')
+
 
     
 
@@ -218,7 +244,8 @@ class NozzleDesingModule:
         self.numericResults_label.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
 
         self.resultsEntries = {}
-        data = [
+
+        self.results_TOPBNLabels = [
             "DP. Thrust (kg)", "Med. Thrust (kg)", 
             "CF (DP.)", "CF (Med.)",
             "It", "Isp",
@@ -229,8 +256,22 @@ class NozzleDesingModule:
             "Longitud (m)",
             "Rt (m)", "R2 (m)"
             ]
+        
+        self.results_MOC2DLabels = [
+            "DP. Thrust (kg)", "Med. Thrust (kg)", 
+            "CF (DP.)", "CF (Med.)",
+            "It", "Isp",
+            "Vs (DP.)", "Vs (Med.)",
+            "Ts (DP.)", "Ts (Med.)",
+            "Ps (DP.)", "Ps (Med.)",
+            "AR", "MS",
+            "Longitud (m)",
+            "Yt (m)", "Y2 (m)"
+            ]
+        
+
         # Llamar a la función para añadir labels y entries
-        self.add_labels_and_entries(self.numericResults_frame, data)
+        self.add_labels_and_entries(self.numericResults_frame, self.results_TOPBNLabels)
     
   
 
@@ -270,13 +311,114 @@ class NozzleDesingModule:
         self.create_MOC2D_entries()
         self.update_options('TOPN-BN')
 
-    def start_calculate_n_show(self):
-        threading.Thread(target=self.calculate_n_show).start()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def calculate_n_show(self):
+        self.create_progress_window()
+        self.progress_var.set(0)
+        self.total_steps = len(self.P)
+        self.current_step = 0
+        self.calculation_running = True
+
+        nozzleClasses = {
+            "TOPN-BN": BellNozzle
+        }
+
+        engine_config = self.file_path_label.cget("text")
+        nozzle_config = self.nozzleTypeMenu.get()
+        P1 = float(self.pressure_entry.get())
+        n = float(self.nPoints_entry.get())
+        defaultState = self.pressureCheck_Box.get()
+        specInputs = []
+
+        if nozzle_config == "TOPN-BN":
+            nozzleEntries = self.TOPN_entries
+            loop_func = self.run_TOPBN_loop
+
+        for entry in nozzleEntries:
+            specInputs.append(float(entry.get()))
+
+        self.calculatedNozzle = nozzleClasses[nozzle_config](defaultState, P1, n, engine_config, specInputs)
+
+        # Empezar el cálculo paso a paso
+        self.run_calculations_step(loop_func)
+
+        
+        
+
+    def run_calculations_step(self, loop_func):
+        if self.current_step < self.total_steps and self.calculation_running:
+            loop_func(self.current_step)
+
+            # Actualizar la barra de progreso
+            progress = (self.current_step + 1) / self.total_steps if self.total_steps > 0 else 1
+            self.progress_var.set(progress)
+            self.progress_label.configure(text=f"{int(progress * 100)}%")
+
+            self.current_step += 1
+            self.content_frame.after(1, lambda: self.run_calculations_step(loop_func))
+        else:
+            self.on_calculations_done()
+
+    def on_calculations_done(self):
+        if self.calculation_running:
+            self.progress_window.destroy()
+            self.calculation_running = False
+
+            thrust_fig = self.calculatedNozzle.thrust_plot()
+            thrustCoeff_fig = self.calculatedNozzle.thrustCoeff_plot()
+            geometry_fig = self.calculatedNozzle.geom_plot()
+
+            P_Off = self.calculatedNozzle.P1
+            presMap_fig = self.calculatedNozzle.pres_plot(P_Off)
+            machMap_fig = self.calculatedNozzle.mach_plot(P_Off)
+
+            figs = [thrust_fig, thrustCoeff_fig, geometry_fig, presMap_fig, machMap_fig]
+            frames = [
+                self.thrustGraph_frame, 
+                self.thrustCoefGraph_frame, 
+                self.nozzleGeoGraph_frame, 
+                self.presMap_frame,
+                self.machMap_frame
+                ]
+
+            self.graph_labels = [None] * 3
+
+            for i, (fig, frame) in enumerate(zip(figs, frames)):
+                insert_fig(fig, frame)
+
+        self.result_array = self.calculatedNozzle.calculated_results()
+        self.update_results_entries(self.result_array)
+
+
+    def on_progress_window_close(self):
+        self.calculation_running = False
+        self.progress_window.destroy()
 
     def create_progress_window(self):
         self.progress_window = ctk.CTkToplevel(self.content_frame)
         self.progress_window.title("Progreso")
-        
+
         self.progress_var = ctk.DoubleVar()
 
         # Frame para la barra de progreso y el porcentaje
@@ -295,16 +437,16 @@ class NozzleDesingModule:
 
         # Calcular el tamaño del progress_frame para ajustar la ventana
         self.progress_frame.update_idletasks()
-        frame_width = self.progress_frame.winfo_reqwidth() * 1.4 # Sumar padding
-        frame_height = self.progress_frame.winfo_reqheight() * 2  # Sumar padding
+        frame_width = self.progress_frame.winfo_width() * 1.3
+        frame_height = self.progress_frame.winfo_height() * 2
 
         # Calcular el centro de la pantalla
         screen_width = self.progress_window.winfo_screenwidth()
         screen_height = self.progress_window.winfo_screenheight()
         position_top = int(screen_height / 2 - frame_height / 2)
         position_right = int(screen_width / 2 - frame_width / 2)
-        
-        self.progress_window.geometry(f"{int(frame_width)}x{int(frame_height)}+{position_right}+{position_top}")
+
+        self.progress_window.geometry(f"{frame_width}x{frame_height}+{position_right}+{position_top}")
 
         self.progress_window.transient(self.content_frame)
         self.progress_window.grab_set()
@@ -312,73 +454,86 @@ class NozzleDesingModule:
         # Manejar el cierre de la ventana de progreso
         self.progress_window.protocol("WM_DELETE_WINDOW", self.on_progress_window_close)
 
-
-    def on_progress_window_close(self):
-        self.calculation_running = False
-        self.progress_window.destroy()
-
     def update_progress(self, progress):
-        self.content_frame.after(0, self._update_progress, progress)
-
-    def _update_progress(self, progress):
         self.progress_var.set(progress)
-        self.progress_label.configure(text=f"Progreso: {int(progress * 100)}%")
-        self.progress_window.update_idletasks()
+        self.progress_label.configure(text=f"{int(progress * 100)}%")
 
-    def run_TOPBN_loop(self, total_steps):
-        for i, P_Off in enumerate(self.calculatedNozzle.P_t):
-                if not self.calculation_running:
-                    break  # Detener el cálculo si la ventana de progreso se ha cerrado
-                
-                self.calculatedNozzle.M2_t[i] = self.calculatedNozzle.opPoint_plot(P_Off)["Mach"][-1]
-                self.calculatedNozzle.P2_t[i] = P_Off / self.calculatedNozzle.P_ratio(self.calculatedNozzle.M2_t[i])
-                self.calculatedNozzle.T2_t[i] = self.calculatedNozzle.T1 / (1 + (self.calculatedNozzle.gamma - 1)/2 * self.calculatedNozzle.M2_t[i]**2)
-                self.calculatedNozzle.V2_t[i] = self.calculatedNozzle.M2_t[i] * np.sqrt(self.calculatedNozzle.gamma * self.calculatedNozzle.R * self.calculatedNozzle.T2_t[i])
-                
-                F1 = self.calculatedNozzle.G_t[i] * self.calculatedNozzle.V2_t[i]
-                F2 = self.calculatedNozzle.A2 * (self.calculatedNozzle.P2_t[i] - self.calculatedNozzle.P0)
+    def run_TOPBN_loop(self, current_step):
+        i = current_step
+        P_Off = self.calculatedNozzle.P_t[i]
+        P0 = self.calculatedNozzle.P0
+        if not self.calculation_running:
+            return  # Detener el cálculo si la ventana de progreso se ha cerrado
 
-                self.calculatedNozzle.F_t[i] = F1 + F2
-                self.calculatedNozzle.CF_t[i] = self.calculatedNozzle.F_t[i] / (self.calculatedNozzle.At * P_Off)
+        self.calculatedNozzle.M2_t[i] = self.calculatedNozzle.opPoint_plot(P_Off, P0)["Mach"][-1]
+        self.calculatedNozzle.P2_t[i] = P_Off / self.calculatedNozzle.P_ratio(self.calculatedNozzle.M2_t[i])
+        self.calculatedNozzle.T2_t[i] = self.calculatedNozzle.T1 / (1 + (self.calculatedNozzle.gamma - 1)/2 * self.calculatedNozzle.M2_t[i]**2)
+        self.calculatedNozzle.V2_t[i] = self.calculatedNozzle.M2_t[i] * np.sqrt(self.calculatedNozzle.gamma * self.calculatedNozzle.R * self.calculatedNozzle.T2_t[i])
 
-                # Actualizar la barra de progreso
-                progress = (i + 1) / total_steps
-                self.update_progress(progress)
+        F1 = self.calculatedNozzle.G_t[i] * self.calculatedNozzle.V2_t[i]
+        F2 = self.calculatedNozzle.A2 * (self.calculatedNozzle.P2_t[i] - P0)
 
-    def calculate_n_show(self):
-        self.create_progress_window()
-        self.progress_var.set(0)
-        total_steps = len(self.P)
-        self.calculation_running = True
+        self.calculatedNozzle.F_t[i] = F1 + F2
+        self.calculatedNozzle.CF_t[i] = self.calculatedNozzle.F_t[i] / (self.calculatedNozzle.At * P_Off)
 
-        def run_calculations():
-            nozzleClasses = {
-                "TOPN-BN": BellNozzle
-            }
+        # Actualizar la barra de progreso
+        progress = (i + 1) / self.total_steps if self.total_steps > 0 else 1
+        self.update_progress(progress)
 
-            engine_config = self.file_path_label.cget("text")
-            nozzle_config = self.nozzleTypeMenu.get()
-            P1 = float(self.pressure_entry.get())
-            n = float(self.nPoints_entry.get())
-            defaultState = self.pressureCheck_Box.get()
-            specInputs = []
 
-            if nozzle_config == "TOPN-BN":
-                nozzleEntries = self.TOPN_entries
-                loop_func = self.run_TOPBN_loop
 
-            for entry in nozzleEntries:
-                specInputs.append(float(entry.get()))
 
-            self.calculatedNozzle = nozzleClasses[nozzle_config](defaultState, P1, n, engine_config, specInputs)
-            loop_func(total_steps)
 
-            # Cerrar la ventana de progreso al completar
-            if self.calculation_running:
-                self.progress_window.destroy()
-                self.calculation_running = False
 
-        threading.Thread(target=run_calculations).start()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def updatePercentLabels(self, event=None):
+        p1p_update = f"{self.offDesingPressureSlider.get():.2f}"
+        p0p_update = f"{self.offDesingPressure0Slider.get():.2f}"
+        self.offDesingPressurePercent_label.configure(text=p1p_update)
+        self.offDesingPressure0Percent_label.configure(text=p0p_update)
+
+        
+    def updateMapPlots(self, event=None):
+        try:
+            p0_value = self.offDesingPressure0Slider.get() * self.calculatedNozzle.P0
+            p1_value = self.offDesingPressureSlider.get() * self.calculatedNozzle.P1
+            pe_value = self.calculatedNozzle.opPoint_plot(p1_value, p0_value)["Pe"]
+            pres_fig = self.calculatedNozzle.pres_plot(p1_value, p0_value)
+            mach_fig = self.calculatedNozzle.mach_plot(p1_value, p0_value)
+
+            p0_p1_update = f"{(p0_value / p1_value):.4f}"
+            pe_p1_update = f"{(pe_value / p1_value):.4f}"
+            pe_p0_update = f"{(pe_value / p0_value):.4f}"
+
+            self.PR1_Entry.delete(0, tk.END)
+            self.PR1_Entry.insert(0, p0_p1_update)
+            self.PR2_Entry.delete(0, tk.END)
+            self.PR2_Entry.insert(0, pe_p1_update)
+            self.PR3_Entry.delete(0, tk.END)
+            self.PR3_Entry.insert(0, pe_p0_update)
+
+            insert_fig(pres_fig, self.presMap_frame, resize='Auto')
+            insert_fig(mach_fig, self.machMap_frame, resize='Auto')
+
+        except Exception:
+            pass
 
     
     def add_labels_and_entries(self, frame, data_list):
@@ -389,6 +544,44 @@ class NozzleDesingModule:
             entry.grid(row=i+1, column=1, padx=5, pady=5, sticky='we')
             # Guardar la referencia del entry en el diccionario
             self.resultsEntries[text] = entry
+
+    def update_results_entries(self, result_array):
+
+        # Actualizar los entries
+        for i, key in enumerate(self.results_tempLabels):
+            entry = self.resultsEntries.get(key)
+            if entry:
+                entry.delete(0, tk.END)  # Limpiar el contenido actual del entry
+                value = result_array[0][i]
+                formatted_value = f"{value:.4e}" if value >= 1e6 else f"{value:.4f}"
+                entry.insert(0, formatted_value)  # Insertar el nuevo valor formateado
+
+        rightResults_entries = [
+            self.PR_Crit_0_Entry,
+            self.PR_Crit_1_Entry,
+            self.PR_Crit_2_Entry,
+            self.PR_Crit_3_Entry
+        ]
+
+        for i, entry in enumerate(rightResults_entries):
+            entry.delete(0, tk.END)  # Limpiar el contenido actual del entry
+            value = result_array[3][i]
+            entry.insert(0, f"{value:.4f}")  # Insertar el nuevo valor formateado
+
+         # Actualizar el Treeview de "Resultados"
+        results_treeview = self.tabview.tab("Resultados").winfo_children()[0].winfo_children()[0]
+        for row in zip(*result_array[1]):
+            formatted_row = [f"{value:.4e}" if value >= 1e6 else f"{value:.4f}" for value in row]
+            results_treeview.insert("", "end", values=formatted_row)
+
+        # Actualizar el Treeview de "Geometria"
+        geometry_treeview = self.tabview.tab("Geometria").winfo_children()[0].winfo_children()[0]
+        for row in zip(*result_array[2]):
+            formatted_row = [f"{value:.4e}" if value >= 1e6 else f"{value:.4f}" for value in row]
+            geometry_treeview.insert("", "end", values=formatted_row)
+
+            
+
 
     def get_entryResults_values(self):
         # Obtener los valores de los entries guardados en el diccionario
@@ -420,10 +613,6 @@ class NozzleDesingModule:
 
 
 
-
-    def on_PressureSlide(self, value):
-        self.pressure2_entry.delete(0, tk.END)
-        self.pressure2_entry.insert(0, str(value))
 
     def get_engine_data(self, on_load=False, file=None):
 
@@ -465,17 +654,15 @@ class NozzleDesingModule:
                 self.file_path_label.configure(text="Archivo Inválido")
                 return
 
-            # Actualizar el slider con el valor máximo de la presión
-            self.update_slider()
-            # Cambiar el switch a activo
-            self.pressureCheck_Box.configure(state="normal")
-            self.pressureCheck_Box.select()
-            self.toggle_slider()
+            if not on_load:
+                self.update_slider()
+                self.pressureCheck_Box.configure(state="normal")
+                self.pressureCheck_Box.select()
+                self.toggle_slider()
+            else:
+                self.pressureSlide_Bar.configure(from_= self.minP, to=self.maxP)
+            
 
-            self.pressureSlider.configure(from_=self.P0, to=self.maxP, state='normal', command=self.on_PressureSlide)
-            self.pressureSlider.set(self.P0)
-            self.pressure2_entry.delete(0, tk.END)
-            self.pressure2_entry.insert(0, str(self.P0))
 
    
             
@@ -532,10 +719,17 @@ class NozzleDesingModule:
             for i, widget in enumerate(self.TOPN_widgets):
                 row, col = divmod(i, 2)
                 widget.grid(row=row, column=col, padx=10, pady=5, sticky="nsew")
+                self.results_tempLabels = self.results_TOPBNLabels
         elif selection == "MOC-2D":
             for i, widget in enumerate(self.MOC2D_widgets):
                 row, col = divmod(i, 2)
                 widget.grid(row=row, column=col, padx=10, pady=5, sticky="nsew")
+                self.results_tempLabels = self.results_MOC2DLabels
+
+        self.add_labels_and_entries(self.numericResults_frame, self.results_tempLabels)
+        
+
+        
                 
 
     def create_TOPN_entries(self):
@@ -610,24 +804,6 @@ class NozzleDesingModule:
         except Exception:
             fig, ax = plt.subplots(figsize=(1, 1))
             ax.set_axis_off()
+
+        insert_fig(fig, frame=self.pressureGraph_Frame, resize='Auto')
         
-        # Limpiar el canvas antes de dibujar
-        for widget in self.pressureGraph_Frame.winfo_children():
-            widget.destroy()
-
-        buf = io.BytesIO()
-        fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.1, dpi=300)
-        plt.close(fig)
-        buf.seek(0)
-        image = Image.open(buf)
-
-        display_width, display_height = self.pressureGraph_Frame.winfo_width(), self.pressureGraph_Frame.winfo_height()
-        ctk_image = ctk.CTkImage(light_image=image, dark_image=image, size=(display_width, display_width))
-
-        if self.image_label:
-            self.image_label.destroy()
-
-        self.image_label = ctk.CTkLabel(self.pressureGraph_Frame, text="", image=ctk_image)
-        self.image_label.image = ctk_image
-        pad4x = abs((display_width-display_height)/2 - 0.05 * (display_width-display_height)/2)
-        self.image_label.grid(row=0, column=0, padx=0.05, pady=0, sticky="nsew")

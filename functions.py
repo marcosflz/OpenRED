@@ -137,3 +137,41 @@ def initialize_database():
     conn.close()
 
 
+def insert_fig(fig, frame, resize='Manual', l=0.1, r=0.9, t=0.9, b=0.2):
+    # Limpiar el frame antes de dibujar
+    for widget in frame.winfo_children():
+        widget.destroy()
+
+    # Crear un nuevo canvas de FigureCanvasTkAgg
+    canvas = FigureCanvasTkAgg(fig, master=frame)
+    canvas.draw()
+    canvas.get_tk_widget().pack(side=ctk.TOP, fill=ctk.BOTH, expand=1)
+
+    # Ajustar el tamaño del canvas al tamaño del frame
+    canvas.get_tk_widget().grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
+    frame.grid_rowconfigure(0, weight=1)
+    frame.grid_columnconfigure(0, weight=1)
+
+    # Redimensionar la figura para ajustarse al tamaño del frame
+    def on_resize(event, canvas=canvas):
+        width, height = event.width, event.height
+        fig.set_size_inches(width / fig.dpi, height / fig.dpi)
+        if resize != 'Auto':
+            fig.subplots_adjust(left=l, right=r, top=t, bottom=b)
+        else:
+            pass
+        canvas.draw()
+    frame.bind("<Configure>", on_resize)
+
+    # Forzar el redimensionamiento inicial
+    frame.update_idletasks()
+    width, height = frame.winfo_width(), frame.winfo_height()
+    fig.set_size_inches(width / fig.dpi, height / fig.dpi)
+    if resize != 'Auto':
+        fig.subplots_adjust(left=l, right=r, top=t, bottom=b)
+    else:
+        pass  # Ajustar márgenes
+    canvas.draw()
+    
+    # Cerrar la figura para liberar memoria
+    plt.close(fig)
