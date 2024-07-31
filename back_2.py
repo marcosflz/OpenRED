@@ -88,8 +88,13 @@ class BellNozzle:
         self.PRatio_2 = PRatio_2_sho / PRatio_2_exp
         self.PRatio_3 = self.PRatio_Sup_Curve[-1]
 
-    
-        self.time_results()
+        totalIters = len(self.P_t)
+        self.M2_t  = np.zeros(totalIters)
+        self.P2_t  = np.zeros(totalIters)
+        self.T2_t  = np.zeros(totalIters)
+        self.F_t  = np.zeros(totalIters)
+        self.CF_t  = np.zeros(totalIters)
+        self.V2_t  = np.zeros(totalIters)
 
         
 
@@ -100,10 +105,11 @@ class BellNozzle:
         PR_Crit2 = round(self.PRatio_2, 6)
         PR_Crit3 = round(self.PRatio_3, 6)
 
-        def noFireOperation():
+        def noFireOperation(P_Off,P0):
             Mx = [0, 0]
             Px = [1, 1]
             xNozzle = [self.geo_Nozzle[0, 0], self.geo_Nozzle[-1, 0]]
+
             return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': self.P0}
 
         def subSonicOperation(P_Off,P0):
@@ -113,6 +119,12 @@ class BellNozzle:
             Mx = np.array([fsolve(self.f_AR, 0.25, args=(AR,))[0] for AR in Ax_Astar])
             Px = self.P_ratio(Mx) ** -1
             xNozzle = self.geo_Nozzle[:, 0]
+            
+            #G = self.interpolate_mass_flow(P_Off)
+            #Te = self.T1 / (1 + (self.gamma - 1)/2 * Mx[-1]**2)
+            #Ve = Mx[-1] * np.sqrt(self.gamma * self.R * Te)
+            #thrust = G * Ve + self.A2 * (Px[-1] - P0)
+
             return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': self.P0}
 
         def inShockOperation(P_Off,P0):
@@ -135,7 +147,7 @@ class BellNozzle:
                 P2t_P2 = self.P_ratio(M2)
 
                 A2_A2star = self.f_AR(M2, 0)
-                Ae_A2 = self.R2 ** 2 / (AR * self.At)
+                Ae_A2 = np.pi * self.R2 ** 2 / (AR * self.At)
                 Ae_A2star = A2_A2star * Ae_A2
 
                 Me = fsolve(self.f_AR, 1e-6, args=(Ae_A2star,))[0]
@@ -174,12 +186,14 @@ class BellNozzle:
             xNozzle_Sub_NS = self.geo_Nozzle[xIndex - 1:, 0]
             xNozzle = np.concatenate((xNozzle_Sub, xNozzle_Sup_NS, xNozzle_Sub_NS))
 
+
             return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': self.P0}
 
-        def exitShockOperation():
+        def exitShockOperation(P_Off,P0):
             Mx = np.append(self.M_x_Sup, self.M2NS(self.M_x_Sup[-1]))
             Px = np.append(self.PRatio_Sup_Curve, PR_Crit2)
             xNozzle = np.append(self.geo_Nozzle[:, 0], self.geo_Nozzle[-1, 0])
+
             return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': self.P0}
 
         def overExpansionOperation(P_Off,P0):
@@ -189,10 +203,12 @@ class BellNozzle:
             Mx = np.concatenate((self.M_x_Sup, [Me, Me]))
             Px = np.concatenate((self.P_ratio(self.M_x_Sup) ** -1, [PR_Crit3, PR_Crit3 + PR_Crit2 * (1 - Pe_P0)]))
             xNozzle = np.concatenate((self.geo_Nozzle[:, 0], [self.geo_Nozzle[-1, 0], self.geo_Nozzle[-1, 0]]))
+
             return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe}
 
         def desingPointOperation(P_Off,P0):
             Pe = P_Off / self.P_ratio(self.M2)
+
             return {'Mach': self.M_x_Sup, 'PR': self.P_ratio(self.M_x_Sup) ** -1, 'x': self.geo_Nozzle[:, 0], 'Pe': Pe}
 
         def underExpOperation(P_Off,P0):
@@ -201,6 +217,7 @@ class BellNozzle:
             Mx = np.concatenate((self.M_x_Sup, [Me, Me]))
             Px = np.concatenate((self.P_ratio(self.M_x_Sup) ** -1, [PR_Crit3, P0 / P_Off]))
             xNozzle = np.concatenate((self.geo_Nozzle[:, 0], [self.geo_Nozzle[-1, 0], self.geo_Nozzle[-1, 0]]))
+
             return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe}
 
         subSonicOp = subSonicOperation(P_Off,P0)
@@ -210,13 +227,13 @@ class BellNozzle:
         except ValueError:
             inShockOp = {'PR': [0, 0]}
 
-        exitShockOp = exitShockOperation()
+        exitShockOp = exitShockOperation(P_Off,P0)
         overExpOp = overExpansionOperation(P_Off,P0)
         desingOp = desingPointOperation(P_Off,P0)
         underExpOp = underExpOperation(P_Off,P0)
 
         if PR_OffD >= 1:
-            return noFireOperation()
+            return noFireOperation(P_Off,P0)
         elif PR_OffD >= PR_Crit0 and subSonicOp['PR'][-1] >= PR_Crit1:
             return subSonicOp
         elif inShockOp['PR'][-1] >= PR_Crit2:
@@ -390,15 +407,25 @@ class BellNozzle:
         ax.grid(True, which='both', linestyle='--', color='gray', linewidth=0.5)
         return fig
 
-    def time_results(self):
+        
 
-        totalIters = len(self.P_t)
-        self.M2_t  = np.zeros(totalIters)
-        self.P2_t  = np.zeros(totalIters)
-        self.T2_t  = np.zeros(totalIters)
-        self.F_t  = np.zeros(totalIters)
-        self.CF_t  = np.zeros(totalIters)
-        self.V2_t  = np.zeros(totalIters)
+    def run_TOPBN_step(self, current_step):
+        i = current_step
+        P_Off = self.P_t[i]
+        P0 = self.P0
+        if not self.calculation_running:
+            return  # Detener el cálculo si la ventana de progreso se ha cerrado
+
+        self.M2_t[i] = self.opPoint_plot(P_Off, P0)["Mach"][-1]
+        self.P2_t[i] = P_Off / self.P_ratio(self.M2_t[i])
+        self.T2_t[i] = self.T1 / (1 + (self.gamma - 1)/2 * self.M2_t[i]**2)
+        self.V2_t[i] = self.M2_t[i] * np.sqrt(self.gamma * self.R * self.T2_t[i])
+
+        F1 = self.G_t[i] * self.V2_t[i]
+        F2 = self.A2 * (self.P2_t[i] - P0)
+
+        self.F_t[i] = F1 + F2
+        self.CF_t[i] = self.F_t[i] / (self.At * P_Off)
 
 
     def calculated_results(self):

@@ -417,47 +417,7 @@ class PropellantDesignModule:
             fig = self.tubular_plot()
         insert_fig(fig, frame=self.inputImageFrame, resize='Auto')
 
-#        for widget in self.inputImageFrame.winfo_children():
-#            widget.destroy()
-#
-#        # Crear un nuevo canvas de FigureCanvasTkAgg
-#        canvas = FigureCanvasTkAgg(fig, master=self.inputImageFrame)
-#        canvas.draw()
-#        canvas.get_tk_widget().pack(side=ctk.TOP, fill=ctk.BOTH, expand=1)
-#
-#        # Ajustar el tamaño del canvas al tamaño del frame
-#        canvas.get_tk_widget().grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
-#        self.inputImageFrame.grid_rowconfigure(0, weight=1)
-#        self.inputImageFrame.grid_columnconfigure(0, weight=1)
-#
-#        # Redimensionar la figura para ajustarse al tamaño del frame
-#        def on_resize(event, canvas=canvas):
-#            width, height = event.width, event.height
-#            fig.set_size_inches(width / fig.dpi, height / fig.dpi)
-#            canvas.draw()
-#
-#        self.inputImageFrame.bind("<Configure>", on_resize)
-        
-        ## Limpiar el canvas antes de dibujar
-        #for widget in self.inputImageFrame.winfo_children():
-        #    widget.destroy()
-#
-        #buf = io.BytesIO()
-        #fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.1, dpi=300)
-        #plt.close(fig)
-        #buf.seek(0)
-        #image = Image.open(buf)
-#
-        #display_width, display_height = self.inputImageFrame.winfo_width(), self.inputImageFrame.winfo_height()
-        #ctk_image = ctk.CTkImage(light_image=image, dark_image=image, size=(display_height, display_height))
-#
-        #if self.image_label:
-        #    self.image_label.destroy()
-#
-        #self.image_label = ctk.CTkLabel(self.inputImageFrame, text="", image=ctk_image)
-        #self.image_label.image = ctk_image
-        #pad4x = (display_width-display_height)/2 - 0.05 * (display_width-display_height)/2
-        #self.image_label.grid(row=0, column=0, padx=(pad4x, pad4x), pady=0, sticky="nsew")
+
 
     def tubular_plot(self):
         try:

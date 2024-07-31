@@ -97,5 +97,3 @@ class TubularGrain:
         ax.set_title('Mass vs Time')
         ax.grid(True)
         return fig
-    
-

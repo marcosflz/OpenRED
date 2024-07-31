@@ -18,12 +18,9 @@ class NozzleDesingModule:
         self.image_label = None
         self.updateIteration = 0
 
-        # Variables para el control de la frecuencia de actualización
-        self.last_update_time = 0
-        self.update_interval = 100  # Milisegundos
-
-        self.inputs_frame = ctk.CTkFrame(self.content_frame)
+        self.inputs_frame = ctk.CTkFrame(self.content_frame, height=500, width=600)
         self.inputs_frame.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
+        self.inputs_frame.grid_propagate(False)
         self.inputs_frame.grid_rowconfigure(0,weight=1)
         self.inputs_frame.grid_rowconfigure(1,weight=1)
         self.inputs_frame.grid_rowconfigure(2,weight=1)
@@ -39,41 +36,41 @@ class NozzleDesingModule:
         self.inputsLabel = ctk.CTkLabel(self.inputs_frame, text="Inputs")
         self.inputsLabel.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky='nswe')
 
-        
+        inputsPad = 10
 
         self.load_file_button = ctk.CTkButton(self.inputs_frame, text="Cargar Motor", command=self.get_engine_data)
-        self.load_file_button.grid(row=1, column=0, padx=10, pady=10, sticky='nswe')
+        self.load_file_button.grid(row=1, column=0, padx=inputsPad, pady=inputsPad, sticky='nswe')
         
         self.file_path_label = ctk.CTkLabel(self.inputs_frame, text="No se ha cargado ningún archivo")
-        self.file_path_label.grid(row=1, column=1, padx=10, pady=10, sticky='nswe')
+        self.file_path_label.grid(row=1, column=1, padx=inputsPad, pady=inputsPad, sticky='nswe')
 
         self.pressureCheck_Box = ctk.CTkSwitch(self.inputs_frame, text="P1 - Media", command=self.toggle_slider, state="disabled")
-        self.pressureCheck_Box.grid(row=2, column=0, padx=10, pady=10, sticky='nswe')
+        self.pressureCheck_Box.grid(row=2, column=0, padx=inputsPad, pady=inputsPad, sticky='nswe')
 
         self.pressureSlide_Bar = ctk.CTkSlider(self.inputs_frame, from_=0, to=100, command=self.update_entry)
-        self.pressureSlide_Bar.grid(row=2, column=1, padx=10, pady=10, sticky='nswe')
+        self.pressureSlide_Bar.grid(row=2, column=1, padx=inputsPad, pady=inputsPad, sticky='nswe')
         self.pressureSlide_Bar.configure(state="disabled", button_color="gray", button_hover_color="gray")
 
         self.pressure_label = ctk.CTkLabel(self.inputs_frame, text="P1 - Punto Diseño (Pa): ")
-        self.pressure_label.grid(row=3, column=0, padx=10, pady=10, sticky='nswe')
+        self.pressure_label.grid(row=3, column=0, padx=inputsPad, pady=inputsPad, sticky='nswe')
         self.pressure_entry = ctk.CTkEntry(self.inputs_frame)
-        self.pressure_entry.grid(row=3, column=1, padx=10, pady=10, sticky='nswe')
+        self.pressure_entry.grid(row=3, column=1, padx=inputsPad, pady=inputsPad, sticky='nswe')
         self.pressure_entry.bind("<Return>", self.update_from_entry)
 
         self.nPoints_label = ctk.CTkLabel(self.inputs_frame, text="Puntos - Resolución: ")
-        self.nPoints_label.grid(row=4, column=0, padx=10, pady=10, sticky='nswe')
+        self.nPoints_label.grid(row=4, column=0, padx=inputsPad, pady=inputsPad, sticky='nswe')
         self.nPoints_entry = ctk.CTkEntry(self.inputs_frame)
-        self.nPoints_entry.grid(row=4, column=1, padx=10, pady=10, sticky='nswe')
+        self.nPoints_entry.grid(row=4, column=1, padx=inputsPad, pady=inputsPad, sticky='nswe')
 
         nozzles = ["TOPN-BN", "MOC-2D"]
         self.nozzleTypeMenu = ctk.CTkOptionMenu(self.inputs_frame, values=nozzles, command=self.update_options)
-        self.nozzleTypeMenu.grid(row=5, column=0, columnspan=2, padx=10, pady=10, sticky='nswe')
+        self.nozzleTypeMenu.grid(row=5, column=0, columnspan=2, padx=inputsPad, pady=inputsPad, sticky='nswe')
 
         self.nozzleOptions = ctk.CTkScrollableFrame(self.inputs_frame)
-        self.nozzleOptions.grid(row=6, column=0, columnspan=2, padx=10, pady=10, sticky='nswe')
+        self.nozzleOptions.grid(row=6, column=0, columnspan=2, padx=inputsPad, pady=inputsPad, sticky='nswe')
 
         self.pressureGraph_Frame = ctk.CTkFrame(self.inputs_frame)
-        self.pressureGraph_Frame.grid(row=1, column=2, rowspan=6, padx=10, pady=10, sticky='nswe')
+        self.pressureGraph_Frame.grid(row=1, column=2, rowspan=6, padx=inputsPad, pady=inputsPad, sticky='nswe')
         self.pressureGraph_Frame.grid_rowconfigure(0, weight=1)
         self.pressureGraph_Frame.configure(fg_color="white")
         self.pressureGraph_Frame.grid_propagate(False)
@@ -188,12 +185,12 @@ class NozzleDesingModule:
         self.PR3_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
         self.PR3_Entry.grid(row=2, column=3, padx=pad, pady=pad, sticky='nswe')
 
-        self.ThrustPerf_Label = ctk.CTkLabel(self.numericFrame, text="T/T(Op) (Rend. %)")
-        self.ThrustPerf_Label.grid(row=3, column=2, padx=pad, pady=pad, sticky='nswe')
-        self.ThrustPerf_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
-        self.ThrustPerf_Entry.grid(row=3, column=3, padx=pad, pady=pad, sticky='nswe')
+        self.OperationPoint_Label = ctk.CTkLabel(self.numericFrame, text="Operation:")
+        self.OperationPoint_Label.grid(row=3, column=2, padx=pad, pady=pad, sticky='nswe')
+        self.OperationPoint_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
+        self.OperationPoint_Entry.grid(row=3, column=3, padx=pad, pady=pad, sticky='nswe')
 
-        self.pressureSlider_frame = ctk.CTkFrame(self.numericFrame, height=175, width=85)  # Set height here
+        self.pressureSlider_frame = ctk.CTkFrame(self.numericFrame, height=175, width=100)  # Set height here
         self.pressureSlider_frame.grid(row=0, rowspan=4, column=4, padx=5, pady=5, sticky='nswe')
         self.pressureSlider_frame.grid_rowconfigure(0, weight=1)
         self.pressureSlider_frame.grid_rowconfigure(1, weight=5)
@@ -204,19 +201,19 @@ class NozzleDesingModule:
 
         self.offDesingPressure_label = ctk.CTkLabel(self.pressureSlider_frame, text="P1t")
         self.offDesingPressure_label.grid(row=0, column=0, padx=pad, pady=pad, sticky='nswe')
-        self.offDesingPressureSlider = ctk.CTkSlider(self.pressureSlider_frame, from_=0, to=1, orientation='vertical', number_of_steps=100)
+        self.offDesingPressureSlider = ctk.CTkSlider(self.pressureSlider_frame, from_=1e-3, to=1, orientation='vertical', number_of_steps=1000)
         self.offDesingPressureSlider.set(1)
         self.offDesingPressureSlider.bind('<B1-Motion>', self.updatePercentLabels)
-        self.offDesingPressureSlider.bind('<Leave>', self.updateMapPlots)
+        self.offDesingPressureSlider.bind('<ButtonRelease-1>', self.updateMapPlots)
         self.offDesingPressureSlider.grid(row=1, column=0, padx=pad, pady=pad, sticky='nswe')
 
         self.offDesingPressure0_label = ctk.CTkLabel(self.pressureSlider_frame, text="P0")
         self.offDesingPressure0_label.grid(row=0, column=1, padx=pad, pady=pad, sticky='nswe')
-        self.offDesingPressure0Slider = ctk.CTkSlider(self.pressureSlider_frame, from_=0, to=1, orientation='vertical', number_of_steps=100)
+        self.offDesingPressure0Slider = ctk.CTkSlider(self.pressureSlider_frame, from_=1e-3, to=1, orientation='vertical', number_of_steps=1000)
         self.offDesingPressure0Slider.grid(row=1, column=1, padx=pad, pady=pad, sticky='nswe')
         self.offDesingPressure0Slider.set(1)
         self.offDesingPressure0Slider.bind('<B1-Motion>', self.updatePercentLabels)
-        self.offDesingPressure0Slider.bind('<Leave>', self.updateMapPlots)
+        self.offDesingPressure0Slider.bind('<ButtonRelease-1>', self.updateMapPlots)
 
         p1p_init = f"{self.offDesingPressureSlider.get():.2f}"
         p0p_init = f"{self.offDesingPressure0Slider.get():.2f}"
@@ -248,10 +245,10 @@ class NozzleDesingModule:
         self.results_TOPBNLabels = [
             "DP. Thrust (kg)", "Med. Thrust (kg)", 
             "CF (DP.)", "CF (Med.)",
-            "It", "Isp",
             "Vs (DP.)", "Vs (Med.)",
             "Ts (DP.)", "Ts (Med.)",
             "Ps (DP.)", "Ps (Med.)",
+            "It", "Isp",
             "AR", "MS",
             "Longitud (m)",
             "Rt (m)", "R2 (m)"
@@ -299,7 +296,7 @@ class NozzleDesingModule:
         self.calcButton =  ctk.CTkButton(self.calcExport_frame, text="Calcular Resultados", command=self.calculate_n_show)
         self.calcButton.grid(row=0, column=1, padx=10, pady=10, sticky='nswe')
 
-        self.exportData =  ctk.CTkButton(self.calcExport_frame, text="Exportar Datos")
+        self.exportData =  ctk.CTkButton(self.calcExport_frame, text="Exportar Datos", command=self.export_results)
         self.exportData.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
         
 
@@ -343,28 +340,28 @@ class NozzleDesingModule:
         nozzleClasses = {
             "TOPN-BN": BellNozzle
         }
+        
+        self.engine_config = self.file_path_label.cget("text")
+        self.nozzle_config = self.nozzleTypeMenu.get()
+        self.P1 = float(self.pressure_entry.get())
+        self.n = float(self.nPoints_entry.get())
+        self.defaultState = self.pressureCheck_Box.get()
+        self.specInputs = []
 
-        engine_config = self.file_path_label.cget("text")
-        nozzle_config = self.nozzleTypeMenu.get()
-        P1 = float(self.pressure_entry.get())
-        n = float(self.nPoints_entry.get())
-        defaultState = self.pressureCheck_Box.get()
-        specInputs = []
-
-        if nozzle_config == "TOPN-BN":
+        if self.nozzle_config == "TOPN-BN":
             nozzleEntries = self.TOPN_entries
-            loop_func = self.run_TOPBN_loop
 
         for entry in nozzleEntries:
-            specInputs.append(float(entry.get()))
+            self.specInputs.append(float(entry.get()))
 
-        self.calculatedNozzle = nozzleClasses[nozzle_config](defaultState, P1, n, engine_config, specInputs)
+        self.calculatedNozzle = nozzleClasses[self.nozzle_config](self.defaultState, self.P1, self.n, self.engine_config, self.specInputs)
+        self.calculatedNozzle.calculation_running = self.calculation_running  # Pasar la variable de control
+
+        if self.nozzle_config == "TOPN-BN":
+            loop_func = self.calculatedNozzle.run_TOPBN_step 
 
         # Empezar el cálculo paso a paso
         self.run_calculations_step(loop_func)
-
-        
-        
 
     def run_calculations_step(self, loop_func):
         if self.current_step < self.total_steps and self.calculation_running:
@@ -400,7 +397,7 @@ class NozzleDesingModule:
                 self.nozzleGeoGraph_frame, 
                 self.presMap_frame,
                 self.machMap_frame
-                ]
+            ]
 
             self.graph_labels = [None] * 3
 
@@ -409,7 +406,6 @@ class NozzleDesingModule:
 
         self.result_array = self.calculatedNozzle.calculated_results()
         self.update_results_entries(self.result_array)
-
 
     def on_progress_window_close(self):
         self.calculation_running = False
@@ -458,28 +454,7 @@ class NozzleDesingModule:
         self.progress_var.set(progress)
         self.progress_label.configure(text=f"{int(progress * 100)}%")
 
-    def run_TOPBN_loop(self, current_step):
-        i = current_step
-        P_Off = self.calculatedNozzle.P_t[i]
-        P0 = self.calculatedNozzle.P0
-        if not self.calculation_running:
-            return  # Detener el cálculo si la ventana de progreso se ha cerrado
-
-        self.calculatedNozzle.M2_t[i] = self.calculatedNozzle.opPoint_plot(P_Off, P0)["Mach"][-1]
-        self.calculatedNozzle.P2_t[i] = P_Off / self.calculatedNozzle.P_ratio(self.calculatedNozzle.M2_t[i])
-        self.calculatedNozzle.T2_t[i] = self.calculatedNozzle.T1 / (1 + (self.calculatedNozzle.gamma - 1)/2 * self.calculatedNozzle.M2_t[i]**2)
-        self.calculatedNozzle.V2_t[i] = self.calculatedNozzle.M2_t[i] * np.sqrt(self.calculatedNozzle.gamma * self.calculatedNozzle.R * self.calculatedNozzle.T2_t[i])
-
-        F1 = self.calculatedNozzle.G_t[i] * self.calculatedNozzle.V2_t[i]
-        F2 = self.calculatedNozzle.A2 * (self.calculatedNozzle.P2_t[i] - P0)
-
-        self.calculatedNozzle.F_t[i] = F1 + F2
-        self.calculatedNozzle.CF_t[i] = self.calculatedNozzle.F_t[i] / (self.calculatedNozzle.At * P_Off)
-
-        # Actualizar la barra de progreso
-        progress = (i + 1) / self.total_steps if self.total_steps > 0 else 1
-        self.update_progress(progress)
-
+   
 
 
 
@@ -504,23 +479,28 @@ class NozzleDesingModule:
 
 
     def updatePercentLabels(self, event=None):
-        p1p_update = f"{self.offDesingPressureSlider.get():.2f}"
-        p0p_update = f"{self.offDesingPressure0Slider.get():.2f}"
+        p1p_update = f"{float(self.offDesingPressureSlider.get())**2:.3f}"
+        p0p_update = f"{float(self.offDesingPressure0Slider.get())**2:.3f}"
         self.offDesingPressurePercent_label.configure(text=p1p_update)
         self.offDesingPressure0Percent_label.configure(text=p0p_update)
 
         
     def updateMapPlots(self, event=None):
         try:
-            p0_value = self.offDesingPressure0Slider.get() * self.calculatedNozzle.P0
-            p1_value = self.offDesingPressureSlider.get() * self.calculatedNozzle.P1
+            p0_value = self.offDesingPressure0Slider.get()**2 * self.calculatedNozzle.P0
+            p1_value = self.offDesingPressureSlider.get()**2 * max(self.calculatedNozzle.P_t)
             pe_value = self.calculatedNozzle.opPoint_plot(p1_value, p0_value)["Pe"]
             pres_fig = self.calculatedNozzle.pres_plot(p1_value, p0_value)
-            mach_fig = self.calculatedNozzle.mach_plot(p1_value, p0_value)
+            mach_fig = self.calculatedNozzle.mach_plot(p1_value, p0_value) 
 
             p0_p1_update = f"{(p0_value / p1_value):.4f}"
             pe_p1_update = f"{(pe_value / p1_value):.4f}"
             pe_p0_update = f"{(pe_value / p0_value):.4f}"
+
+            PRC0_value = float(self.PR_Crit_0_Entry.get())
+            PRC1_value = float(self.PR_Crit_1_Entry.get())
+            PRC2_value = float(self.PR_Crit_2_Entry.get())
+            PRC3_value = float(self.PR_Crit_3_Entry.get())
 
             self.PR1_Entry.delete(0, tk.END)
             self.PR1_Entry.insert(0, p0_p1_update)
@@ -529,11 +509,29 @@ class NozzleDesingModule:
             self.PR3_Entry.delete(0, tk.END)
             self.PR3_Entry.insert(0, pe_p0_update)
 
+
+            if float(p0_p1_update) > PRC0_value:
+                operation_tag = 'Subsonic'  
+            elif PRC2_value < float(pe_p1_update) < PRC1_value:
+                operation_tag = 'Normal Shock Inside'
+            elif abs(float(pe_p1_update) - PRC3_value) < 1e-2 and pe_value < p0_value:
+                operation_tag = 'Over-Expanded'
+            elif abs(float(pe_p1_update) - PRC3_value) < 1e-2 and pe_value == p0_value:
+                operation_tag = 'Desing-Point'
+            elif abs(float(pe_p1_update) - PRC3_value) < 1e-2 and pe_value > p0_value:
+                operation_tag = 'Under-Expanded'
+            else:
+                operation_tag = 'Normal Shock Exit'
+
+            self.OperationPoint_Entry.delete(0, tk.END)
+            self.OperationPoint_Entry.insert(0, operation_tag)
+
             insert_fig(pres_fig, self.presMap_frame, resize='Auto')
             insert_fig(mach_fig, self.machMap_frame, resize='Auto')
 
-        except Exception:
-            pass
+        except Exception as e:
+            print("An error occurred:", e)
+            traceback.print_exc()
 
     
     def add_labels_and_entries(self, frame, data_list):
@@ -622,7 +620,8 @@ class NozzleDesingModule:
             file_path = file
 
         if file_path:
-            file_name = os.path.basename(file_path)
+            self.file_name = os.path.basename(file_path)
+
 
             with open(file_path, 'r') as file:
                 self.engine_Data = json.load(file)
@@ -648,7 +647,7 @@ class NozzleDesingModule:
                 self.G          = self.engine_Data["tree_data"]["Flujo M\u00e1sico (kg/s)"]
                 self.M          = self.engine_Data["tree_data"]["Masa (kg)"]
 
-                self.file_path_label.configure(text=file_name)
+                self.file_path_label.configure(text=self.file_name)
             except Exception:
                 messagebox.showerror("Error", "Archivo no válido.", parent=self.content_frame)
                 self.file_path_label.configure(text="Archivo Inválido")
@@ -738,8 +737,8 @@ class NozzleDesingModule:
         self.TOPN_labels = [
             "K1 (Factor Entrada):",
             "K2 (Factor Garganta):",
-            "θₜ (deg):",
-            "θₑ (deg):",
+            "theta_t (deg):",
+            "theta_e (deg):",
             "% (L. Cono):",
             "% (Entrada):"
         ]
@@ -784,7 +783,7 @@ class NozzleDesingModule:
 
 
             # Añadir título y etiquetas
-            ax.set_title("Pressure Profile (Pa)")
+            ax.set_title(f"Pressure Profile (Pa)")
             ax.set_xlabel("Time (s)")
             ax.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
             ax.set_aspect('auto')
@@ -797,7 +796,8 @@ class NozzleDesingModule:
             time_value = interpolate_time(pressure_value)
 
             # Dibujar el punto rojo
-            ax.plot(time_value, pressure_value, 'ro', label="Selected Pressure")
+            ax.plot(time_value, pressure_value, 'ro', label=f"{(pressure_value / self.maxP):.3f}")
+            ax.legend()
             # Ajustar el aspecto del gráfico para evitar la distorsión
             #ax.set_aspect('equal')
             # Añadir título y leyenda
@@ -807,3 +807,97 @@ class NozzleDesingModule:
 
         insert_fig(fig, frame=self.pressureGraph_Frame, resize='Auto')
         
+
+    def export_results(self):
+        working_path = get_dir_path()
+        if not working_path:
+            messagebox.showerror("Error", "No se ha seleccionado un directorio de trabajo.", parent=self.content_frame)
+            return
+        # Preguntar al usuario el nombre del archivo
+        file_name = simpledialog.askstring("Guardar archivo", "Introduce el nombre del archivo:", parent=self.content_frame)
+        
+        if file_name:
+            # Asegurarse de que el nombre del archivo termine con '.json'
+            if not file_name.endswith('.json'):
+                file_name += '.json'
+            
+            # Crear una carpeta llamada "resultados" dentro del directorio de trabajo
+            results_folder = os.path.join(working_path, "Nozzles")
+            os.makedirs(results_folder, exist_ok=True)
+
+            # Construir la ruta completa del archivo
+            file_path = os.path.join(results_folder, file_name)
+
+            # Obtener los datos del Treeview de la pestaña "Geometria"
+            geo_tree = self.tabview.tab("Geometria").winfo_children()[0].winfo_children()[0]
+            geo_data = {
+                "X (m)": [],
+                "Y (m)": [],
+                "AR (m)": []
+            }
+
+            for item in geo_tree.get_children():
+                values = geo_tree.item(item)["values"]
+                geo_data["X (m)"].append(float(values[0]))
+                geo_data["Y (m)"].append(float(values[1]))
+                geo_data["AR (m)"].append(float(values[2]))
+
+            # Obtener los datos del Treeview de la pestaña "Resultados"
+            results_tree = self.tabview.tab("Resultados").winfo_children()[0].winfo_children()[0]
+            timeResults_data = {
+                "Tiempo (s)": [],
+                "Empuje (kg)": [],
+                "CF": []
+            }
+
+            for item in results_tree.get_children():
+                values = results_tree.item(item)["values"]
+                timeResults_data["Tiempo (s)"].append(float(values[0]))
+                timeResults_data["Empuje (kg)"].append(float(values[1]))
+                timeResults_data["CF"].append(float(values[2]))
+
+
+
+            # Recopilar datos adicionales
+            inputs = {
+                "NozzleConfig": self.nozzle_config,
+                "DefaultCheck": self.defaultState,
+                "P1": self.P1,
+                "n": self.n,
+                "EngineConfig": self.engine_config,
+            }
+
+            specInputs = {}
+            if inputs["NozzleConfig"] == "TOPN-BN":
+                nozzleEntries = self.TOPN_entries
+                nozzleLabels = self.TOPN_labels
+
+            for label, entry in zip(nozzleLabels, nozzleEntries):
+                specInputs[label] = float(entry.get())
+
+            inputs["specInputs"] = specInputs
+
+            calculatedResults = {}
+            for label, value in zip(self.results_tempLabels, self.result_array[0]):
+                calculatedResults[label] = value
+
+                
+
+            if inputs["NozzleConfig"] == "TOPN-BN":
+                calculatedResults["PR_Crit0"] = self.calculatedNozzle.PR_crit
+                calculatedResults["PR_Crit1"] = self.calculatedNozzle.PRatio_1
+                calculatedResults["PR_Crit2"] = self.calculatedNozzle.PRatio_2
+                calculatedResults["PR_Crit3"] = self.calculatedNozzle.PRatio_3
+
+            results = {
+                "Inputs": inputs,
+                "geometry_data": geo_data,
+                "timeResults_data": timeResults_data,
+                "calculatedResults": calculatedResults
+            }   
+
+            # Guardar datos en un archivo JSON
+            with open(file_path, 'w') as json_file:
+                json.dump(results, json_file, indent=4)
+            
+            messagebox.showinfo("Guardar archivo", f"Resultados guardados en {file_path}", parent=self.content_frame)
