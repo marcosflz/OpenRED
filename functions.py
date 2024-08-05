@@ -1,6 +1,12 @@
 from imports import *
 
-
+def get_data(type, file):
+        with open('temp_dir.txt', 'r') as txt:
+            dir = txt.readline()
+        file_path = dir + f'\\{type}\\' + file
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+        return data
 
 def get_entry_value(entry):
         return entry.get() if entry.get() else '0'
@@ -136,42 +142,204 @@ def initialize_database():
     conn.commit()
     conn.close()
 
-
 def insert_fig(fig, frame, resize='Manual', l=0.1, r=0.9, t=0.9, b=0.2):
-    # Limpiar el frame antes de dibujar
-    for widget in frame.winfo_children():
-        widget.destroy()
-
-    # Crear un nuevo canvas de FigureCanvasTkAgg
-    canvas = FigureCanvasTkAgg(fig, master=frame)
-    canvas.draw()
-    canvas.get_tk_widget().pack(side=ctk.TOP, fill=ctk.BOTH, expand=1)
-
-    # Ajustar el tamaño del canvas al tamaño del frame
-    canvas.get_tk_widget().grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
-    frame.grid_rowconfigure(0, weight=1)
-    frame.grid_columnconfigure(0, weight=1)
+    # Crear un nuevo canvas de FigureCanvasTkAgg pero no mostrarlo aún
+    new_canvas = FigureCanvasTkAgg(fig, master=frame)
+    new_widget = new_canvas.get_tk_widget()
 
     # Redimensionar la figura para ajustarse al tamaño del frame
-    def on_resize(event, canvas=canvas):
-        width, height = event.width, event.height
+    def on_resize(event=None, canvas=new_canvas, widget=new_widget, force_resize=False):
+        if event is None:
+            width, height = frame.winfo_width(), frame.winfo_height()
+        else:
+            width, height = event.width, event.height
+
         fig.set_size_inches(width / fig.dpi, height / fig.dpi)
         if resize != 'Auto':
             fig.subplots_adjust(left=l, right=r, top=t, bottom=b)
-        else:
-            pass
         canvas.draw()
-    frame.bind("<Configure>", on_resize)
 
-    # Forzar el redimensionamiento inicial
+        if force_resize:
+            # Mostrar el nuevo canvas
+            widget.pack(side=ctk.TOP, fill=ctk.BOTH, expand=1)
+            widget.grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
+            frame.grid_rowconfigure(0, weight=1)
+            frame.grid_columnconfigure(0, weight=1)
+
+            # Eliminar el canvas anterior si existe
+            if hasattr(frame, 'canvas'):
+                old_canvas = frame.canvas
+                old_widget = old_canvas.get_tk_widget()
+                old_widget.destroy()
+
+            # Asignar el nuevo canvas al frame
+            frame.canvas = canvas
+
+            # Cerrar la figura para liberar memoria
+            plt.close(fig)
+
+    # Si el frame no tiene el bind de redimensionar, lo agrega
+    if not hasattr(frame, 'resize_bound'):
+        frame.bind("<Configure>", on_resize)
+        frame.resize_bound = True
+
+    # Llamar al on_resize manualmente para redimensionar inmediatamente
     frame.update_idletasks()
-    width, height = frame.winfo_width(), frame.winfo_height()
-    fig.set_size_inches(width / fig.dpi, height / fig.dpi)
-    if resize != 'Auto':
-        fig.subplots_adjust(left=l, right=r, top=t, bottom=b)
-    else:
-        pass  # Ajustar márgenes
-    canvas.draw()
+    on_resize(force_resize=True)
+#def insert_fig(fig, frame, resize='Manual', l=0.1, r=0.9, t=0.9, b=0.2):
+#    # Limpiar el frame antes de dibujar
+#    for widget in frame.winfo_children():
+#        widget.destroy()
+#
+#    # Crear un nuevo canvas de FigureCanvasTkAgg
+#    canvas = FigureCanvasTkAgg(fig, master=frame)
+#    canvas.draw()
+#    canvas.get_tk_widget().pack(side=ctk.TOP, fill=ctk.BOTH, expand=1)
+#
+#    # Ajustar el tamaño del canvas al tamaño del frame
+#    canvas.get_tk_widget().grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
+#    frame.grid_rowconfigure(0, weight=1)
+#    frame.grid_columnconfigure(0, weight=1)
+#
+#    # Redimensionar la figura para ajustarse al tamaño del frame
+#    def on_resize(event, canvas=canvas):
+#        width, height = event.width, event.height
+#        fig.set_size_inches(width / fig.dpi, height / fig.dpi)
+#        if resize != 'Auto':
+#            fig.subplots_adjust(left=l, right=r, top=t, bottom=b)
+#        else:
+#            pass
+#        canvas.draw()
+#    frame.bind("<Configure>", on_resize)
+#
+#    # Forzar el redimensionamiento inicial
+#    frame.update_idletasks()
+#    width, height = frame.winfo_width(), frame.winfo_height()
+#    fig.set_size_inches(width / fig.dpi, height / fig.dpi)
+#    if resize != 'Auto':
+#        fig.subplots_adjust(left=l, right=r, top=t, bottom=b)
+#    else:
+#        pass  # Ajustar márgenes
+#    canvas.draw()
+#    
+#    # Cerrar la figura para liberar memoria
+#    plt.close(fig)
+
+
+class TempSchemes:
     
-    # Cerrar la figura para liberar memoria
-    plt.close(fig)
+    @staticmethod
+    def Euler(f, u, h):
+        k1 = np.array([fi(u) for fi in f])
+        return u + h * k1
+    
+    @staticmethod
+    def Heun(f, u, h):
+        k1 = np.array([fi(u) for fi in f])
+        k2 = np.array([fi(u + k1 * h) for fi in f])
+        return u + h * (k1 + k2) / 2
+    
+    @staticmethod
+    def RK4(f, u, h):
+        k1 = np.array([fi(u) for fi in f])
+        k2 = np.array([fi(u + 0.5 * k1 * h) for fi in f])
+        k3 = np.array([fi(u + 0.5 * k2 * h) for fi in f])
+        k4 = np.array([fi(u + k3 * h) for fi in f])
+        return u + h * (k1 + 2 * k2 + 2 * k3 + k4) / 6
+
+def numerical_derivative(x, f):
+    """
+    Computes the numerical derivative of a function given by arrays of x and f values.
+    
+    Parameters:
+    - x: array of x values (independent variable).
+    - f: array of f values (dependent variable).
+    
+    Returns:
+    - df_dx: array of the numerical derivative df/dx.
+    """
+    if len(x) != len(f):
+        raise ValueError("The length of x and f must be the same")
+    
+    df_dx = np.zeros_like(f)
+    
+    # Central difference for the interior points
+    df_dx[1:-1] = (f[2:] - f[:-2]) / (x[2:] - x[:-2])
+    
+    # Forward difference for the first point
+    df_dx[0] = (f[1] - f[0]) / (x[1] - x[0])
+    
+    # Backward difference for the last point
+    df_dx[-1] = (f[-1] - f[-2]) / (x[-1] - x[-2])
+    
+    return df_dx
+
+def solve_ode_system(f_system, u0, h, method, t_max, divergence_threshold=1e6, stop_conditions=None, indefinite=False):
+    """
+    General solver for a system of differential equations.
+    
+    Parameters:
+    - f_system: list of functions defining the system of ODEs.
+    - u0: initial conditions as a list or numpy array.
+    - h: step size.
+    - method: string, "Euler", "Heun", or "RK4".
+    - t_max: maximum time for the simulation.
+    - divergence_threshold: optional float, threshold for divergence detection.
+    - stop_conditions: optional list of functions, each taking the current state as input and returning a boolean.
+    - indefinite: boolean, if True the simulation will run indefinitely until a stop condition is met.
+    
+    Returns:
+    - sol: numpy array with the solution for each variable over time.
+    - t: numpy array with the time points.
+    """
+    schemes = {
+        "Euler": TempSchemes.Euler,
+        "Heun": TempSchemes.Heun,
+        "RK4": TempSchemes.RK4
+    }
+    
+    if method not in schemes:
+        raise messagebox.showinfo("Error", "Method should be 'Euler', 'Heun', or 'RK4'")
+        return
+    
+    try:
+        num_steps = int(t_max / h) + 1 if t_max else 1000  # Initial allocation, will expand if indefinite is True
+        sol = np.zeros((num_steps, len(u0)))
+        sol[0] = u0
+        t = np.zeros(num_steps)
+        
+        i = 1
+        while True:
+            if not indefinite and i >= num_steps:
+                break
+            
+            if indefinite and i >= num_steps:
+                # Expand arrays if running indefinitely
+                sol = np.vstack([sol, np.zeros((1000, len(u0)))])
+                t = np.hstack([t, np.zeros(1000)])
+                num_steps += 1000
+
+            sol[i] = schemes[method](f_system, sol[i-1], h)
+            t[i] = t[i-1] + h
+            
+            # Check for divergence
+            if np.any(np.abs(sol[i] - sol[i-1]) > divergence_threshold):
+                messagebox.showinfo("Divergence stop", "Simulation stopped due to divergence.")
+                break
+            
+            # Check for custom stop conditions
+            if stop_conditions:
+                if any(condition(sol[i]) for condition in stop_conditions):
+                    messagebox.showinfo("Conditional stop", "Simulation stopped due to custom stop condition.")
+                    break
+            
+            i += 1
+        
+        # Trim the arrays to the actual size
+        sol = sol[:i]
+        t = t[:i]
+    except Exception or RuntimeError:
+        messagebox.showinfo("Error", "Error de calculo.")
+        return 
+    
+    return sol, t

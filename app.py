@@ -9,7 +9,7 @@ from front_1 import *
 from front_2 import *
 from front_3 import *
 from front_4 import *
-
+from front_5 import *
 
 # Llamar a la función para inicializar la base de datos al iniciar el programa
 initialize_database()
@@ -58,6 +58,13 @@ def save_configuration():
             file_path = os.path.join(working_path, "config.json")
         else:
             return
+        
+    tab_3_config = {
+            "NozzleConfig": EngineCADDesing_module_instance.file_name
+        }
+    tab_3_config.update({
+            key: widget.get() if isinstance(widget, (ctk.CTkEntry, ctk.CTkOptionMenu, ctk.CTkCheckBox)) else widget.get() for key, widget in EngineCADDesing_module_instance.widgets_dict.items()
+    })
 
     if file_path:
         config = {
@@ -84,13 +91,14 @@ def save_configuration():
                     "SwitchState":nozzleDesing_module_instance.pressureCheck_Box.get(),
                     "P1": get_entry_value(nozzleDesing_module_instance.pressure_entry),
                     "n_res":get_entry_value(nozzleDesing_module_instance.nPoints_entry),
-                    "TOPBN_K1_factor": get_entry_value(nozzleDesing_module_instance.TOPN_entries[0]),
-                    "TOPBN_K2_factor": get_entry_value(nozzleDesing_module_instance.TOPN_entries[1]),
-                    "TOPBN_theta_t": get_entry_value(nozzleDesing_module_instance.TOPN_entries[2]),
-                    "TOPBN_theta_e": get_entry_value(nozzleDesing_module_instance.TOPN_entries[3]),
-                    "TOPBN_percentL": get_entry_value(nozzleDesing_module_instance.TOPN_entries[4]),
-                    "TOPBN_percentIn": get_entry_value(nozzleDesing_module_instance.TOPN_entries[5]),
-                }
+                    "TOPBN_K_factor": get_entry_value(nozzleDesing_module_instance.TOPN_entries[0]),
+                    "TOPBN_theta_t": get_entry_value(nozzleDesing_module_instance.TOPN_entries[1]),
+                    "TOPBN_theta_e": get_entry_value(nozzleDesing_module_instance.TOPN_entries[2]),
+                    "TOPBN_percentL": get_entry_value(nozzleDesing_module_instance.TOPN_entries[3]),
+                },
+                "tab_3": {
+                    tab_3_config
+                },          
             }
         }
         with open(file_path, 'w') as config_file:
@@ -108,6 +116,7 @@ def load_configuration(working_path):
             tab_0_config = config["tabs"]["tab_0"]
             tab_1_config = config["tabs"]["tab_1"]
             tab_2_config = config["tabs"]["tab_2"]
+            tab_3_config = config["tabs"]["tab_3"]
 
 
             # Clear existing widgets
@@ -188,21 +197,37 @@ def load_configuration(working_path):
 
             
             nozzleDesing_module_instance.update_plot()
-
             nozzleDesing_module_instance.nPoints_entry.delete(0, tk.END)
             nozzleDesing_module_instance.nPoints_entry.insert(0, tab_2_config["n_res"])
             nozzleDesing_module_instance.TOPN_entries[0].delete(0, tk.END)
-            nozzleDesing_module_instance.TOPN_entries[0].insert(0, tab_2_config["TOPBN_K1_factor"])
+            nozzleDesing_module_instance.TOPN_entries[0].insert(0, tab_2_config["TOPBN_K_factor"])
             nozzleDesing_module_instance.TOPN_entries[1].delete(0, tk.END)
-            nozzleDesing_module_instance.TOPN_entries[1].insert(0, tab_2_config["TOPBN_K2_factor"])
+            nozzleDesing_module_instance.TOPN_entries[1].insert(0, tab_2_config["TOPBN_theta_t"])
             nozzleDesing_module_instance.TOPN_entries[2].delete(0, tk.END)
-            nozzleDesing_module_instance.TOPN_entries[2].insert(0, tab_2_config["TOPBN_theta_t"])
+            nozzleDesing_module_instance.TOPN_entries[2].insert(0, tab_2_config["TOPBN_theta_e"])
             nozzleDesing_module_instance.TOPN_entries[3].delete(0, tk.END)
-            nozzleDesing_module_instance.TOPN_entries[3].insert(0, tab_2_config["TOPBN_theta_e"])
-            nozzleDesing_module_instance.TOPN_entries[4].delete(0, tk.END)
-            nozzleDesing_module_instance.TOPN_entries[4].insert(0, tab_2_config["TOPBN_percentL"])
-            nozzleDesing_module_instance.TOPN_entries[5].delete(0, tk.END)
-            nozzleDesing_module_instance.TOPN_entries[5].insert(0, tab_2_config["TOPBN_percentIn"])
+            nozzleDesing_module_instance.TOPN_entries[3].insert(0, tab_2_config["TOPBN_percentL"])
+
+            # Cargar configuracion de tab_3
+            EngineCADDesing_module_instance.build_entries(on_load=True, file=tab_3_config["NozzleConfig"])
+
+            # Asignar valores a los widgets en widgets_dict
+            for key, value in tab_3_config.items():
+                if key in EngineCADDesing_module_instance.widgets_dict:
+                    widget = EngineCADDesing_module_instance.widgets_dict[key]
+                    if isinstance(widget, ctk.CTkOptionMenu):
+                        widget.set(value)
+                    elif isinstance(widget, ctk.CTkEntry):
+                        widget.delete(0, tk.END)
+                        widget.insert(0, value)
+                    elif isinstance(widget, ctk.CTkCheckBox):
+                        if value:
+                            widget.select()
+                        else:
+                            widget.deselect()
+
+            EngineCADDesing_module_instance.update_plots()
+        
 
         except FileNotFoundError:
             print("No previous configuration found. Starting with default values.")
@@ -286,12 +311,16 @@ engineDesing_module_instance = PropellantDesignModule(tabs_content["tab_1"])
 tabs_content["tab_2"] = ctk.CTkFrame(content_frame)
 nozzleDesing_module_instance = NozzleDesingModule(tabs_content["tab_2"])
 
+tabs_content["tab_3"] = ctk.CTkFrame(content_frame)
+EngineCADDesing_module_instance = EngineCADModule(tabs_content["tab_3"])
+
 
 # Crear botones para las pestañas
 tabsList = [
     ("Adiabatic Flame\n Temperature", "tab_0"),
     ("Engine Design", "tab_1"),
-    ("Nozzle Desing", "tab_2")
+    ("Nozzle Desing", "tab_2"),
+    ("CAD Design", "tab_3")
 ]
 
 for tab, tag in tabsList:

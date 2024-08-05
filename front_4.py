@@ -150,25 +150,22 @@ class NozzleDesingModule:
         entry_height = 5
         pad = 10
 
-        self.PR_Crit_0_Label = ctk.CTkLabel(self.numericFrame, text="(P0/P1t) - Choked")
-        self.PR_Crit_0_Label.grid(row=0, column=0, padx=pad, pady=pad, sticky='nswe')
-        self.PR_Crit_0_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
-        self.PR_Crit_0_Entry.grid(row=0, column=1, padx=pad, pady=pad, sticky='nswe')
+        
 
         self.PR_Crit_1_Label = ctk.CTkLabel(self.numericFrame, text="(Pe/P1t) - Subsónico")
-        self.PR_Crit_1_Label.grid(row=1, column=0, padx=pad, pady=pad, sticky='nswe')
+        self.PR_Crit_1_Label.grid(row=0, column=0, padx=pad, pady=pad, sticky='nswe')
         self.PR_Crit_1_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
-        self.PR_Crit_1_Entry.grid(row=1, column=1, padx=pad, pady=pad, sticky='nswe')
+        self.PR_Crit_1_Entry.grid(row=0, column=1, padx=pad, pady=pad, sticky='nswe')
 
         self.PR_Crit_2_Label = ctk.CTkLabel(self.numericFrame, text="(Pe/P1t) - NS Salida")
-        self.PR_Crit_2_Label.grid(row=2, column=0, padx=pad, pady=pad, sticky='nswe')
+        self.PR_Crit_2_Label.grid(row=1, column=0, padx=pad, pady=pad, sticky='nswe')
         self.PR_Crit_2_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
-        self.PR_Crit_2_Entry.grid(row=2, column=1, padx=pad, pady=pad, sticky='nswe')
+        self.PR_Crit_2_Entry.grid(row=1, column=1, padx=pad, pady=pad, sticky='nswe')
 
         self.PR_Crit_3_Label = ctk.CTkLabel(self.numericFrame, text="(Pe/P1t) - Optimo")
-        self.PR_Crit_3_Label.grid(row=3, column=0, padx=pad, pady=pad, sticky='nswe')
+        self.PR_Crit_3_Label.grid(row=2, column=0, padx=pad, pady=pad, sticky='nswe')
         self.PR_Crit_3_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
-        self.PR_Crit_3_Entry.grid(row=3, column=1, padx=pad, pady=pad, sticky='nswe')
+        self.PR_Crit_3_Entry.grid(row=2, column=1, padx=pad, pady=pad, sticky='nswe')
 
         self.PR1_Label = ctk.CTkLabel(self.numericFrame, text="P0/P1t (Cap. Exp.)")
         self.PR1_Label.grid(row=0, column=2, padx=pad, pady=pad, sticky='nswe')
@@ -185,31 +182,44 @@ class NozzleDesingModule:
         self.PR3_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
         self.PR3_Entry.grid(row=2, column=3, padx=pad, pady=pad, sticky='nswe')
 
-        self.OperationPoint_Label = ctk.CTkLabel(self.numericFrame, text="Operation:")
-        self.OperationPoint_Label.grid(row=3, column=2, padx=pad, pady=pad, sticky='nswe')
-        self.OperationPoint_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
-        self.OperationPoint_Entry.grid(row=3, column=3, padx=pad, pady=pad, sticky='nswe')
 
-        self.pressureSlider_frame = ctk.CTkFrame(self.numericFrame, height=175, width=100)  # Set height here
-        self.pressureSlider_frame.grid(row=0, rowspan=4, column=4, padx=5, pady=5, sticky='nswe')
+        self.PR_Crit_0_Label = ctk.CTkLabel(self.numericFrame, text="(P0/P1t) - Choked")
+        self.PR_Crit_0_Label.grid(row=0, column=4, padx=pad, pady=pad, sticky='nswe')
+        self.PR_Crit_0_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
+        self.PR_Crit_0_Entry.grid(row=0, column=5, padx=pad, pady=pad, sticky='nswe')
+
+        self.OperationPoint_Label = ctk.CTkLabel(self.numericFrame, text="Operation:")
+        self.OperationPoint_Label.grid(row=1, column=4, padx=pad, pady=pad, sticky='nswe')
+        self.OperationPoint_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
+        self.OperationPoint_Entry.grid(row=1, column=5, padx=pad, pady=pad, sticky='nswe')
+
+        self.ThrustOff_Label = ctk.CTkLabel(self.numericFrame, text="Operation:")
+        self.ThrustOff_Label.grid(row=2, column=4, padx=pad, pady=pad, sticky='nswe')
+        self.ThrustOff_Entry = ctk.CTkEntry(self.numericFrame, height=entry_height)
+        self.ThrustOff_Entry.grid(row=2, column=5, padx=pad, pady=pad, sticky='nswe')
+
+
+
+        self.pressureSlider_frame = ctk.CTkFrame(self.numericFrame, height=75)  # Set height here
+        self.pressureSlider_frame.grid(row=3,column=0, columnspan=6, padx=5, pady=5, sticky='nswe')
         self.pressureSlider_frame.grid_rowconfigure(0, weight=1)
-        self.pressureSlider_frame.grid_rowconfigure(1, weight=5)
-        self.pressureSlider_frame.grid_rowconfigure(2, weight=1)
+        self.pressureSlider_frame.grid_rowconfigure(1, weight=1)
         self.pressureSlider_frame.grid_columnconfigure(0, weight=1)
-        self.pressureSlider_frame.grid_columnconfigure(1, weight=1)
+        self.pressureSlider_frame.grid_columnconfigure(1, weight=10)
+        self.pressureSlider_frame.grid_columnconfigure(2, weight=1)
         self.pressureSlider_frame.grid_propagate(False)  # Prevent resizing
 
         self.offDesingPressure_label = ctk.CTkLabel(self.pressureSlider_frame, text="P1t")
         self.offDesingPressure_label.grid(row=0, column=0, padx=pad, pady=pad, sticky='nswe')
-        self.offDesingPressureSlider = ctk.CTkSlider(self.pressureSlider_frame, from_=1e-3, to=1, orientation='vertical', number_of_steps=1000)
+        self.offDesingPressureSlider = ctk.CTkSlider(self.pressureSlider_frame, from_=1e-3, to=1, orientation='horizontal', number_of_steps=1000)
         self.offDesingPressureSlider.set(1)
         self.offDesingPressureSlider.bind('<B1-Motion>', self.updatePercentLabels)
         self.offDesingPressureSlider.bind('<ButtonRelease-1>', self.updateMapPlots)
-        self.offDesingPressureSlider.grid(row=1, column=0, padx=pad, pady=pad, sticky='nswe')
+        self.offDesingPressureSlider.grid(row=0, column=1, padx=pad, pady=pad, sticky='nswe')
 
         self.offDesingPressure0_label = ctk.CTkLabel(self.pressureSlider_frame, text="P0")
-        self.offDesingPressure0_label.grid(row=0, column=1, padx=pad, pady=pad, sticky='nswe')
-        self.offDesingPressure0Slider = ctk.CTkSlider(self.pressureSlider_frame, from_=1e-3, to=1, orientation='vertical', number_of_steps=1000)
+        self.offDesingPressure0_label.grid(row=1, column=0, padx=pad, pady=pad, sticky='nswe')
+        self.offDesingPressure0Slider = ctk.CTkSlider(self.pressureSlider_frame, from_=1e-3, to=1, orientation='horizontal', number_of_steps=1000)
         self.offDesingPressure0Slider.grid(row=1, column=1, padx=pad, pady=pad, sticky='nswe')
         self.offDesingPressure0Slider.set(1)
         self.offDesingPressure0Slider.bind('<B1-Motion>', self.updatePercentLabels)
@@ -217,11 +227,10 @@ class NozzleDesingModule:
 
         p1p_init = f"{self.offDesingPressureSlider.get():.2f}"
         p0p_init = f"{self.offDesingPressure0Slider.get():.2f}"
-
         self.offDesingPressurePercent_label = ctk.CTkLabel(self.pressureSlider_frame, text=p1p_init)
-        self.offDesingPressurePercent_label.grid(row=2, column=0, padx=pad, pady=pad, sticky='nswe')
+        self.offDesingPressurePercent_label.grid(row=0, column=2, padx=pad, pady=pad, sticky='nswe')
         self.offDesingPressure0Percent_label = ctk.CTkLabel(self.pressureSlider_frame, text=p0p_init)
-        self.offDesingPressure0Percent_label.grid(row=2, column=1, padx=pad, pady=pad, sticky='nswe')
+        self.offDesingPressure0Percent_label.grid(row=1, column=2, padx=pad, pady=pad, sticky='nswe')
 
 
     
@@ -479,16 +488,17 @@ class NozzleDesingModule:
 
 
     def updatePercentLabels(self, event=None):
-        p1p_update = f"{float(self.offDesingPressureSlider.get())**2:.3f}"
-        p0p_update = f"{float(self.offDesingPressure0Slider.get())**2:.3f}"
+        p1p_update = f"{float(self.offDesingPressureSlider.get()):.3f}"
+        p0p_update = f"{float(self.offDesingPressure0Slider.get()):.3f}"
         self.offDesingPressurePercent_label.configure(text=p1p_update)
         self.offDesingPressure0Percent_label.configure(text=p0p_update)
 
         
     def updateMapPlots(self, event=None):
         try:
-            p0_value = self.offDesingPressure0Slider.get()**2 * self.calculatedNozzle.P0
-            p1_value = self.offDesingPressureSlider.get()**2 * max(self.calculatedNozzle.P_t)
+            p0_value = self.offDesingPressure0Slider.get() * self.calculatedNozzle.P0
+            p1_value = self.offDesingPressureSlider.get() * max(self.calculatedNozzle.P_t)
+            thrust_value = self.calculatedNozzle.opPoint_plot(p1_value, p0_value)["F"]
             pe_value = self.calculatedNozzle.opPoint_plot(p1_value, p0_value)["Pe"]
             pres_fig = self.calculatedNozzle.pres_plot(p1_value, p0_value)
             mach_fig = self.calculatedNozzle.mach_plot(p1_value, p0_value) 
@@ -496,6 +506,7 @@ class NozzleDesingModule:
             p0_p1_update = f"{(p0_value / p1_value):.4f}"
             pe_p1_update = f"{(pe_value / p1_value):.4f}"
             pe_p0_update = f"{(pe_value / p0_value):.4f}"
+            thrst_update = f"{thrust_value:.4f}"
 
             PRC0_value = float(self.PR_Crit_0_Entry.get())
             PRC1_value = float(self.PR_Crit_1_Entry.get())
@@ -508,6 +519,8 @@ class NozzleDesingModule:
             self.PR2_Entry.insert(0, pe_p1_update)
             self.PR3_Entry.delete(0, tk.END)
             self.PR3_Entry.insert(0, pe_p0_update)
+            self.ThrustOff_Entry.delete(0, tk.END)
+            self.ThrustOff_Entry.insert(0, thrst_update)
 
 
             if float(p0_p1_update) > PRC0_value:
@@ -575,7 +588,7 @@ class NozzleDesingModule:
         # Actualizar el Treeview de "Geometria"
         geometry_treeview = self.tabview.tab("Geometria").winfo_children()[0].winfo_children()[0]
         for row in zip(*result_array[2]):
-            formatted_row = [f"{value:.4e}" if value >= 1e6 else f"{value:.4f}" for value in row]
+            formatted_row = [f"{value:.6f}" for value in row]
             geometry_treeview.insert("", "end", values=formatted_row)
 
             
@@ -735,12 +748,10 @@ class NozzleDesingModule:
         # Crear entradas específicas para Tubular
         self.TOPN_entries = []
         self.TOPN_labels = [
-            "K1 (Factor Entrada):",
-            "K2 (Factor Garganta):",
+            "K (Factor Garganta):",
             "theta_t (deg):",
             "theta_e (deg):",
-            "% (L. Cono):",
-            "% (Entrada):"
+            "% (L. Cono):"
         ]
 
         for i, label_text in enumerate(self.TOPN_labels):

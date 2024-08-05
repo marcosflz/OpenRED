@@ -43,14 +43,24 @@ class BellNozzle:
         self.A2 = np.pi * self.R2**2
         self.At = np.pi * self.Rt**2
 
-        self.K1 = specInputs[0]
-        self.K2 = specInputs[1]
-        self.theta_n = np.deg2rad(specInputs[2])
-        self.theta_e = np.deg2rad(specInputs[3])
-        self.percL = specInputs[4]
-        self.percV = specInputs[5]
 
-        self.thList = np.linspace(-np.pi/2 * (1 + self.percV), self.theta_n - np.pi/2, int(self.n/2))
+        self.K2 = specInputs[0]
+        self.theta_n = np.deg2rad(specInputs[1])
+        self.theta_e = np.deg2rad(specInputs[2])
+        self.percL = specInputs[3]
+
+        # Legacy
+        #self.K1 = specInputs[0]
+        #self.K2 = specInputs[1]
+        #self.theta_n = np.deg2rad(specInputs[2])
+        #self.theta_e = np.deg2rad(specInputs[3])
+        #self.percL = specInputs[4]
+        #self.percV = specInputs[5]
+        
+
+        #self.thList = np.linspace(-np.pi/2 * (1 + self.percV), self.theta_n - np.pi/2, int(self.n/2)) NO Entrance to Throat
+
+        self.thList = np.linspace(-np.pi/2, self.theta_n - np.pi/2, int(self.n/2))
         self.throatIndex = np.argmin(np.abs(self.thList + np.pi/2)) + 1
         self.geo_Throat = np.array([self.f_throat(th) for th in self.thList])
 
@@ -110,7 +120,7 @@ class BellNozzle:
             Px = [1, 1]
             xNozzle = [self.geo_Nozzle[0, 0], self.geo_Nozzle[-1, 0]]
 
-            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': self.P0}
+            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': self.P0, 'F': 0}
 
         def subSonicOperation(P_Off,P0):
             Mt = np.sqrt((2 / (self.gamma - 1)) * ((P_Off / P0) ** ((self.gamma - 1) / self.gamma) - 1))
@@ -120,12 +130,13 @@ class BellNozzle:
             Px = self.P_ratio(Mx) ** -1
             xNozzle = self.geo_Nozzle[:, 0]
             
-            #G = self.interpolate_mass_flow(P_Off)
-            #Te = self.T1 / (1 + (self.gamma - 1)/2 * Mx[-1]**2)
-            #Ve = Mx[-1] * np.sqrt(self.gamma * self.R * Te)
-            #thrust = G * Ve + self.A2 * (Px[-1] - P0)
+            Pe = P_Off * self.P_ratio(Mx[-1])
+            G = self.interpolate_mass_flow(P_Off)
+            Te = self.T1 / (1 + (self.gamma - 1)/2 * Mx[-1]**2)
+            Ve = Mx[-1] * np.sqrt(self.gamma * self.R * Te)
+            thrust = (G * Ve + self.A2 * (Pe - P0)) / 9.80665
 
-            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': self.P0}
+            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe, 'F': thrust}
 
         def inShockOperation(P_Off,P0):
             x = self.geo_Nozzle[self.throatIndex:, 0]
@@ -186,15 +197,31 @@ class BellNozzle:
             xNozzle_Sub_NS = self.geo_Nozzle[xIndex - 1:, 0]
             xNozzle = np.concatenate((xNozzle_Sub, xNozzle_Sup_NS, xNozzle_Sub_NS))
 
+            Pe = P2t_P1t * P_Off * self.P_ratio(Mx[-1])
+            G = self.interpolate_mass_flow(P_Off)
+            Te = self.T1 / (1 + (self.gamma - 1)/2 * Mx[-1]**2)
+            Ve = Mx[-1] * np.sqrt(self.gamma * self.R * Te)
+            thrust = (G * Ve + self.A2 * (Pe - P0)) / 9.80665
 
-            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': self.P0}
+            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe, 'F': thrust}
 
         def exitShockOperation(P_Off,P0):
             Mx = np.append(self.M_x_Sup, self.M2NS(self.M_x_Sup[-1]))
             Px = np.append(self.PRatio_Sup_Curve, PR_Crit2)
             xNozzle = np.append(self.geo_Nozzle[:, 0], self.geo_Nozzle[-1, 0])
+            
+            M1 = self.M_x_Sup[-1]
+            M2 = self.M2NS(M1)
+            P2_P1 = 1 + 2 * (self.gamma / (self.gamma + 1)) * (M1 ** 2 - 1)
+            P1 = P_Off / self.P_ratio(M1)
+            Pe = P1 * P2_P1
 
-            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': self.P0}
+            G = self.interpolate_mass_flow(P_Off)
+            Te = self.T1 / (1 + (self.gamma - 1)/2 * Mx[-1]**2)
+            Ve = Mx[-1] * np.sqrt(self.gamma * self.R * Te)
+            thrust = (G * Ve + self.A2 * (Pe - P0)) / 9.80665
+
+            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe, 'F': thrust}
 
         def overExpansionOperation(P_Off,P0):
             Me = self.M2
@@ -204,12 +231,22 @@ class BellNozzle:
             Px = np.concatenate((self.P_ratio(self.M_x_Sup) ** -1, [PR_Crit3, PR_Crit3 + PR_Crit2 * (1 - Pe_P0)]))
             xNozzle = np.concatenate((self.geo_Nozzle[:, 0], [self.geo_Nozzle[-1, 0], self.geo_Nozzle[-1, 0]]))
 
-            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe}
+            G = self.interpolate_mass_flow(P_Off)
+            Te = self.T1 / (1 + (self.gamma - 1)/2 * Mx[-1]**2)
+            Ve = Mx[-1] * np.sqrt(self.gamma * self.R * Te)
+            thrust = (G * Ve + self.A2 * (Pe - P0)) / 9.80665
+
+            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe, 'F': thrust}
 
         def desingPointOperation(P_Off,P0):
             Pe = P_Off / self.P_ratio(self.M2)
 
-            return {'Mach': self.M_x_Sup, 'PR': self.P_ratio(self.M_x_Sup) ** -1, 'x': self.geo_Nozzle[:, 0], 'Pe': Pe}
+            G = self.interpolate_mass_flow(P_Off)
+            Te = self.T1 / (1 + (self.gamma - 1)/2 * self.M2**2)
+            Ve = self.M2 * np.sqrt(self.gamma * self.R * Te)
+            thrust = (G * Ve ) / 9.80665
+
+            return {'Mach': self.M_x_Sup, 'PR': self.P_ratio(self.M_x_Sup) ** -1, 'x': self.geo_Nozzle[:, 0], 'Pe': Pe, 'F': thrust}
 
         def underExpOperation(P_Off,P0):
             Me = self.M2
@@ -218,7 +255,12 @@ class BellNozzle:
             Px = np.concatenate((self.P_ratio(self.M_x_Sup) ** -1, [PR_Crit3, P0 / P_Off]))
             xNozzle = np.concatenate((self.geo_Nozzle[:, 0], [self.geo_Nozzle[-1, 0], self.geo_Nozzle[-1, 0]]))
 
-            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe}
+            G = self.interpolate_mass_flow(P_Off)
+            Te = self.T1 / (1 + (self.gamma - 1)/2 * Mx[-1]**2)
+            Ve = Mx[-1] * np.sqrt(self.gamma * self.R * Te)
+            thrust = (G * Ve + self.A2 * (Pe - P0)) / 9.80665
+
+            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe, 'F': thrust}
 
         subSonicOp = subSonicOperation(P_Off,P0)
 
@@ -252,12 +294,12 @@ class BellNozzle:
 
     
     def f_throat(self, th):
-        if  -np.pi/2 * (1 + self.percV) <= th < - np.pi/2:
-            x = self.K1 * self.Rt * np.cos(th)
-            y = self.K1 * self.Rt * np.sin(th) + self.K1 * self.Rt + self.Rt
-        elif - np.pi/2 <= th <= self.theta_n - np.pi/2:
-            x = self.K2 * self.Rt * np.cos(th)
-            y = self.K2 * self.Rt * np.sin(th) + self.K2 * self.Rt + self.Rt
+        #if  -np.pi/2 * (1 + self.percV) <= th < - np.pi/2:
+        #    x = self.K1 * self.Rt * np.cos(th)
+        #    y = self.K1 * self.Rt * np.sin(th) + self.K1 * self.Rt + self.Rt
+        #elif - np.pi/2 <= th <= self.theta_n - np.pi/2:
+        x = self.K2 * self.Rt * np.cos(th)
+        y = self.K2 * self.Rt * np.sin(th) + self.K2 * self.Rt + self.Rt
         return x,y
     
     def f_bell(self, t):
@@ -306,10 +348,8 @@ class BellNozzle:
             return None
 
     def interpolate_mass_flow(self, P1):
-        interpolate_time = interp1d(self.P_t, self.t, bounds_error=False, fill_value="extrapolate")
-        time_value = interpolate_time(P1)
-        interpolate_mass_flow = interp1d(self.t, self.G_t, bounds_error=False, fill_value="extrapolate")
-        G_value = interpolate_mass_flow(time_value)
+        interpolate_mass_flow = interp1d(self.P_t, self.G_t, bounds_error=False, fill_value="extrapolate")
+        G_value = interpolate_mass_flow(P1)
         return G_value
     
     def geom_plot(self):
@@ -320,11 +360,11 @@ class BellNozzle:
         index_n = len(self.geo_Throat)
         index_e = -1
 
-        K1_y = (1 + self.K1) * self.Rt
-        K2_y = (1 + self.K2) * self.Rt
+        #K1_y = (1 + self.K1) * self.Rt
+        #K2_y = (1 + self.K2) * self.Rt
 
-        max_y = np.array([K1_y, K2_y, self.geo_Nozzle[index_i, 1], self.geo_Nozzle[index_e, 1]]) 
-        max_y = np.max(max_y)
+        #max_y = np.array([K1_y, K2_y, self.geo_Nozzle[index_i, 1], self.geo_Nozzle[index_e, 1]]) 
+        #max_y = np.max(max_y)
 
         # Graficar la geometría de la tobera
         ax.plot(self.geo_Nozzle[:, 0], self.geo_Nozzle[:, 1], color='k', lw=3)

@@ -8,62 +8,72 @@ class TubularGrain:
         # Lista de atributos que quieres asignar
         attributes = [
             "rIn_0b", "rOut", "rThrt", "lComb", 
-            "rho_b", "a", "n", "gamma", "R", "T1", "P1_min","P1_max",
-            "delta_r", "P0"
+            "rho_b", "a", "n", "gamma", "R", "T1", "P1_min","P1_max", "cChar",
+            "delta_t", "P0"
         ]
         
         for attr, value in zip(attributes, inputs):
             setattr(self, attr, value)
-   
-        self.P, self.G, self.M, self.t = self.combTime()
+
+        self.sol, self.t = self.combTime()
+        self.P = self.sol[:, 0]
+        self.r = self.sol[:, 1]
+
+        self.rDot = numerical_derivative(self.t, self.r)
+        self.G = self.rho_b * self.Ab(self.r) * self.rDot
+        self.M = self.lComb * np.pi * (self.rOut**2 - self.r**2) * self.rho_b
+
         self.meanPressure, self.meanMassFlow = self.mean_values()
-        self.Pmin, self.Pmax = np.min(self.P[1:-1]), np.max(self.P[1:-1])
-        self.Gmin, self.Gmax = np.min(self.G[1:-1]), np.max(self.G[1:-1])
+
+        self.Pmin, self.Pmax = np.min(self.P), np.max(self.P)
+        self.Gmin, self.Gmax = np.min(self.G), np.max(self.G)
         self.combustion_time = float(self.t[-1])
         self.combustion_mass = float(self.M[0])
-
+        
+    def Ab(self, r):
+        return 2 * np.pi * r * self.lComb
+        
+    def Vc(self, r):
+        return np.pi * r**2 * self.lComb
 
     def combTime(self):
 
-        C = (((np.pi * self.rThrt**2 * self.gamma) / (self.rho_b * self.a * 1e-2)))
-        R = np.sqrt( (2/(self.gamma + 1))**((self.gamma - 1)/(self.gamma + 1)) / (self.gamma * self.R * self.T1) )
+    
+        def P_dot(u):
+            P, r = u
+            term_0 = self.R * self.T1
+            term_1 = (self.rho_b * self.a * P**self.n * 1e-2 * self.Ab(r)/self.Vc(r)) 
+            term_2 = (P * np.pi * self.rThrt**2) / (self.cChar * self.Vc(r))
+            return term_0 * (term_1 - term_2)
 
-        rt = np.arange(self.rIn_0b, self.rOut + self.delta_r, self.delta_r)
-        size = len(rt)
+        def r_dot(u):
+            P, r = u
+            return self.a * P**self.n * 1e-2
+        
+        
+        # Initial conditions: [position, velocity]
+        u0 = [self.P0, self.rIn_0b]
+        h = self.delta_t
+        # Solve the system using RK4 method with indefinite run
+        f_system = [P_dot, r_dot]
 
-        P  = np.zeros(size)
-        G  = np.zeros(size)
-        dt = np.zeros(size)
-        m  = np.zeros(size)
-
-
-        def Ab(ti):
-            return 2 * np.pi * self.lComb * rt[ti]
-
-        def M(ti):
-            return np.pi * self.rho_b * self.lComb * (self.rOut**2 - rt[ti]**2)
-
-        P[0] = self.P0
-        G[0] = Ab(0) * self.rho_b * self.a * P[0]**self.n * 1e-2
-        dt[0] = (M(0) - M(1)) / G[0]
-        m[0] = M(0)
-
-        def iterCalc(ti):
-            P_i = ((C / Ab(ti)) * R)**(1/(self.n - 1))
-            G_i = Ab(ti) * self.rho_b * self.a * P_i**self.n * 1e-2
-            m_i = M(ti)
-            dt_i = (M(ti - 1) - M(ti)) / G_i
-            return P_i, G_i, m_i ,dt_i
-
-        for i in range(1, size-1):
-            P[i], G[i], m[i], dt[i] = iterCalc(i)
-
-            if P[i] > self.P1_max or P[i] < self.P1_min:
-                return messagebox.showerror("Out of range","Error PMax - Valor de presion fuera del rango de operacion del propelente")
-
-        P[-1], G[-1], m[-1] = self.P0, 0, 0
-
-        return P, G, m, np.cumsum(dt)
+        def rMax_condition(state):
+            P, r = state
+            return r >= self.rOut
+        
+        def maxPressureLimit(state):
+            P, r = state
+            return P > self.P1_max
+        
+        def minPressureLimit(state):
+            P, r = state
+            return P < self.P1_min
+        
+        stop_conditions = [rMax_condition, maxPressureLimit, minPressureLimit]
+        sol, t = solve_ode_system(f_system, u0, h, "RK4", t_max=None, stop_conditions=stop_conditions, indefinite=True)
+        
+        return sol, t
+        
     
     def mean_values(self):
         interval = self.t[-1] - self.t[0]

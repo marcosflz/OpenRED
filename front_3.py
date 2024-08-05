@@ -204,15 +204,22 @@ class PropellantDesignModule:
         grain_config = self.grainGeo_selector.get()
         propellant_type = self.propellant_selector.get()
 
+        rIn_0b  = float(get_entry_value(self.tubular_entries[0]))
+        rOut    = float(get_entry_value(self.tubular_entries[1]))
+        rt      = float(get_entry_value(self.tubular_entries[2]))
+        lComb   = float(get_entry_value(self.tubular_entries[3]))
+        P0      = float(get_entry_value(self.tubular_entries[4]))
+        delta_t = float(get_entry_value(self.tubular_entries[5]))
+
         geo_Inputs = [
-            self.rIn_0b,
-            self.rOut,
-            self.rt,
-            self.lComb
+            rIn_0b,
+            rOut,
+            rt,
+            lComb
             ]
         
         propellant_type = re.sub(r'\s*\(\d+\)\s*', '', propellant_type)
-        prop_Inputs = self.get_propellants_props(propellant_type) + [self.delta_r, self.P0]
+        prop_Inputs = self.get_propellants_props(propellant_type) + [delta_t, P0]
         inputs = geo_Inputs + prop_Inputs
 
         combResults = grainClasses[grain_config](inputs)
@@ -228,33 +235,6 @@ class PropellantDesignModule:
 
         for i, (fig, frame) in enumerate(zip(figs, frames)):
             insert_fig(fig, frame)
-
-        #for i, (fig, frame) in enumerate(zip(figs, frames)):
-        #    # Obtener el tamaño del frame
-        #    frame.update_idletasks()  # Asegurarse de que los tamaños están actualizados
-        #    width, height = frame.winfo_width(), frame.winfo_height()
-#
-        #    # Ajustar el tamaño de la figura
-        #    fig.set_size_inches(width / fig.dpi, height / fig.dpi)
-#
-        #    # Limpiar el canvas antes de dibujar
-        #    for widget in frame.winfo_children():
-        #        widget.destroy()
-#
-        #    buf = io.BytesIO()
-        #    fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.1, dpi=300)
-        #    plt.close(fig)
-        #    buf.seek(0)
-        #    image = Image.open(buf)
-#
-        #    ctk_image = ctk.CTkImage(light_image=image, dark_image=image, size=(width, height))
-#
-        #    if self.graph_labels[i]:
-        #        self.graph_labels[i].destroy()
-#
-        #    self.graph_labels[i] = ctk.CTkLabel(frame, text="", image=ctk_image)
-        #    self.graph_labels[i].image = ctk_image
-        #    self.graph_labels[i].grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
 
         # Mostrar resultados en los Entry
         self.meanPressure_entry.configure(state="normal")
@@ -303,8 +283,11 @@ class PropellantDesignModule:
 
         # Insertar nuevos datos en el Treeview
         tree_data = [combResults.t, combResults.P, combResults.G, combResults.M]
+        decimal_places = len(str(delta_t).split('.')[-1])
         for i in range(len(tree_data[0])):  # Asumiendo que todos los vectores tienen la misma longitud
-            row_data = [col[i] for col in tree_data]  # Crear una fila con elementos de cada vector en la misma posición
+            # Formatear el tiempo con el número de decimales adecuado
+            formatted_time = f"{tree_data[0][i]:.{decimal_places}f}"
+            row_data = [formatted_time] + [col[i] for col in tree_data[1:]]  # Crear una fila con elementos de cada vector en la misma posición
             self.tree.insert("", "end", values=row_data)
 
 
@@ -327,7 +310,7 @@ class PropellantDesignModule:
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
 
-        query = "SELECT Density, a, n, gamma, R, T_ad, P1_min, P1_max FROM propelente WHERE Propelente = ?"
+        query = "SELECT Density, a, n, gamma, R, T_ad, P1_min, P1_max, cChar FROM propelente WHERE Propelente = ?"
         cursor.execute(query, (propellant,))
         
         resultado = cursor.fetchone()
@@ -342,7 +325,8 @@ class PropellantDesignModule:
                 resultado[4],
                 resultado[5],
                 resultado[6],
-                resultado[7]
+                resultado[7],
+                resultado[8]
             ]
             return props
         else:
@@ -379,7 +363,7 @@ class PropellantDesignModule:
             "Radio Garganta (m):",
             "Longitud Cámara (m):",
             "Presión Ambiental (Pa):",
-            "Paso radial (m):"
+            "Paso Temporal (s):"
         ]
 
         for i, label_text in enumerate(labels):
@@ -387,7 +371,7 @@ class PropellantDesignModule:
             label.grid(row=i, column=0, padx=10, pady=5, sticky="nsew")
             entry = ctk.CTkEntry(self.subInputsFrame)
             entry.grid(row=i, column=1, padx=10, pady=5, sticky="nsew")
-            entry.bind("<KeyRelease>", self.update_plot)
+            entry.bind("<Button-1>", self.update_plot)
             self.tubular_entries.append(entry)
             self.tubular_widgets.append(label)
             self.tubular_widgets.append(entry)
@@ -517,6 +501,9 @@ class PropellantDesignModule:
                 "Propellant": re.sub(r'\s*\(\d+\)\s*', '', self.propellant_selector.get()),
                 "P0": self.P0,
                 "Rt": self.rt,
+                "Re": self.rOut,
+                "Ri": self.rIn_0b,
+                "Lc": self.lComb,
                 "meanPressure": float(self.meanPressure_entry.get()),
                 "maxPressure": float(self.maxPressure_entry.get()),
                 "minPressure": float(self.minPressure_entry.get()),
