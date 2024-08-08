@@ -115,22 +115,6 @@ class PropellantDesignModule:
         self.totalMass_entry.grid(row=4, column=3, padx=10, pady=10, sticky="nsew")
 
 
-        #self.tree_frame = ctk.CTkFrame(self.outputs_frame)
-        #self.tree_frame.grid(row=5, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
-        #self.tree_frame.grid_rowconfigure(0, weight=1)
-        #self.tree_frame.grid_columnconfigure(0, weight=1)
-#
-        ## Crear Treeview con Scrollbar
-        #self.tree_scrollbar = tk.Scrollbar(self.tree_frame, orient="vertical")
-        #self.tree = ttk.Treeview(self.tree_frame, columns=("Tiempo (s)", "Presión (Pa)", "Flujo Másico (kg/s)", "Masa (kg)"), show="headings", #yscrollcommand=self.tree_scrollbar.set)
-        #self.tree_scrollbar.config(command=self.tree.yview)
-        #self.tree_scrollbar.pack(side="right", fill="y")
-        #self.tree.pack(fill="both", expand=True)
-#
-        #for col in self.tree["columns"]:
-        #    self.tree.heading(col, text=col)
-        #    self.tree.column(col, anchor="center", width=100)
-
         self.tree_frame = ctk.CTkFrame(self.outputs_frame)
         self.tree_frame.grid(row=5, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
         self.tree_frame.grid_rowconfigure(0, weight=1)
@@ -198,27 +182,36 @@ class PropellantDesignModule:
     def calculate_n_show(self):
 
         grainClasses = {
-            "Tubular": TubularGrain
+            "Tubular": TubularGrain,
+            "End-Burner": EndBurnerGrain
         }
 
         grain_config = self.grainGeo_selector.get()
         propellant_type = self.propellant_selector.get()
-
-        rIn_0b  = float(get_entry_value(self.tubular_entries[0]))
-        rOut    = float(get_entry_value(self.tubular_entries[1]))
-        rt      = float(get_entry_value(self.tubular_entries[2]))
-        lComb   = float(get_entry_value(self.tubular_entries[3]))
-        P0      = float(get_entry_value(self.tubular_entries[4]))
-        delta_t = float(get_entry_value(self.tubular_entries[5]))
-
-        geo_Inputs = [
-            rIn_0b,
-            rOut,
-            rt,
-            lComb
-            ]
-        
         propellant_type = re.sub(r'\s*\(\d+\)\s*', '', propellant_type)
+
+        if grain_config == 'Tubular':
+
+            rIn_0b  = float(get_entry_value(self.tubular_entries[0]))
+            rOut    = float(get_entry_value(self.tubular_entries[1]))
+            rt      = float(get_entry_value(self.tubular_entries[2]))
+            lComb   = float(get_entry_value(self.tubular_entries[3]))
+            P0      = float(get_entry_value(self.tubular_entries[4]))
+            delta_t = float(get_entry_value(self.tubular_entries[5]))
+            geo_Inputs = [rIn_0b, rOut, rt, lComb]   
+        
+        elif grain_config == 'End-Burner':
+
+            lTube   = float(get_entry_value(self.end_burner_entries[0]))
+            lProp   = float(get_entry_value(self.end_burner_entries[1]))
+            rOut    = float(get_entry_value(self.end_burner_entries[2]))
+            rThrt   = float(get_entry_value(self.end_burner_entries[3]))
+            P0      = float(get_entry_value(self.end_burner_entries[4]))
+            delta_t = float(get_entry_value(self.end_burner_entries[5]))
+            geo_Inputs = [lTube, lProp, rOut, rThrt]  
+
+        
+        
         prop_Inputs = self.get_propellants_props(propellant_type) + [delta_t, P0]
         inputs = geo_Inputs + prop_Inputs
 
@@ -354,6 +347,10 @@ class PropellantDesignModule:
         # Actualizar el gráfico
         self.update_plot()
 
+
+
+        
+
     def create_tubular_entries(self):
         # Crear entradas específicas para Tubular
         self.tubular_entries = []
@@ -371,7 +368,7 @@ class PropellantDesignModule:
             label.grid(row=i, column=0, padx=10, pady=5, sticky="nsew")
             entry = ctk.CTkEntry(self.subInputsFrame)
             entry.grid(row=i, column=1, padx=10, pady=5, sticky="nsew")
-            entry.bind("<Button-1>", self.update_plot)
+            entry.bind("<FocusOut>", self.update_plot)
             self.tubular_entries.append(entry)
             self.tubular_widgets.append(label)
             self.tubular_widgets.append(entry)
@@ -381,9 +378,12 @@ class PropellantDesignModule:
 
         self.end_burner_entries = []
         labels = [
-            "End-Burner Param 1:",
-            "End-Burner Param 2:",
-            "End-Burner Param 3:"
+            "Longitud Cartucho (m):",
+            "Longitud Propelente (m):",
+            "Radio Cartucho (m):",
+            "Radio Garganta (m):",
+            "Presión Ambiental (Pa):",
+            "Paso Temporal (s):"
         ]
 
         for i, label_text in enumerate(labels):
@@ -391,71 +391,100 @@ class PropellantDesignModule:
             label.grid(row=i, column=0, padx=10, pady=5, sticky="nsew")
             entry = ctk.CTkEntry(self.subInputsFrame)
             entry.grid(row=i, column=1, padx=10, pady=5, sticky="nsew")
-            entry.bind("<KeyRelease>", self.update_plot)
+            entry.bind("<FocusOut>", self.update_plot)
             self.end_burner_entries.append(entry)
             self.end_burner_widgets.append(label)
             self.end_burner_widgets.append(entry)
 
+
+
+
+
+
     def update_plot(self, event=None):
         if self.selection == 'Tubular':
             fig = self.tubular_plot()
+        elif self.selection == 'End-Burner':
+            fig = self.endBurner_plot()
+
         insert_fig(fig, frame=self.inputImageFrame, resize='Auto')
 
 
 
     def tubular_plot(self):
         try:
-            self.rIn_0b  = float(get_entry_value(self.tubular_entries[0]))
-            self.rOut    = float(get_entry_value(self.tubular_entries[1]))
-            self.rt    = float(get_entry_value(self.tubular_entries[2]))
-            self.lComb    = float(get_entry_value(self.tubular_entries[3]))
-            self.P0    = float(get_entry_value(self.tubular_entries[4]))
-            self.delta_r = float(get_entry_value(self.tubular_entries[5]))
+            self.rIn_0b     = float(get_entry_value(self.tubular_entries[0]))
+            self.rOut       = float(get_entry_value(self.tubular_entries[1]))
+            self.rt         = float(get_entry_value(self.tubular_entries[2]))
+            self.lComb      = float(get_entry_value(self.tubular_entries[3]))
 
             # Crear una figura y un eje
             height = self.inputImageFrame.winfo_height() / 100
             fig, ax = plt.subplots(figsize=(height, height))
 
             # Dibujar los círculos exteriores e interiores
-            outer_circle = plt.Circle((0, 0), self.rOut, color='r', fill=False, label='Outer Radius')
-            inner_circle = plt.Circle((0, 0), self.rIn_0b, color='b', fill=False, label='Initial Inner Radius')
+            #outer_circle = patches.Circle((0, 0), self.rOut, edgecolor='k', facecolor='white', label='Outer Radius', lw=2)
+            
 
+            radii = np.linspace(self.rOut, self.rIn_0b, 20)
+            self.colors = plt.cm.jet(np.linspace(0, 1, 20))
             # Añadir los círculos al gráfico
-            ax.add_artist(outer_circle)
-            ax.add_artist(inner_circle)
+            #ax.add_patch(outer_circle)
+        
+            for i, radius in enumerate(radii):
+                circle = patches.Circle((0, 0), radius, edgecolor=self.colors[i], facecolor=self.colors[i], label=f'Radius {radius:.2f}')
+                ax.add_patch(circle)
 
-            # Rellenar el área entre el círculo interior y exterior
-            theta = np.linspace(0, 2 * np.pi, 100)
-            x_outer = self.rOut * np.cos(theta)
-            y_outer = self.rOut * np.sin(theta)
-            x_inner = self.rIn_0b * np.cos(theta)
-            y_inner = self.rIn_0b * np.sin(theta)
-            ax.fill(np.concatenate([x_outer, x_inner[::-1]]),
-                    np.concatenate([y_outer, y_inner[::-1]]),
-                    color='gray', alpha=0.5)
+            inner_circle = patches.Circle((0, 0), self.rIn_0b, facecolor='white', label='Initial Inner Radius')
+            ax.add_patch(inner_circle)
 
-            # Definir un conjunto de colores
-            colors = ['tab:red', 'tab:blue', 'tab:green']
-            num_colors = len(colors)
-            # Dibujar las líneas radiales internas
-            radii = np.linspace(self.rIn_0b, self.rOut, int(1 / self.delta_r))
-            for i, r in enumerate(radii):
-                color = colors[i % num_colors]
-                #circle = plt.Circle((0, 0), r, color=color, linestyle='-', fill=False)
-                #ax.add_artist(circle)
 
-            # Establecer los límites del gráfico
+            ## Establecer los límites del gráfico
             ax.set_xlim(-self.rOut * 1.1, self.rOut * 1.1)
             ax.set_ylim(-self.rOut * 1.1, self.rOut * 1.1)
             # Establecer el aspecto del gráfico para que sea igual
             ax.set_aspect('equal')
             # Añadir título y leyenda
             ax.set_title(self.selection)
+        except Exception as e:
+            print(e)
+            fig, ax = plt.subplots(figsize=(1, 1))
+            ax.set_axis_off()
+        return fig
+    
+
+    def endBurner_plot(self):
+        try:
+
+            self.lTube  = float(get_entry_value(self.end_burner_entries[0]))
+            self.lProp  = float(get_entry_value(self.end_burner_entries[1]))
+            self.rOut   = float(get_entry_value(self.end_burner_entries[2]))
+            self.rThrt  = float(get_entry_value(self.end_burner_entries[3]))
+
+            # Crear una figura y un eje
+            height = self.inputImageFrame.winfo_height() / 100
+            fig, ax = plt.subplots(figsize=(height, height))
+
+            # Dibujar los círculos exteriores e interiores
+            outer_circle = patches.Circle((0, 0), self.rOut, edgecolor='r', facecolor='grey', label='Outer Radius')
+
+
+
+            # Añadir los círculos al gráfico
+            ax.add_patch(outer_circle)
+
+            ax.set_xlim(-self.rOut * 1.1, self.rOut * 1.1)
+            ax.set_ylim(-self.rOut * 1.1, self.rOut * 1.1)
+            # Establecer el aspecto del gráfico para que sea igual
+            ax.set_aspect('equal')
+            ax.set_title(self.selection)
+
         except Exception:
             fig, ax = plt.subplots(figsize=(1, 1))
             ax.set_axis_off()
-
         return fig
+    
+
     
     def export_results(self):
         working_path = get_dir_path()
@@ -469,9 +498,6 @@ class PropellantDesignModule:
             # Asegurarse de que el nombre del archivo termine con '.json'
             if not file_name.endswith('.json'):
                 file_name += '.json'
-            
-            # Construir la ruta completa del archivo
-            # file_path = os.path.join(working_path, file_name)
 
             # Crear una carpeta llamada "resultados" dentro del directorio de trabajo
             results_folder = os.path.join(working_path, "Engines")

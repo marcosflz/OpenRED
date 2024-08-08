@@ -15,6 +15,8 @@ from PIL import Image, ImageTk, ImageDraw, ImageOps
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import matplotlib.cm as cm
+import matplotlib as mpl
 
 import io
 import sqlite3
@@ -24,6 +26,7 @@ import json
 import time
 import traceback
 import csv
+import sys
 
 
 

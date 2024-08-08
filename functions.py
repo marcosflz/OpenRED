@@ -1,5 +1,16 @@
 from imports import *
 
+def global_exception_handler(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        # Permite la salida con Ctrl+C sin el trace del error
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    error_message = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+    messagebox.showinfo("Error", f"Error:\n{error_message}")
+
+# Establece la función global para manejar excepciones no controladas
+sys.excepthook = global_exception_handler
+
 def get_data(type, file):
         with open('temp_dir.txt', 'r') as txt:
             dir = txt.readline()
@@ -186,44 +197,7 @@ def insert_fig(fig, frame, resize='Manual', l=0.1, r=0.9, t=0.9, b=0.2):
     # Llamar al on_resize manualmente para redimensionar inmediatamente
     frame.update_idletasks()
     on_resize(force_resize=True)
-#def insert_fig(fig, frame, resize='Manual', l=0.1, r=0.9, t=0.9, b=0.2):
-#    # Limpiar el frame antes de dibujar
-#    for widget in frame.winfo_children():
-#        widget.destroy()
-#
-#    # Crear un nuevo canvas de FigureCanvasTkAgg
-#    canvas = FigureCanvasTkAgg(fig, master=frame)
-#    canvas.draw()
-#    canvas.get_tk_widget().pack(side=ctk.TOP, fill=ctk.BOTH, expand=1)
-#
-#    # Ajustar el tamaño del canvas al tamaño del frame
-#    canvas.get_tk_widget().grid(row=0, column=0, padx=0, pady=0, sticky="nsew")
-#    frame.grid_rowconfigure(0, weight=1)
-#    frame.grid_columnconfigure(0, weight=1)
-#
-#    # Redimensionar la figura para ajustarse al tamaño del frame
-#    def on_resize(event, canvas=canvas):
-#        width, height = event.width, event.height
-#        fig.set_size_inches(width / fig.dpi, height / fig.dpi)
-#        if resize != 'Auto':
-#            fig.subplots_adjust(left=l, right=r, top=t, bottom=b)
-#        else:
-#            pass
-#        canvas.draw()
-#    frame.bind("<Configure>", on_resize)
-#
-#    # Forzar el redimensionamiento inicial
-#    frame.update_idletasks()
-#    width, height = frame.winfo_width(), frame.winfo_height()
-#    fig.set_size_inches(width / fig.dpi, height / fig.dpi)
-#    if resize != 'Auto':
-#        fig.subplots_adjust(left=l, right=r, top=t, bottom=b)
-#    else:
-#        pass  # Ajustar márgenes
-#    canvas.draw()
-#    
-#    # Cerrar la figura para liberar memoria
-#    plt.close(fig)
+
 
 
 class TempSchemes:
@@ -306,6 +280,7 @@ def solve_ode_system(f_system, u0, h, method, t_max, divergence_threshold=1e6, s
         num_steps = int(t_max / h) + 1 if t_max else 1000  # Initial allocation, will expand if indefinite is True
         sol = np.zeros((num_steps, len(u0)))
         sol[0] = u0
+
         t = np.zeros(num_steps)
         
         i = 1
@@ -321,7 +296,7 @@ def solve_ode_system(f_system, u0, h, method, t_max, divergence_threshold=1e6, s
 
             sol[i] = schemes[method](f_system, sol[i-1], h)
             t[i] = t[i-1] + h
-            
+  
             # Check for divergence
             if np.any(np.abs(sol[i] - sol[i-1]) > divergence_threshold):
                 messagebox.showinfo("Divergence stop", "Simulation stopped due to divergence.")
@@ -330,7 +305,7 @@ def solve_ode_system(f_system, u0, h, method, t_max, divergence_threshold=1e6, s
             # Check for custom stop conditions
             if stop_conditions:
                 if any(condition(sol[i]) for condition in stop_conditions):
-                    messagebox.showinfo("Conditional stop", "Simulation stopped due to custom stop condition.")
+                    messagebox.showinfo("Conditional stop", f"Simulation stopped due to custom stop condition")
                     break
             
             i += 1
@@ -339,7 +314,7 @@ def solve_ode_system(f_system, u0, h, method, t_max, divergence_threshold=1e6, s
         sol = sol[:i]
         t = t[:i]
     except Exception or RuntimeError:
-        messagebox.showinfo("Error", "Error de calculo.")
+        messagebox.showinfo("Error", f"Error de cálculo:\n{traceback.format_exc()}")
         return 
     
     return sol, t

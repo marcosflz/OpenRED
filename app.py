@@ -85,6 +85,12 @@ def save_configuration():
                     "tubular_lComb": get_entry_value(engineDesing_module_instance.tubular_entries[3]),
                     "tubular_P0": get_entry_value(engineDesing_module_instance.tubular_entries[4]),
                     "tubular_dr": get_entry_value(engineDesing_module_instance.tubular_entries[5]),
+                    "endBurner_lTube": get_entry_value(engineDesing_module_instance.end_burner_entries[0]),
+                    "endBurner_lProp": get_entry_value(engineDesing_module_instance.end_burner_entries[1]),
+                    "endBurner_rOut": get_entry_value(engineDesing_module_instance.end_burner_entries[2]),
+                    "endBurner_rThrt": get_entry_value(engineDesing_module_instance.end_burner_entries[3]),
+                    "endBurner_P0": get_entry_value(engineDesing_module_instance.end_burner_entries[4]),
+                    "endBurner_dr": get_entry_value(engineDesing_module_instance.end_burner_entries[5]),
                 },
                 "tab_2": {
                     "engine_config": nozzleDesing_module_instance.file_path_label.cget("text"),
@@ -168,6 +174,19 @@ def load_configuration(working_path):
             engineDesing_module_instance.tubular_entries[4].insert(0, tab_1_config["tubular_P0"])
             engineDesing_module_instance.tubular_entries[5].delete(0, tk.END)
             engineDesing_module_instance.tubular_entries[5].insert(0, tab_1_config["tubular_dr"])
+
+            engineDesing_module_instance.end_burner_entries[0].delete(0, tk.END)
+            engineDesing_module_instance.end_burner_entries[0].insert(0, tab_1_config["endBurner_lTube"])
+            engineDesing_module_instance.end_burner_entries[1].delete(0, tk.END)
+            engineDesing_module_instance.end_burner_entries[1].insert(0, tab_1_config["endBurner_lProp"])
+            engineDesing_module_instance.end_burner_entries[2].delete(0, tk.END)
+            engineDesing_module_instance.end_burner_entries[2].insert(0, tab_1_config["endBurner_rOut"])
+            engineDesing_module_instance.end_burner_entries[3].delete(0, tk.END)
+            engineDesing_module_instance.end_burner_entries[3].insert(0, tab_1_config["endBurner_rThrt"])
+            engineDesing_module_instance.end_burner_entries[4].delete(0, tk.END)
+            engineDesing_module_instance.end_burner_entries[4].insert(0, tab_1_config["endBurner_P0"])
+            engineDesing_module_instance.end_burner_entries[5].delete(0, tk.END)
+            engineDesing_module_instance.end_burner_entries[5].insert(0, tab_1_config["endBurner_dr"])
             engineDesing_module_instance.update_plot()
 
             # Cargar configuracion de tab_2
