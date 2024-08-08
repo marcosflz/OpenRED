@@ -15,6 +15,8 @@ class EngineCADModule:
         self.content_frame.grid_columnconfigure(1, weight=1)
         self.content_frame.grid_columnconfigure(2, weight=1)
 
+        self.user_settings = None
+
 
         self.tab_view_graphs = ctk.CTkTabview(self.content_frame)
         self.tab_view_graphs.grid(row=0, rowspan=2, column=1, columnspan=2, padx=10, pady=10, sticky="nsew")
@@ -24,6 +26,10 @@ class EngineCADModule:
         self.tab_view_graphs.tab("Engine").grid_rowconfigure(1, weight=1)
         self.tab_view_graphs.tab("Engine").grid_columnconfigure(0, weight=1)
         self.tab_view_graphs.tab("Engine").grid_columnconfigure(1, weight=1)
+        self.tab_view_graphs.tab("Tools").grid_rowconfigure(0, weight=1)
+        self.tab_view_graphs.tab("Tools").grid_rowconfigure(1, weight=1)
+        self.tab_view_graphs.tab("Tools").grid_columnconfigure(0, weight=1)
+        self.tab_view_graphs.tab("Tools").grid_columnconfigure(1, weight=1)
         self.tab_view_graphs.grid_propagate(False)
 
 
@@ -42,6 +48,25 @@ class EngineCADModule:
         self.MountView_frame.configure(fg_color="white")
         self.MountView_frame.grid_propagate(False)
 
+
+
+        self.CastingMould_frame = ctk.CTkFrame(self.tab_view_graphs.tab("Tools"))
+        self.CastingMould_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky='nswe')
+        self.CastingMould_frame.configure(fg_color="white")
+        self.CastingMould_frame.grid_propagate(False)
+
+        self.CoverView1_frame = ctk.CTkFrame(self.tab_view_graphs.tab("Tools"))
+        self.CoverView1_frame.grid(row=1, column=0, padx=10, pady=10, sticky='nswe')
+        self.CoverView1_frame.configure(fg_color="white")
+        self.CoverView1_frame.grid_propagate(False)
+        
+        self.CoverView2_frame = ctk.CTkFrame(self.tab_view_graphs.tab("Tools"))
+        self.CoverView2_frame.grid(row=1, column=1, padx=10, pady=10, sticky='nswe')
+        self.CoverView2_frame.configure(fg_color="white")
+        self.CoverView2_frame.grid_propagate(False)
+
+
+
         self.options_frame = ctk.CTkFrame(self.content_frame)
         self.options_frame.grid(row=0, column=0, rowspan=2, padx=10, pady=10, sticky='nswe')
         self.options_frame.grid_columnconfigure(0, weight=1)
@@ -50,14 +75,19 @@ class EngineCADModule:
         self.options_frame.grid_rowconfigure(2, weight=1)
         self.options_frame.grid_propagate(False)
 
-        self.import_frame = ctk.CTkFrame(self.options_frame)
+        self.import_frame = ctk.CTkFrame(self.options_frame, height=100)
         self.import_frame.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
+        self.import_frame.grid_rowconfigure(0, weight=1)
+        self.import_frame.grid_columnconfigure(0, weight=1)
+        self.import_frame.grid_columnconfigure(1, weight=1)
 
-        self.load_file_button = ctk.CTkButton(self.import_frame, text="Cargar Motor", command=self.build_entries)
+        self.load_file_button = ctk.CTkButton(self.import_frame, text="Cargar Motor", command=self.build_entries, width=50)
         self.load_file_button.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
+        self.load_file_button.grid_propagate(False)
         
         self.file_path_label = ctk.CTkLabel(self.import_frame, text="No se ha cargado ningún archivo")
         self.file_path_label.grid(row=0, column=1, padx=10, pady=10, sticky='nswe')
+        self.file_path_label.grid_propagate(False)
 
         self.tab_view = ctk.CTkTabview(self.options_frame)
         self.tab_view.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
@@ -81,6 +111,22 @@ class EngineCADModule:
 
         self.export_frame = ctk.CTkFrame(self.options_frame)
         self.export_frame.grid(row=2, column=0, padx=10, pady=10, sticky='nswe')
+        self.export_frame.grid_rowconfigure(0, weight=1)
+        self.export_frame.grid_rowconfigure(1, weight=1)
+        self.export_frame.grid_columnconfigure(0, weight=1)
+        self.export_frame.grid_columnconfigure(1, weight=1)
+
+        self.export_engine_button = ctk.CTkButton(self.export_frame, text="Engine Sketch", command=lambda: self.export_sketch(self.user_settings, 'Engine'))
+        self.export_engine_button.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
+
+        self.export_cover_button = ctk.CTkButton(self.export_frame, text="Cover Sketch", command=lambda: self.export_sketch(self.user_settings, 'Cover'))
+        self.export_cover_button.grid(row=0, column=1, padx=10, pady=10, sticky='nswe')
+
+        self.export_mount_button = ctk.CTkButton(self.export_frame, text="Mount Sketch", command=lambda: self.export_sketch(self.user_settings, 'Mount'))
+        self.export_mount_button.grid(row=1, column=0, padx=10, pady=10, sticky='nswe')
+
+        self.export_tools_button = ctk.CTkButton(self.export_frame, text="Tools Sketch", command=lambda: self.export_sketch(self.user_settings, 'Tools'))
+        self.export_tools_button.grid(row=1, column=1, padx=10, pady=10, sticky='nswe')
 
         self.widgets_dict = {}
 
@@ -122,13 +168,21 @@ class EngineCADModule:
                         "cring":            "Junta tórica - Cubierta",
                         "on_ORing":         "Mostrar Junta tórica - Tobera",
                         "on_CRing":         "Mostrar Junta tórica - Cubierta",
-                        "on_Cartridge":     "Mostrar Junta tórica - Cubierta",
+                        "on_Cartridge":     "Mostrar Cartucho",
                         "on_Propellant":    "Mostrar Propelente",
                         "on_Engine":        "Mostrar Motor",
                         "on_Cover":         "Mostrar Cubierta",
                         "on_Axis":          "Mostrar Eje",
                         "on_Background":    "Mostrar Fondo",
-                        "on_Mount":         "Mostrar Montura"
+                        "on_Mount":         "Mostrar Montura",
+                        "t_factor":         "Factor Espesor Tools (%)",
+                        "extra_len":        "Longitud Extra de molde (m)",
+                        "cover_len":        "Longitud exterior molde (m)",
+                        "on_CoverCast1":    "Cubierta de molde",
+                        "on_CoverCast2":    "Sujección de molde",
+                        "on_CastNut":       "Tuerca de molde",
+                        "nut_h":            "Altura de Tuerca (m)",
+                        "nut_d":            "Incremento de radio tuerca (m)"
                     }
 
                     self.engineBuild = EngineCADBuilder_ConventionalNozzle(self.file_name)
@@ -180,22 +234,63 @@ class EngineCADModule:
             if isinstance(widget, ctk.CTkOptionMenu):
                 values_dict[key] = widget.get()
             elif isinstance(widget, ctk.CTkEntry):
-                values_dict[key] = float(widget.get())
+                values_dict[key] = float(get_entry_value(widget))
             elif isinstance(widget, ctk.CTkCheckBox):
                 values_dict[key] = widget.get()
         return values_dict
     
     def update_plots(self, event=None):
         try:
-            user_settings = self.collect_widget_values()
-            engine_fig = self.engineBuild.plot_Engine(user_settings)
-            cover_fig = self.engineBuild.plot_frontCover(user_settings)
-            mount_fig = self.engineBuild.plot_mount_front(user_settings)
+            self.user_settings = self.collect_widget_values()
+            engine_fig = self.engineBuild.plot_Engine(self.user_settings)
+            cover_fig = self.engineBuild.plot_frontCover(self.user_settings)
+            mount_fig = self.engineBuild.plot_mount_front(self.user_settings)
+
+            tool_covers_fig = self.engineBuild.plot_Tools(self.user_settings)
+            tool_coverFront_1_fig = self.engineBuild.plot_Front1_Tools(self.user_settings)
+            tool_coverFront_2_fig = self.engineBuild.plot_Front2_Tools(self.user_settings)
 
             insert_fig(engine_fig, self.EngineView_frame)
             insert_fig(cover_fig, self.CoverView_frame)
             insert_fig(mount_fig, self.MountView_frame)
 
+            insert_fig(tool_covers_fig, self.CastingMould_frame)
+            insert_fig(tool_coverFront_1_fig, self.CoverView1_frame)
+            insert_fig(tool_coverFront_2_fig, self.CoverView2_frame)
+
         except Exception as e:
             print("An error occurred:", e)
             traceback.print_exc()
+
+    def export_sketch(self, user_settings, sketch_type):
+
+        working_path = get_dir_path()
+        if not working_path:
+            messagebox.showerror("Error", "No se ha seleccionado un directorio de trabajo.", parent=self.content_frame)
+            return
+        # Preguntar al usuario el nombre del archivo
+        file_name = simpledialog.askstring("Guardar archivo", "Introduce el nombre del archivo:", parent=self.content_frame)
+        
+        if file_name:
+            # Asegurarse de que el nombre del archivo termine con '.json'
+            if not file_name.endswith('.csv'):
+                file_name += '.csv'
+            
+            # Crear una carpeta llamada "resultados" dentro del directorio de trabajo
+            results_folder = os.path.join(working_path, "Sketches")
+            os.makedirs(results_folder, exist_ok=True)
+
+            # Construir la ruta completa del archivo
+            file_path = os.path.join(results_folder, file_name)
+
+        if sketch_type == 'Engine':
+            self.engineBuild.export_engine(user_settings, file_path)
+
+        elif sketch_type == 'Cover':
+            self.engineBuild.export_cover(user_settings, file_path)
+
+        elif sketch_type == 'Mount':
+            self.engineBuild.export_mount(user_settings, file_path)
+        
+        elif sketch_type == 'Tools':
+            self.engineBuild.export_tools(user_settings, file_path)

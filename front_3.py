@@ -499,6 +499,7 @@ class PropellantDesignModule:
             # Recopilar datos a guardar
             results = {
                 "Propellant": re.sub(r'\s*\(\d+\)\s*', '', self.propellant_selector.get()),
+                "GrainGeo": self.grainGeo_selector.get(),
                 "P0": self.P0,
                 "Rt": self.rt,
                 "Re": self.rOut,

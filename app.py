@@ -96,9 +96,7 @@ def save_configuration():
                     "TOPBN_theta_e": get_entry_value(nozzleDesing_module_instance.TOPN_entries[2]),
                     "TOPBN_percentL": get_entry_value(nozzleDesing_module_instance.TOPN_entries[3]),
                 },
-                "tab_3": {
-                    tab_3_config
-                },          
+                "tab_3": tab_3_config,    
             }
         }
         with open(file_path, 'w') as config_file:

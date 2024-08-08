@@ -557,7 +557,6 @@ class NozzleDesingModule:
             self.resultsEntries[text] = entry
 
     def update_results_entries(self, result_array):
-
         # Actualizar los entries
         for i, key in enumerate(self.results_tempLabels):
             entry = self.resultsEntries.get(key)
@@ -579,14 +578,22 @@ class NozzleDesingModule:
             value = result_array[3][i]
             entry.insert(0, f"{value:.4f}")  # Insertar el nuevo valor formateado
 
-         # Actualizar el Treeview de "Resultados"
+        # Actualizar el Treeview de "Resultados"
         results_treeview = self.tabview.tab("Resultados").winfo_children()[0].winfo_children()[0]
+        # Limpiar el Treeview de "Resultados"
+        for item in results_treeview.get_children():
+            results_treeview.delete(item)
+
         for row in zip(*result_array[1]):
             formatted_row = [f"{value:.4e}" if value >= 1e6 else f"{value:.4f}" for value in row]
             results_treeview.insert("", "end", values=formatted_row)
 
         # Actualizar el Treeview de "Geometria"
         geometry_treeview = self.tabview.tab("Geometria").winfo_children()[0].winfo_children()[0]
+        # Limpiar el Treeview de "Geometria"
+        for item in geometry_treeview.get_children():
+            geometry_treeview.delete(item)
+
         for row in zip(*result_array[2]):
             formatted_row = [f"{value:.6f}" for value in row]
             geometry_treeview.insert("", "end", values=formatted_row)
