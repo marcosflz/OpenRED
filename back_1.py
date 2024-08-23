@@ -14,7 +14,14 @@ class TubularGrain:
         
         for attr, value in zip(attributes, inputs):
             setattr(self, attr, value)
-
+        
+    def Ab(self, r):
+        return 2 * np.pi * r * self.lComb
+        
+    def Vc(self, r):
+        return np.pi * r**2 * self.lComb
+    
+    def calcResults(self):
         self.sol, self.t = self.combTime()
         self.P = self.sol[:, 0]
         self.r = self.sol[:, 1]
@@ -29,12 +36,6 @@ class TubularGrain:
         self.Gmin, self.Gmax = np.min(self.G), np.max(self.G)
         self.combustion_time = float(self.t[-1])
         self.combustion_mass = float(self.M[0])
-        
-    def Ab(self, r):
-        return 2 * np.pi * r * self.lComb
-        
-    def Vc(self, r):
-        return np.pi * r**2 * self.lComb
 
     def combTime(self):
 
@@ -107,6 +108,73 @@ class TubularGrain:
         ax.set_title('Mass vs Time')
         ax.grid(True)
         return fig
+    
+    def frontSection_plot(self):
+        try:
+            # Crear una figura y un eje
+            #height = frame.winfo_height() / 100
+            fig, ax = plt.subplots(figsize=(9, 9))
+
+            radii = np.linspace(self.rOut, self.rIn_0b, 20)
+            colors = plt.cm.jet(np.linspace(0, 1, 20))
+
+            for i, radius in enumerate(radii):
+                circle = patches.Circle((0, 0), radius, edgecolor=colors[i], facecolor=colors[i], label=f'Radius {radius:.2f}')
+                ax.add_patch(circle)
+
+            inner_circle = patches.Circle((0, 0), self.rIn_0b, facecolor='white', label='Initial Inner Radius')
+            ax.add_patch(inner_circle)
+
+            ## Establecer los límites del gráfico
+            ax.set_xlim(-self.rOut * 1.1, self.rOut * 1.1)
+            ax.set_ylim(-self.rOut * 1.1, self.rOut * 1.1)
+            # Establecer el aspecto del gráfico para que sea igual
+            ax.set_aspect('equal')
+            # Añadir título y leyenda
+            ax.set_title('Tubular')
+
+        except Exception as e:
+            print(e)
+            fig, ax = plt.subplots(figsize=(1, 1))
+            ax.set_axis_off()
+        return fig
+    
+    def profileSection_plot(self):
+        try:
+            fig, ax = plt.subplots(figsize=(9, 9))
+            h_tot = self.rOut - self.rIn_0b
+            heights = np.linspace(0, h_tot, 20)
+            colors = plt.cm.jet(np.linspace(0, 1, 20))
+            colors_reversed = colors[::-1]
+
+            # Dibuja rectángulos superiores
+            for i, h in enumerate(heights):
+                rectangle = patches.Rectangle((0, self.rIn_0b + h), self.lComb, h_tot / 20, edgecolor=colors_reversed[i], facecolor=colors_reversed[i])
+                ax.add_patch(rectangle)
+
+            # Dibuja rectángulos inferiores
+            for i, h in enumerate(heights):
+                rectangle = patches.Rectangle((0, -self.rOut + h), self.lComb, h_tot / 20, edgecolor=colors[i], facecolor=colors[i])
+                ax.add_patch(rectangle)
+
+            # Dibuja el rectángulo interior blanco superior
+            inner_rectangle = patches.Rectangle((0, -self.rIn_0b), self.lComb, 2*self.rIn_0b, facecolor='white', edgecolor='black', label='Initial Inner Radius')
+            ax.add_patch(inner_rectangle)
+
+
+            ax.set_xlim(-self.lComb * 0.2, self.lComb * 1.2)
+            ax.set_ylim(-self.rOut * 1.1, self.rOut * 1.1)
+
+            ax.set_aspect('equal')
+            ax.set_title('Tubular')
+            return fig
+
+        except Exception as e:
+            print(e)
+            fig, ax = plt.subplots(figsize=(1, 1))
+            ax.set_axis_off()
+        return fig
+    
 
 
 class EndBurnerGrain:
@@ -121,6 +189,8 @@ class EndBurnerGrain:
         for attr, value in zip(attributes, inputs):
             setattr(self, attr, value)
 
+
+    def calcResults(self):
         self.Vc0 = ((self.rOut - self.rThrt) * np.pi / 3) * (self.rOut**2 + self.rThrt**2 + self.rOut*self.rThrt)
 
         self.sol, self.t = self.combTime()
@@ -150,7 +220,6 @@ class EndBurnerGrain:
     
         def P_dot(u):
             P, l = u
-            print(self.Vc(l))
             term_0 = self.R * self.T1
             term_1 = (self.rho_b * self.a * P**self.n * 1e-2 * self.Ab()/self.Vc(l)) 
             term_2 = (P * np.pi * self.rThrt**2) / (self.cChar * self.Vc(l))
@@ -220,4 +289,51 @@ class EndBurnerGrain:
         ax.set_ylabel('Mass (kg)')
         ax.set_title('Mass vs Time')
         ax.grid(True)
+        return fig
+    
+    def frontSection_plot(self):
+        try:
+            # Crear una figura y un eje
+            fig, ax = plt.subplots(figsize=(9, 9))
+
+            # Dibujar los círculos exteriores e interiores
+            outer_circle = patches.Circle((0, 0), self.rOut, edgecolor='r', facecolor='tab:red', label='Outer Radius')
+            # Añadir los círculos al gráfico
+            ax.add_patch(outer_circle)
+
+            ax.set_xlim(-self.rOut * 1.1, self.rOut * 1.1)
+            ax.set_ylim(-self.rOut * 1.1, self.rOut * 1.1)
+            # Establecer el aspecto del gráfico para que sea igual
+            ax.set_aspect('equal')
+            ax.set_title('End-Burner')
+
+        except Exception:
+            fig, ax = plt.subplots(figsize=(1, 1))
+            ax.set_axis_off()
+        return fig
+    
+    def profileSection_plot(self):
+        try:
+            # Crear una figura y un eje
+            fig, ax = plt.subplots(figsize=(9, 9))
+
+            # Longitud total del rectángulo
+            l_tot = self.lProp
+            widths = np.linspace(0, l_tot, 40)
+            colors = plt.cm.jet(np.linspace(0, 1, 40))
+
+            # Dibujar franjas verticales de colores en el rectángulo
+            for i, w in enumerate(widths[:-1]):
+                rectangle = patches.Rectangle((w, -self.rOut), widths[1] - widths[0], 2 * self.rOut, edgecolor=colors[i], facecolor=colors[i])
+                ax.add_patch(rectangle)
+
+            ax.set_xlim(-self.lProp * 0.1, self.lProp * 1.1)
+            ax.set_ylim(-self.rOut * 1.1, self.rOut * 1.1)
+            # Establecer el aspecto del gráfico para que sea igual
+            ax.set_aspect('equal')
+            ax.set_title('End-Burner')
+
+        except Exception:
+            fig, ax = plt.subplots(figsize=(1, 1))
+            ax.set_axis_off()
         return fig

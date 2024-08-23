@@ -214,7 +214,8 @@ class NozzleDesingModule:
         self.offDesingPressureSlider = ctk.CTkSlider(self.pressureSlider_frame, from_=1e-3, to=1, orientation='horizontal', number_of_steps=1000)
         self.offDesingPressureSlider.set(1)
         self.offDesingPressureSlider.bind('<B1-Motion>', self.updatePercentLabels)
-        self.offDesingPressureSlider.bind('<ButtonRelease-1>', self.updateMapPlots)
+        #self.offDesingPressureSlider.bind('<ButtonRelease-1>', self.updateMapPlots)
+        self.offDesingPressureSlider.bind('<B1-Motion>', self.updateMapPlots)
         self.offDesingPressureSlider.grid(row=0, column=1, padx=pad, pady=pad, sticky='nswe')
 
         self.offDesingPressure0_label = ctk.CTkLabel(self.pressureSlider_frame, text="P0")
@@ -223,7 +224,8 @@ class NozzleDesingModule:
         self.offDesingPressure0Slider.grid(row=1, column=1, padx=pad, pady=pad, sticky='nswe')
         self.offDesingPressure0Slider.set(1)
         self.offDesingPressure0Slider.bind('<B1-Motion>', self.updatePercentLabels)
-        self.offDesingPressure0Slider.bind('<ButtonRelease-1>', self.updateMapPlots)
+        #self.offDesingPressure0Slider.bind('<ButtonRelease-1>', self.updateMapPlots)
+        self.offDesingPressure0Slider.bind('<B1-Motion>', self.updateMapPlots)
 
         p1p_init = f"{self.offDesingPressureSlider.get():.2f}"
         p0p_init = f"{self.offDesingPressure0Slider.get():.2f}"
@@ -497,7 +499,13 @@ class NozzleDesingModule:
     def updateMapPlots(self, event=None):
         try:
             p0_value = self.offDesingPressure0Slider.get() * self.calculatedNozzle.P0
-            p1_value = self.offDesingPressureSlider.get() * max(self.calculatedNozzle.P_t)
+            slider_value = self.offDesingPressureSlider.get()  # Obtiene el valor del slider, entre 0 y 1
+            min_pressure = min(self.calculatedNozzle.P_t)  # Obtiene el valor mínimo de P_t
+            max_pressure = max(self.calculatedNozzle.P_t)  # Obtiene el valor máximo de P_t
+
+            # Interpolación lineal entre el mínimo y el máximo
+            p1_value = min_pressure + slider_value * (max_pressure - min_pressure)
+            #p1_value = self.offDesingPressureSlider.get() * max(self.calculatedNozzle.P_t)
             thrust_value = self.calculatedNozzle.opPoint_plot(p1_value, p0_value)["F"]
             pe_value = self.calculatedNozzle.opPoint_plot(p1_value, p0_value)["Pe"]
             pres_fig = self.calculatedNozzle.pres_plot(p1_value, p0_value)

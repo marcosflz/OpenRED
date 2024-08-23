@@ -12,6 +12,8 @@ import customtkinter as ctk
 
 from PIL import Image, ImageTk, ImageDraw, ImageOps
 
+import serial.tools.list_ports
+
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -27,6 +29,8 @@ import time
 import traceback
 import csv
 import sys
+import threading
+
 
 
 

@@ -10,6 +10,7 @@ from front_2 import *
 from front_3 import *
 from front_4 import *
 from front_5 import *
+from front_6 import *
 
 # Llamar a la función para inicializar la base de datos al iniciar el programa
 initialize_database()
@@ -58,13 +59,15 @@ def save_configuration():
             file_path = os.path.join(working_path, "config.json")
         else:
             return
-        
-    tab_3_config = {
-            "NozzleConfig": EngineCADDesing_module_instance.file_name
-        }
-    tab_3_config.update({
-            key: widget.get() if isinstance(widget, (ctk.CTkEntry, ctk.CTkOptionMenu, ctk.CTkCheckBox)) else widget.get() for key, widget in EngineCADDesing_module_instance.widgets_dict.items()
-    })
+    try:
+        tab_3_config = {
+                "NozzleConfig": EngineCADDesing_module_instance.file_name
+            }
+        tab_3_config.update({
+                key: widget.get() if isinstance(widget, (ctk.CTkEntry, ctk.CTkOptionMenu, ctk.CTkCheckBox)) else widget.get() for key, widget in EngineCADDesing_module_instance.widgets_dict.items()
+        })
+    except Exception:
+        tab_3_config = {"None": None}
 
     if file_path:
         config = {
@@ -83,14 +86,12 @@ def save_configuration():
                     "tubular_rOut": get_entry_value(engineDesing_module_instance.tubular_entries[1]),
                     "tubular_rt": get_entry_value(engineDesing_module_instance.tubular_entries[2]),
                     "tubular_lComb": get_entry_value(engineDesing_module_instance.tubular_entries[3]),
-                    "tubular_P0": get_entry_value(engineDesing_module_instance.tubular_entries[4]),
-                    "tubular_dr": get_entry_value(engineDesing_module_instance.tubular_entries[5]),
                     "endBurner_lTube": get_entry_value(engineDesing_module_instance.end_burner_entries[0]),
                     "endBurner_lProp": get_entry_value(engineDesing_module_instance.end_burner_entries[1]),
                     "endBurner_rOut": get_entry_value(engineDesing_module_instance.end_burner_entries[2]),
                     "endBurner_rThrt": get_entry_value(engineDesing_module_instance.end_burner_entries[3]),
-                    "endBurner_P0": get_entry_value(engineDesing_module_instance.end_burner_entries[4]),
-                    "endBurner_dr": get_entry_value(engineDesing_module_instance.end_burner_entries[5]),
+                    "P0": get_entry_value(engineDesing_module_instance.ambientPressureEntry),
+                    "dr": get_entry_value(engineDesing_module_instance.timeStepEntry),
                 },
                 "tab_2": {
                     "engine_config": nozzleDesing_module_instance.file_path_label.cget("text"),
@@ -121,6 +122,7 @@ def load_configuration(working_path):
             tab_1_config = config["tabs"]["tab_1"]
             tab_2_config = config["tabs"]["tab_2"]
             tab_3_config = config["tabs"]["tab_3"]
+
 
 
             # Clear existing widgets
@@ -170,10 +172,6 @@ def load_configuration(working_path):
             engineDesing_module_instance.tubular_entries[2].insert(0, tab_1_config["tubular_rt"])
             engineDesing_module_instance.tubular_entries[3].delete(0, tk.END)
             engineDesing_module_instance.tubular_entries[3].insert(0, tab_1_config["tubular_lComb"])
-            engineDesing_module_instance.tubular_entries[4].delete(0, tk.END)
-            engineDesing_module_instance.tubular_entries[4].insert(0, tab_1_config["tubular_P0"])
-            engineDesing_module_instance.tubular_entries[5].delete(0, tk.END)
-            engineDesing_module_instance.tubular_entries[5].insert(0, tab_1_config["tubular_dr"])
 
             engineDesing_module_instance.end_burner_entries[0].delete(0, tk.END)
             engineDesing_module_instance.end_burner_entries[0].insert(0, tab_1_config["endBurner_lTube"])
@@ -183,10 +181,12 @@ def load_configuration(working_path):
             engineDesing_module_instance.end_burner_entries[2].insert(0, tab_1_config["endBurner_rOut"])
             engineDesing_module_instance.end_burner_entries[3].delete(0, tk.END)
             engineDesing_module_instance.end_burner_entries[3].insert(0, tab_1_config["endBurner_rThrt"])
-            engineDesing_module_instance.end_burner_entries[4].delete(0, tk.END)
-            engineDesing_module_instance.end_burner_entries[4].insert(0, tab_1_config["endBurner_P0"])
-            engineDesing_module_instance.end_burner_entries[5].delete(0, tk.END)
-            engineDesing_module_instance.end_burner_entries[5].insert(0, tab_1_config["endBurner_dr"])
+
+            engineDesing_module_instance.ambientPressureEntry.delete(0, tk.END)
+            engineDesing_module_instance.ambientPressureEntry.insert(0, tab_1_config["P0"])
+            engineDesing_module_instance.timeStepEntry.delete(0, tk.END)
+            engineDesing_module_instance.timeStepEntry.insert(0, tab_1_config["dr"])
+
             engineDesing_module_instance.update_plot()
 
             # Cargar configuracion de tab_2
@@ -331,13 +331,17 @@ nozzleDesing_module_instance = NozzleDesingModule(tabs_content["tab_2"])
 tabs_content["tab_3"] = ctk.CTkFrame(content_frame)
 EngineCADDesing_module_instance = EngineCADModule(tabs_content["tab_3"])
 
+tabs_content["tab_4"] = ctk.CTkFrame(content_frame)
+TestingBed_module_instance = TestingBedModule(tabs_content["tab_4"])
+
 
 # Crear botones para las pestañas
 tabsList = [
     ("Adiabatic Flame\n Temperature", "tab_0"),
     ("Engine Design", "tab_1"),
     ("Nozzle Desing", "tab_2"),
-    ("CAD Design", "tab_3")
+    ("CAD Design", "tab_3"),
+    ("Test Bed", "tab_4")
 ]
 
 for tab, tag in tabsList:

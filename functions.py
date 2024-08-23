@@ -1,15 +1,15 @@
 from imports import *
 
-def global_exception_handler(exc_type, exc_value, exc_traceback):
-    if issubclass(exc_type, KeyboardInterrupt):
-        # Permite la salida con Ctrl+C sin el trace del error
-        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-        return
-    error_message = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-    messagebox.showinfo("Error", f"Error:\n{error_message}")
-
-# Establece la función global para manejar excepciones no controladas
-sys.excepthook = global_exception_handler
+#def global_exception_handler(exc_type, exc_value, exc_traceback):
+#    if issubclass(exc_type, KeyboardInterrupt):
+#        # Permite la salida con Ctrl+C sin el trace del error
+#        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+#        return
+#    error_message = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+#    messagebox.showinfo("Error", f"Error:\n{error_message}")
+#
+## Establece la función global para manejar excepciones no controladas
+#sys.excepthook = global_exception_handler
 
 def get_data(type, file):
         with open('temp_dir.txt', 'r') as txt:

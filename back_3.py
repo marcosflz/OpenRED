@@ -11,7 +11,11 @@ class EngineCADBuilder_ConventionalNozzle:
 
         self.geometry = self.engineData["GrainGeo"]
 
-        self.LComb = self.engineData["Lc"]
+        if self.geometry == 'Tubular':
+            self.LComb = self.engineData["Lc"]
+        elif self.geometry == 'End-Burner':
+            self.LComb = self.engineData["Lp"]
+
         self.LNozz = self.nozzleData["calculatedResults"]["Longitud (m)"]
 
         self.nozzle_X = np.array(self.nozzleData["geometry_data"]["X (m)"])
@@ -21,6 +25,15 @@ class EngineCADBuilder_ConventionalNozzle:
         self.rExit = self.nozzleData["calculatedResults"]["R2 (m)"]
     
     
+
+
+
+
+
+
+
+    # Funciones de geometría
+
     def create_arc(self, x_center, y_center, theta_1, theta_2 ,radius, num_points=100, turn=1):
         angles = np.linspace(theta_1, theta_2, num_points)
         x_arc = x_center + radius * np.cos(angles) * turn
@@ -87,6 +100,20 @@ class EngineCADBuilder_ConventionalNozzle:
     
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # Funciones de Sketch de Motor
 
     def sketchEngine(self, user_settings):
         nozzle_x_in, nozzle_y_in = np.flip(self.nozzle_X), np.flip(self.nozzle_Y)
@@ -236,14 +263,24 @@ class EngineCADBuilder_ConventionalNozzle:
         axes.add_patch(oring_down)
 
     def sketchPropellant(self, axes, user_settings):
-        propellant_thickness = self.engineData["Re"] - self.engineData["Ri"]
-        x = self.x6 
-        yUp = self.engineData["Ri"]
-        yDown = -self.engineData["Re"]
-        propellant_up = patches.Rectangle((x, yUp), self.LComb, propellant_thickness, edgecolor='k', facecolor='brown')
-        propellant_down = patches.Rectangle((x, yDown), self.LComb, propellant_thickness, edgecolor='k', facecolor='brown')
-        axes.add_patch(propellant_up)
-        axes.add_patch(propellant_down)
+        
+        if self.geometry == 'Tubular':
+            propellant_thickness = self.engineData["Re"] - self.engineData["Ri"]
+            x = self.x6 
+            yUp = self.engineData["Ri"]
+            yDown = -self.engineData["Re"]
+            propellant_up = patches.Rectangle((x, yUp), self.LComb, propellant_thickness, edgecolor='k', facecolor='brown')
+            propellant_down = patches.Rectangle((x, yDown), self.LComb, propellant_thickness, edgecolor='k', facecolor='brown')
+            axes.add_patch(propellant_up)
+            axes.add_patch(propellant_down)
+        elif self.geometry == 'End-Burner':
+            x, y = self.x01c, -self.engineData["Re"]
+            w, h = self.LComb, 2 * self.engineData["Re"]
+            propellant = patches.Rectangle((x, y), w, h, edgecolor='k', facecolor='brown')
+            axes.add_patch(propellant)
+
+
+
 
     def sketchCover(self, axes, user_settings):
         arc_x, arc_y = self.create_arc(self.x0c, self.y0c, -np.pi/2, np.pi/2 , self.radi, turn=-1)
@@ -253,6 +290,11 @@ class EngineCADBuilder_ConventionalNozzle:
 
         w_b = w
         h_b = user_settings["r_elect"] + user_settings["d_elect"]/2
+
+        if self.geometry == 'Tubular':
+            y6c, y1c = self.y6c, self.y1c
+        elif self.geometry == 'End-Burner':
+            y6c, y1c = 0, 0
 
         if not user_settings["cring"]:
 
@@ -266,12 +308,12 @@ class EngineCADBuilder_ConventionalNozzle:
             ))
 
             self.cover_y = np.concatenate((
-                [self.y1c, self.y2c],
+                [y1c, self.y2c],
                 [self.y2c, self.y3c],
                 [self.y3c, self.y4c],
                 [self.y4c, self.y5c],
-                [self.y5c, self.y6c],
-                [self.y6c, self.y1c],
+                [self.y5c, y6c],
+                [y6c, y1c],
             ))
 
         else:
@@ -288,19 +330,20 @@ class EngineCADBuilder_ConventionalNozzle:
             ))
 
             self.cover_y = np.concatenate((
-                [self.y1c, self.y01c],
+                [y1c, self.y01c],
                 arc_y,
                 [self.y02c, self.y2c],
                 [self.y2c, self.y3c],
                 [self.y3c, self.y4c],
                 [self.y4c, self.y5c],
-                [self.y5c, self.y6c],
-                [self.y6c, self.y1c],
+                [self.y5c, y6c],
+                [y6c, y1c],
             ))
 
-        if user_settings["on_Background"]:
-            backGround = patches.Rectangle((self.x6c, -h_b), w_b, 2*h_b, edgecolor='k', facecolor='darkgrey')
-            axes.add_patch(backGround)
+        if self.geometry == 'Tubular':
+            if user_settings["on_Background"]:
+                backGround = patches.Rectangle((self.x6c, -h_b), w_b, 2*h_b, edgecolor='k', facecolor='darkgrey')
+                axes.add_patch(backGround)
 
         axes.plot(self.cover_x, self.cover_y, c='k', lw=1)
         axes.plot(self.cover_x, -self.cover_y ,c='k', lw=1)
@@ -308,8 +351,11 @@ class EngineCADBuilder_ConventionalNozzle:
         axes.fill(self.cover_x, self.cover_y, alpha=0.3, color='grey')
         axes.fill(self.cover_x, -self.cover_y, alpha=0.3, color='grey')
 
-        innerPart = patches.Rectangle((self.x6c, -h), w, 2*h, edgecolor='k', facecolor='lightgray', lw=1)
-        axes.add_patch(innerPart)
+        if self.geometry == 'Tubular':
+            innerPart = patches.Rectangle((self.x6c, -h), w, 2*h, edgecolor='k', facecolor='lightgray', lw=1)
+            axes.add_patch(innerPart)
+        elif self.geometry == 'End-Burner':
+            pass
 
 
 
@@ -380,6 +426,25 @@ class EngineCADBuilder_ConventionalNozzle:
         axes.fill(back_cut2_x, back_cut2_y, facecolor='green', edgecolor='k', lw=1)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # Funciones de Sketch de herramientas
+
     def sketchCastingTubularProfile(self, axes, user_settings):
 
         t_cartridge = user_settings["t_cartridge"]
@@ -399,7 +464,7 @@ class EngineCADBuilder_ConventionalNozzle:
 
         self.x1_T2, self.y1_T2 = self.x4 + t_wall, self.engineData["Ri"]
         self.x2_T2, self.y2_T2 = self.x1_T2, self.y7_T1
-        self.x3_T2, self.y3_T2 = self.x2_T2 - cover_len, self.y7_T1
+        self.x3_T2, self.y3_T2 = self.x2_T2 - cover_len - t_wall, self.y7_T1
         self.x4_T2, self.y4_T2 = self.x3_T2, self.y6_T1
         self.x5_T2, self.y5_T2 = self.x5, self.y6
         self.x6_T2, self.y6_T2 = self.x5_T2, self.engineData["Ri"]
@@ -408,7 +473,6 @@ class EngineCADBuilder_ConventionalNozzle:
         self.x2_T3, self.y2_T3 = self.x1_T3, self.y1_T3 + user_settings["nut_d"]
         self.x3_T3, self.y3_T3 = self.x1_T2, self.y2_T3
         self.x4_T3, self.y4_T3 = self.x1_T2, self.engineData["Ri"]
-
 
         self.cover_tool_1_x = np.concatenate((
             [self.x1_T1, self.x2_T1],
@@ -464,6 +528,7 @@ class EngineCADBuilder_ConventionalNozzle:
             [-self.y8_T1, -self.y1_T1],
         ))
 
+
         self.cover_tool_2_x = np.concatenate((
             [self.x1_T2, self.x2_T2],
             [self.x2_T2, self.x3_T2],
@@ -497,7 +562,7 @@ class EngineCADBuilder_ConventionalNozzle:
         ))
 
         if user_settings["on_Axis"]:
-            axes.plot([self.x1_T1, self.x2_T1], [self.y1_T1, self.y2_T1], color='tab:red', ls='--')
+            axes.plot([self.x1_T1, self.x2_T1], [0, 0], color='tab:red', ls='--')
         
         if user_settings["on_CoverCast1"]:
             axes.fill(cover_tool_1_plot_x, cover_tool_1_plot_y, facecolor='lightgrey', edgecolor='k', lw=1) 
@@ -509,6 +574,7 @@ class EngineCADBuilder_ConventionalNozzle:
         if user_settings["on_CastNut"]:
             axes.fill(self.cover_tool_3_x, self.cover_tool_3_y, facecolor='lightgrey', edgecolor='k', lw=1) 
             axes.fill(self.cover_tool_3_x, -self.cover_tool_3_y, facecolor='lightgrey', edgecolor='k', lw=1) 
+   
 
     def sketchCastingTubularFront_1(self, axes, user_settings):
         
@@ -543,61 +609,158 @@ class EngineCADBuilder_ConventionalNozzle:
 
         axes.add_patch(circle_mould)
 
+
+    
+    def sketchCastingEndBurnerProfile(self, axes, user_settings):
+        t_cartridge = user_settings["t_cartridge"]
+        t_factor = user_settings["t_factor"]
+        cover_len = user_settings["cover_len"]
+        t_wall = t_cartridge * t_factor
+
+        self.x1_T1, self.y1_T1 = self.x6 - t_wall, 0
+        self.x2_T1, self.y2_T1 = self.x6, 0
+        self.x3_T1, self.y3_T1 = self.x6, self.y02c
+        self.x4_T1, self.y4_T1 = self.x6 + cover_len, self.y02c
+        self.x5_T1, self.y5_T1 = self.x4_T1, self.y4_T1 + t_wall
+        self.x6_T1, self.y6_T1 = self.x1_T1, self.y5_T1
+
+        self.x1_T2, self.y1_T2 = self.x4 + t_wall, 0
+        self.x2_T2, self.y2_T2 = self.x1_T2, self.y5_T1
+        self.x3_T2, self.y3_T2 = self.x1_T2 - t_wall - cover_len, self.y5_T1
+        self.x4_T2, self.y4_T2 = self.x3_T2, self.y4_T1
+        self.x5_T2, self.y5_T2 = self.x4, self.y3_T1
+        self.x6_T2, self.y6_T2 = self.x4, 0
+
+
+        cover_tool_1_plot_x = np.concatenate((
+            [self.x1_T1, self.x6_T1],
+            [self.x6_T1, self.x5_T1],
+            [self.x5_T1, self.x4_T1],
+            [self.x4_T1, self.x3_T1],
+            [self.x3_T1, self.x3_T1],
+            [self.x3_T1, self.x4_T1],
+            [self.x4_T1, self.x5_T1],
+            [self.x5_T1, self.x6_T1],
+            [self.x6_T1, self.x1_T1]
+        ))
+
+        cover_tool_1_plot_y = np.concatenate((
+            [self.y1_T1, self.y6_T1],
+            [self.y6_T1, self.y5_T1],
+            [self.y5_T1, self.y4_T1],
+            [self.y4_T1, self.y3_T1],
+            [self.y3_T1, -self.y3_T1],
+            [-self.y3_T1, -self.y4_T1],
+            [-self.y4_T1, -self.y5_T1],
+            [-self.y5_T1, -self.y6_T1],
+            [-self.y6_T1, -self.y1_T1]
+        ))
+
+        cover_tool_2_plot_x = np.concatenate((
+            [self.x1_T2, self.x2_T2],
+            [self.x2_T2, self.x3_T2],
+            [self.x3_T2, self.x4_T2],
+            [self.x4_T2, self.x5_T2],
+            [self.x5_T2, self.x5_T2],
+            [self.x5_T2, self.x4_T2],
+            [self.x4_T2, self.x3_T2],
+            [self.x3_T2, self.x2_T2],
+            [self.x2_T2, self.x1_T2]
+        ))
+
+        cover_tool_2_plot_y = np.concatenate((
+            [self.y1_T2, self.y2_T2],
+            [self.y2_T2, self.y3_T2],
+            [self.y3_T2, self.y4_T2],
+            [self.y4_T2, self.y5_T2],
+            [self.y5_T2, -self.y5_T2],
+            [-self.y5_T2, -self.y4_T2],
+            [-self.y4_T2, -self.y3_T2],
+            [-self.y3_T2, -self.y2_T2],
+            [-self.y2_T2, -self.y1_T2]
+        ))
+
+        self.cover_tool_1_x = np.concatenate((
+            [self.x1_T1, self.x2_T1],
+            [self.x2_T1, self.x3_T1],
+            [self.x3_T1, self.x4_T1],
+            [self.x4_T1, self.x5_T1],
+            [self.x5_T1, self.x6_T1],
+            [self.x6_T1, self.x1_T1]
+        ))
+
+        self.cover_tool_1_y = np.concatenate((
+            [self.y1_T1, self.y2_T1],
+            [self.y2_T1, self.y3_T1],
+            [self.y3_T1, self.y4_T1],
+            [self.y4_T1, self.y5_T1],
+            [self.y5_T1, self.y6_T1],
+            [self.y6_T1, self.y1_T1]
+        ))
+
+        self.cover_tool_2_x = np.concatenate((
+            [self.x1_T2, self.x2_T2],
+            [self.x2_T2, self.x3_T2],
+            [self.x3_T2, self.x4_T2],
+            [self.x4_T2, self.x5_T2],
+            [self.x5_T2, self.x6_T2],
+            [self.x6_T2, self.x1_T2]
+        ))
+
+        self.cover_tool_2_y = np.concatenate((
+            [self.y1_T2, self.y2_T2],
+            [self.y2_T2, self.y3_T2],
+            [self.y3_T2, self.y4_T2],
+            [self.y4_T2, self.y5_T2],
+            [self.y5_T2, self.y6_T2],
+            [self.y6_T2, self.y1_T2]
+        ))
+
+        if user_settings["on_Axis"]:
+            axes.plot([self.x1_T1, self.x1_T2], [0, 0], color='tab:red', ls='--')
         
+        if user_settings["on_CoverCast1"]:
+            axes.fill(cover_tool_1_plot_x, cover_tool_1_plot_y, facecolor='lightgrey', edgecolor='k', lw=1) 
+
+        if user_settings["on_CoverCast2"]:
+            axes.fill(cover_tool_2_plot_x, cover_tool_2_plot_y, facecolor='lightgrey', edgecolor='k', lw=1) 
+
+        
+    def sketchCastingEndBurnerFront_1(self, axes, user_settings):
+
+        Ri_cover = self.y3_T1
+        Rext_cover = self.y6_T1
+
+        circle_exterior = patches.Circle((0, 0), Rext_cover, facecolor='lightgray', edgecolor='k', linewidth=2)
+        circle_interior = patches.Circle((0, 0), Ri_cover, facecolor='lightgray', edgecolor='k', linewidth=2)
+
+        axes.add_patch(circle_exterior)
+        axes.add_patch(circle_interior)
+   
+
+    def sketchCastingEndBurnerFront_2(self, axes, user_settings):
+        
+        Ri_cover = self.y3_T1
+        Rext_cover = self.y6_T1
+
+
+        circle_exterior = patches.Circle((0, 0), Rext_cover, facecolor='lightgray', edgecolor='k', linewidth=2)
+        circle_interior = patches.Circle((0, 0), Ri_cover, facecolor='lightgray', edgecolor='k', linewidth=2, ls='--')
+
+
+        axes.add_patch(circle_exterior)
+        axes.add_patch(circle_interior)
 
 
 
 
-    def plot_Tools(self, user_settings):
 
-        fig, ax = plt.subplots(figsize=(16,9))
-        self.sketchEngine(user_settings)
 
-        if user_settings["on_Cartridge"]:
-            self.sketchCartridge(ax, user_settings)
 
-        if user_settings["on_Propellant"]:
-            self.sketchPropellant(ax, user_settings)
 
-        if self.geometry == 'Tubular':
-            self.sketchCastingTubularProfile(ax, user_settings)
 
-        ax.axis('equal')
-        ax.set_xlabel("Length (m)")
-        ax.set_ylabel("Radius (m)")
-        ax.set_title("Engine CAD Plot")
-        ax.grid(False)
-        return fig
-    
-    def plot_Front1_Tools(self, user_settings):
+    # Funciones de ploteo
 
-        fig, ax = plt.subplots(figsize=(9,9))
-        self.sketchEngine(user_settings)
-
-        if self.geometry == 'Tubular':
-            self.sketchCastingTubularFront_1(ax, user_settings)
-
-        ax.axis('equal')
-        ax.set_xlabel("Length (m)")
-        ax.set_ylabel("Radius (m)")
-        ax.set_title("Engine CAD Plot")
-        ax.grid(False)
-        return fig
-    
-    def plot_Front2_Tools(self, user_settings):
-
-        fig, ax = plt.subplots(figsize=(9,9))
-        self.sketchEngine(user_settings)
-
-        if self.geometry == 'Tubular':
-            self.sketchCastingTubularFront_2(ax, user_settings)
-
-        ax.axis('equal')
-        ax.set_xlabel("Length (m)")
-        ax.set_ylabel("Radius (m)")
-        ax.set_title("Engine CAD Plot")
-        ax.grid(False)
-        return fig
 
 
     def plot_Engine(self, user_settings):
@@ -797,7 +960,81 @@ class EngineCADBuilder_ConventionalNozzle:
         ax.set_title("Engine CAD Plot")
         ax.grid(False)
         return fig
+    
+    
+    def plot_Tools(self, user_settings):
 
+        fig, ax = plt.subplots(figsize=(16,9))
+        self.sketchEngine(user_settings)
+
+        if user_settings["on_Cartridge"]:
+            self.sketchCartridge(ax, user_settings)
+
+        if user_settings["on_Propellant"]:
+            self.sketchPropellant(ax, user_settings)
+
+
+
+        if self.geometry == 'Tubular':
+            self.sketchCastingTubularProfile(ax, user_settings)
+        elif self.geometry == 'End-Burner':
+            self.sketchCastingEndBurnerProfile(ax, user_settings)
+
+
+
+        ax.axis('equal')
+        ax.set_xlabel("Length (m)")
+        ax.set_ylabel("Radius (m)")
+        ax.set_title("Engine CAD Plot")
+        ax.grid(False)
+        return fig
+    
+    def plot_Front1_Tools(self, user_settings):
+
+        fig, ax = plt.subplots(figsize=(9,9))
+        self.sketchEngine(user_settings)
+
+        if self.geometry == 'Tubular':
+            self.sketchCastingTubularFront_1(ax, user_settings)
+        elif self.geometry == 'End-Burner':
+            self.sketchCastingEndBurnerFront_1(ax, user_settings)
+
+        ax.axis('equal')
+        ax.set_xlabel("Length (m)")
+        ax.set_ylabel("Radius (m)")
+        ax.set_title("Engine CAD Plot")
+        ax.grid(False)
+        return fig
+    
+    def plot_Front2_Tools(self, user_settings):
+
+        fig, ax = plt.subplots(figsize=(9,9))
+        self.sketchEngine(user_settings)
+
+        if self.geometry == 'Tubular':
+            self.sketchCastingTubularFront_2(ax, user_settings)
+        elif self.geometry == 'End-Burner':
+            self.sketchCastingEndBurnerFront_2(ax, user_settings)
+
+        ax.axis('equal')
+        ax.set_xlabel("Length (m)")
+        ax.set_ylabel("Radius (m)")
+        ax.set_title("Engine CAD Plot")
+        ax.grid(False)
+        return fig
+
+
+
+
+
+
+
+
+
+
+
+
+    # Funciones de exportar
 
     def export_engine(self, user_settings, file_path):
         x, y = self.sketchEngine(user_settings) 
@@ -870,9 +1107,10 @@ class EngineCADBuilder_ConventionalNozzle:
         y1 = self.cover_tool_2_y
         z1 = np.zeros(len(x1))
 
-        x2 = self.cover_tool_3_x
-        y2 = self.cover_tool_3_y
-        z2 = np.zeros(len(x2))
+        if not self.geometry == 'End-Burner':
+            x2 = self.cover_tool_3_x
+            y2 = self.cover_tool_3_y
+            z2 = np.zeros(len(x2))
 
         with open(file_path, mode='w', newline='') as file:
             writer = csv.writer(file)
@@ -885,5 +1123,6 @@ class EngineCADBuilder_ConventionalNozzle:
             for i in range(len(x1)):
                 writer.writerow([1, 'XY' ,x1[i] * 100, y1[i] * 100, z1[i] * 100])
 
-            for i in range(len(x2)):
-                writer.writerow([1, 'XY' ,x2[i] * 100, y2[i] * 100, z2[i] * 100])
+            if not self.geometry == 'End-Burner':
+                for i in range(len(x2)):
+                    writer.writerow([1, 'XY' ,x2[i] * 100, y2[i] * 100, z2[i] * 100])

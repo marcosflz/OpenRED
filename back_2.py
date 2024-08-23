@@ -115,6 +115,10 @@ class BellNozzle:
         PR_Crit2 = round(self.PRatio_2, 6)
         PR_Crit3 = round(self.PRatio_3, 6)
 
+        P1_CH = P0 / PR_Crit0
+        P1_ES = P0 / PR_Crit2
+        P1_OP = P0 / PR_Crit3
+
         def noFireOperation(P_Off,P0):
             Mx = [0, 0]
             Px = [1, 1]
@@ -262,35 +266,52 @@ class BellNozzle:
 
             return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe, 'F': thrust}
 
-        subSonicOp = subSonicOperation(P_Off,P0)
+        #subSonicOp = subSonicOperation(P_Off,P0)
+#
+        #try:
+        #    inShockOp = inShockOperation(P_Off,P0)
+        #except ValueError:
+        #    inShockOp = {'PR': [0, 0]}
+#
+        #exitShockOp = exitShockOperation(P_Off,P0)
+        #overExpOp = overExpansionOperation(P_Off,P0)
+        #desingOp = desingPointOperation(P_Off,P0)
+        #underExpOp = underExpOperation(P_Off,P0)
 
-        try:
-            inShockOp = inShockOperation(P_Off,P0)
-        except ValueError:
-            inShockOp = {'PR': [0, 0]}
+        #if PR_OffD >= 1:
+        #    return noFireOperation(P_Off,P0)
+        #elif PR_OffD >= PR_Crit0 and subSonicOp['PR'][-1] >= PR_Crit1:
+        #    return subSonicOp
+        #elif inShockOp['PR'][-1] >= PR_Crit2:
+        #    if abs(inShockOp['PR'][-1] - PR_Crit2) < 1e-2:
+        #        return exitShockOp
+        #    else:
+        #        return inShockOp
+        #elif overExpOp['Pe'] < P0:
+        #    return overExpOp
+        #elif abs(desingOp['Pe'] - P0) < 1e-2:
+        #    return desingOp
+        #elif underExpOp['Pe'] > P0:
+        #    return underExpOp
+        #else:
+        #    return None
 
-        exitShockOp = exitShockOperation(P_Off,P0)
-        overExpOp = overExpansionOperation(P_Off,P0)
-        desingOp = desingPointOperation(P_Off,P0)
-        underExpOp = underExpOperation(P_Off,P0)
-
-        if PR_OffD >= 1:
-            return noFireOperation(P_Off,P0)
-        elif PR_OffD >= PR_Crit0 and subSonicOp['PR'][-1] >= PR_Crit1:
-            return subSonicOp
-        elif inShockOp['PR'][-1] >= PR_Crit2:
-            if abs(inShockOp['PR'][-1] - PR_Crit2) < 1e-2:
-                return exitShockOp
+        if P_Off <= P1_CH:
+            return subSonicOperation(P_Off,P0)
+        elif P1_CH < P_Off < P1_ES:
+            if abs(P_Off - P1_ES) < 1:
+                return exitShockOperation(P_Off,P0)
             else:
-                return inShockOp
-        elif overExpOp['Pe'] < P0:
-            return overExpOp
-        elif abs(desingOp['Pe'] - P0) < 1e-2:
-            return desingOp
-        elif underExpOp['Pe'] > P0:
-            return underExpOp
-        else:
-            return None
+                return inShockOperation(P_Off,P0)
+        elif P1_ES < P_Off < P1_OP:
+            if abs(P_Off - P1_OP) < 1:
+                return desingPointOperation(P_Off,P0)
+            else:
+                return overExpansionOperation(P_Off,P0)
+        elif P_Off > P1_OP:
+            return underExpOperation(P_Off,P0)
+        
+        
 
     
     def f_throat(self, th):
