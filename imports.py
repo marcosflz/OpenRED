@@ -15,6 +15,10 @@ from PIL import Image, ImageTk, ImageDraw, ImageOps
 import serial.tools.list_ports
 from datetime import datetime
 
+from pyqtgraph import PlotWidget, mkPen
+import pyqtgraph as pg
+from PyQt5 import QtGui
+
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt

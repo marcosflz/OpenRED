@@ -21,8 +21,10 @@ class TestingBedModule:
 
         self.serialRecording = False
         self.last_processed_line = ""
-        self.maxThrust = 0
-        self.maxTemp = 0
+        self.maxThrust = 1
+        self.maxTemp = 1
+
+        
 
         self.records = np.array([]).reshape(0, 3)
 
@@ -133,28 +135,16 @@ class TestingBedModule:
 
 
         self.fig_Thrust, self.ax_Thrust = plt.subplots()
-        self.update_Thrust_plot()
         insert_fig(self.fig_Thrust, self.display_2_frame)
 
         self.fig_Temp, self.ax_Temp = plt.subplots()
-        self.update_Temp_plot()
         insert_fig(self.fig_Temp, self.display_4_frame)
 
-        self.frameThrustGauge = ctk.CTkFrame(self.display_3_frame)
-        self.frameThrustGauge.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
-        self.frameThrustGauge.grid_propagate(False)
+        self.fig_gauge, self.ax_gauge = plt.subplots(figsize=(16, 16))
+        insert_fig(self.fig_gauge, self.display_3_frame)
 
-        self.frameTempGauge = ctk.CTkFrame(self.display_3_frame)
-        self.frameTempGauge.grid(row=0, column=1, padx=10, pady=10, sticky='nswe')
-        self.frameTempGauge.grid_propagate(False)
-
-        self.frameBatteryGauge = ctk.CTkFrame(self.display_3_frame)
-        self.frameBatteryGauge.grid(row=1, column=0, padx=10, pady=10, sticky='nswe')
-        self.frameBatteryGauge.grid_propagate(False)
-
-        self.frameWaterGauge = ctk.CTkFrame(self.display_3_frame)
-        self.frameWaterGauge.grid(row=1, column=1, padx=10, pady=10, sticky='nswe')
-        self.frameWaterGauge.grid_propagate(False)
+        self.animation_thread = threading.Thread(target=self.run_animations, daemon=True)
+        self.animation_thread.start()
 
         self.reset_plots()
 
@@ -178,26 +168,13 @@ class TestingBedModule:
         """Reinicia los gráficos a su estado inicial."""
         # Limpiar y redibujar el gráfico de Thrust
         self.ax_Thrust.clear()
-        self.update_Thrust_plot()
+        #self.update_Thrust_plot()
         self.fig_Thrust.canvas.draw()
 
         # Limpiar y redibujar el gráfico de Temperatura
         self.ax_Temp.clear()
-        self.update_Temp_plot()
+        #self.update_Temp_plot()
         self.fig_Temp.canvas.draw()
-
-        ThrustGauge = gaugePlot(0, "THRUST", "kg", self.maxThrust)
-        insert_fig(ThrustGauge, self.frameThrustGauge)
-
-        TempGauge = gaugePlot(0, "TEMPERATURE", "K" , self.maxTemp)
-        insert_fig(TempGauge, self.frameTempGauge)
-
-        BatteryGauge = gaugePlot(0, "BATTERY LEVEL (%)")
-        insert_fig(BatteryGauge, self.frameBatteryGauge)
-
-        WaterGauge = gaugePlot(0, "WATER LEVEL (%)")
-        insert_fig(WaterGauge, self.frameWaterGauge)
-
         # Limpiar los registros
         self.records = np.array([]).reshape(0, 3)  # Reiniciar el array a vacío
 
@@ -488,66 +465,131 @@ class TestingBedModule:
             self.connect_com_button.configure(fg_color="red")  # Change button color
 
 
-
-
-
-
-
-    def update_Thrust_plot(self):
-        """Función de actualización para el gráfico en tiempo real."""
-        # Limpiar el gráfico
+    def update_Thrust_plot(self, frame):
+        """Update function for the thrust plot animation."""
         self.ax_Thrust.clear()
 
-        # Dibujar los datos actuales
         if len(self.records) > 0:
-            times = self.records[:, 0]  # Extraer la columna de tiempo
-            thrusts = self.records[:, 1]  # Extraer la columna de fuerza
+            times = self.records[:, 0]  # Extract the time column
+            thrusts = self.records[:, 1]  # Extract the thrust column
 
-            # Dibujar el gráfico de tiempo vs fuerza
+            # Draw the plot of time vs thrust
             self.ax_Thrust.plot(times, thrusts)
 
-            percent = thrusts[-1] / self.maxThrust
-            ThrustGauge = gaugePlot(percent, "THRUST", "kg", self.maxThrust)
-            insert_fig(ThrustGauge, self.frameThrustGauge)
-
-
-        # Etiquetas y leyenda
+        # Set plot labels and title
         self.ax_Thrust.set_xlabel('Tiempo (s)')
         self.ax_Thrust.set_ylabel('F(Kg)')
         self.ax_Thrust.set_title('Thrust')
 
-
-        # Actualizar el gráfico
-        self.fig_Thrust.canvas.draw()
-        plt.close(self.fig_Thrust)
-        
-
-
-    def update_Temp_plot(self):
-        """Función de actualización para el gráfico en tiempo real."""
-        # Limpiar el gráfico
+    def update_Temp_plot(self, frame):
+        """Update function for the temperature plot animation."""
         self.ax_Temp.clear()
 
-        # Dibujar los datos actuales
         if len(self.records) > 0:
-            times = self.records[:, 0]  # Extraer la columna de tiempo
-            temps = self.records[:, 2]  # Extraer la columna de temperatura
+            times = self.records[:, 0]  # Extract the time column
+            temps = self.records[:, 2]  # Extract the temperature column
 
-            # Dibujar el gráfico de tiempo vs temperatura
+            # Draw the plot of time vs temperature
             self.ax_Temp.plot(times, temps, label='Temperatura (K)')
 
-            percent = temps[-1] / self.maxTemp
-            TempGauge = gaugePlot(percent, "TEMPERATURE", "K", self.maxTemp)
-            insert_fig(TempGauge, self.frameTempGauge)
-
-        # Etiquetas y leyenda
+        # Set plot labels and title
         self.ax_Temp.set_xlabel('Tiempo (s)')
         self.ax_Temp.set_ylabel('T(K)')
         self.ax_Temp.set_title('Temperature')
 
-        # Actualizar el gráfico
-        self.fig_Temp.canvas.draw()
-        plt.close(self.fig_Temp)  # Close the figure after drawing to free memory
+    
+    def update_gauge_plot(self, frame):
+        """Update function for the gauge plot animation."""
+        # Clear the current plot
+        self.ax_gauge.clear()
+
+        # Example dynamic values for the animation
+        # Replace these values with the actual data source
+        if len(self.records) > 0:
+            # Use the last available data if it exists
+            thrust = self.records[-1, 1] if len(self.records) > 1 else 0
+            temp = self.records[-1, 2] if len(self.records) > 1 else 0
+        else:
+            # Default values when no data is available
+            thrust = 0
+            temp = 0
+
+        instValues = [thrust, temp, 0, 0]
+        maxValues = [self.maxThrust, self.maxTemp, 1, 1]
+
+        # Call the gauge plot function to redraw the plot
+        self.gaugePlot(instValues, maxValues)
+        self.fig_gauge.canvas.draw()
+
+    def run_animations(self):
+        """Initialize the animations for thrust and temperature plots."""
+        # Animation for the thrust plot
+        self.thrust_animation = FuncAnimation(self.fig_Thrust, self.update_Thrust_plot, interval=100, cache_frame_data=False)
+        # Animation for the temperature plot
+        self.temp_animation = FuncAnimation(self.fig_Temp, self.update_Temp_plot, interval=100, cache_frame_data=False)
+        # Animation for the gauge plot
+        self.gauge_animation = FuncAnimation(self.fig_gauge, self.update_gauge_plot, interval=500, cache_frame_data=False)  # Update every 1000ms (1 second)
+
+    
+    def gaugePlot(self, instValues, maxValues):
+        #plt.close(self.fig_gauge) if hasattr(self, 'fig_gauge') else None
+    
+        # Create a color gradient around the outer circle edge
+        n = 25  # Number of segments for the gradient
+        cmap = plt.get_cmap('plasma')  # Color map
+        delta = 0
+        theta = np.linspace(0 - delta, np.pi + delta, n)  # Divide the semicircle into 'n' segments
+
+        x = 1
+        y = 0.5
+        ri = 0.75
+        w = 0.25
+        edgCol = 'k'
+
+        instValues = np.array(instValues)
+        maxValues = np.array(maxValues)
+        percValues = instValues / maxValues
+
+        # Loop over the four positions to plot the gauges
+        for j, perc in enumerate(percValues):
+            num_fill = int(n * perc)  # Calculate the number of wedges to fill
+
+            # Determine the position offsets for each gauge
+            if j == 0:
+                x_pos, y_pos = -x, y
+            elif j == 1:
+                x_pos, y_pos = x, y
+            elif j == 2:
+                x_pos, y_pos = -x, -y
+            else:
+                x_pos, y_pos = x, -y
+
+            for i in range(n - 1):
+                if num_fill > 0 and i >= (n - num_fill):
+                    color = cmap(i / (n - 1))  # Fill wedges in reverse order
+                else:
+                    color = 'lightgrey'  # Set the remaining wedges to light grey
+
+                wedge = patches.Wedge(center=(x_pos, y_pos), r=ri, theta1=np.degrees(theta[i]),
+                                    theta2=np.degrees(theta[i + 1]), width=w, facecolor=color, edgecolor=edgCol, linewidth=2)
+                self.ax_gauge.add_patch(wedge)
+
+        # Add text to the rectangles
+        self.ax_gauge.text(-x, 1.6 * y + 0.02 * ri, f"{instValues[0]:.2f}", ha='center', va='center', fontsize=20, fontweight='bold')
+        self.ax_gauge.text(x, 1.6 * y + 0.02 * ri, f"{instValues[1]:.2f}", ha='center', va='center', fontsize=20, fontweight='bold')
+        self.ax_gauge.text(-x, 0.4 * -y + 0.02 * ri, f"{instValues[2]:.2f}", ha='center', va='center', fontsize=20, fontweight='bold')
+        self.ax_gauge.text(x, 0.4 * -y + 0.02 * ri, f"{instValues[3]:.2f}", ha='center', va='center', fontsize=20, fontweight='bold')
+
+        self.ax_gauge.text(-x, 1.6 * y + 0.02 * ri - 0.2, "THRUST (KG)", ha='center', va='center', fontsize=20, fontweight='bold')
+        self.ax_gauge.text(x, 1.6 * y + 0.02 * ri - 0.2, "TEMPERATURE (K)", ha='center', va='center', fontsize=20, fontweight='bold')
+        self.ax_gauge.text(-x, 0.4 * -y + 0.02 * ri - 0.2, "BATTERY LEVEL (%)", ha='center', va='center', fontsize=20, fontweight='bold')
+        self.ax_gauge.text(x, 0.4 * -y + 0.02 * ri - 0.2, "WATER LEVEL (%)", ha='center', va='center', fontsize=20, fontweight='bold')
+
+        self.ax_gauge.set_aspect('equal', 'box')
+        self.ax_gauge.set_xlim(-1.8, 1.8)
+        self.ax_gauge.set_ylim(-0.6, 1.3)
+        self.fig_gauge.tight_layout()
+        self.ax_gauge.set_axis_off()
 
 
 
@@ -597,13 +639,9 @@ class TestingBedModule:
                     # Guardar el nuevo registro en el archivo CSV
                     self.save_record_to_csv(record_tuple)
 
-                    # Actualizar los gráficos
-                    self.update_Thrust_plot()
-                    self.update_Temp_plot()
-
                 # Actualizar la última línea procesada
                 self.last_processed_line = last_line
-
+        
         # Restablecer el estado modificado del TextBox para futuras detecciones
         self.serial_monitor_text.edit_modified(False)
 

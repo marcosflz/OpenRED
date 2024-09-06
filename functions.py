@@ -218,51 +218,6 @@ def insert_fig(fig, frame, resize='Manual', l=0.1, r=0.9, t=0.9, b=0.2):
     plt.close(fig)
 
 
-def gaugePlot(perc, magnitude, units=None, maxValue=0):
-    fig, ax = plt.subplots(figsize=(8, 8))
-
-    # Crear un gradiente de colores alrededor del borde del círculo exterior
-    n = 50  # Número de segmentos para el degradado
-    cmap = plt.get_cmap('coolwarm')  # Mapa de colores
-    theta = np.linspace(0, np.pi, n)  # Dividir el semicírculo en 'n' segmentos
-
-    for i in range(n-1):
-        # Invertir el orden de los colores del gradiente
-        color = cmap((n - 1 - i) / (n - 1))  # Obtener el color en orden inverso
-        wedge = patches.Wedge(center=(0, 0), r=2, theta1=np.degrees(theta[i]), 
-                              theta2=np.degrees(theta[i+1]), width=0.5, facecolor=color, edgecolor='black', linewidth=1)
-        ax.add_patch(wedge)
-
-    # Limitar el porcentaje al rango [0, 1] para que no exceda el ángulo máximo
-    perc_fix = min(perc, 1)
-
-    # Calcular la posición de la aguja
-    needle_angle = np.pi * (1 - perc_fix)
-    ax.annotate(f'{perc * maxValue:.2f}', xytext=(0, 0), 
-                xy=(1.5 * np.cos(needle_angle), 1.5 * np.sin(needle_angle)),
-                arrowprops=dict(arrowstyle="wedge, tail_width=0.8", color="black", shrinkA=10),
-                bbox=dict(boxstyle="circle", facecolor="black", linewidth=1),
-                fontsize=9, color="white", ha="center")
-    
-    # Agregar el título justo debajo del gráfico
-    if maxValue != 0:
-        ax.text(0.5, -0.1,  f'Max. {magnitude}: {maxValue:.2f} {units}', ha='center', va='center', fontsize=10, fontweight='bold', transform=ax.transAxes)
-    else:
-        ax.text(0.5, -0.1, magnitude, ha='center', va='center', fontsize=10, fontweight='bold', transform=ax.transAxes)
-
-
-    # Ajustar las escalas de los ejes para que el círculo no se deforme
-    ax.set_aspect('equal', 'box')
-
-    # Configurar los límites de los ejes
-    ax.set_xlim(-2.1, 2.1)
-    ax.set_ylim(-0.4, 2.1)
-    fig.tight_layout()
-    ax.set_axis_off()
-    plt.close(fig)
-
-    return fig
-
 
 
 
