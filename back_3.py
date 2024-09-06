@@ -12,7 +12,7 @@ class EngineCADBuilder_ConventionalNozzle:
         self.geometry = self.engineData["GrainGeo"]
 
         if self.geometry == 'Tubular':
-            self.LComb = self.engineData["Lc"]
+            self.LComb = self.engineData["Lc"] 
         elif self.geometry == 'End-Burner':
             self.LComb = self.engineData["Lp"]
 
@@ -1040,11 +1040,50 @@ class EngineCADBuilder_ConventionalNozzle:
         x, y = self.sketchEngine(user_settings) 
         z = np.zeros(len(x))
 
+        for i in range(len(x)):
+            if x[i] == self.x3 and y[i] == self.y3:
+                int_index = i
+                break 
+        
+        for i in range(len(x)):
+            if x[i] == self.x11 and y[i] == self.y11:
+                ext_index = i
+                break 
+
+        x0 = x[:int_index+1]
+        y0 = y[:int_index+1]
+        z0 = z[:int_index+1]
+
+        x1 = x[int_index:ext_index+1]
+        y1 = y[int_index:ext_index+1]
+        z1 = z[int_index:ext_index+1]
+
+        x2 = x[ext_index:-2]
+        y2 = y[ext_index:-2]
+        z2 = z[ext_index:-2] 
+
+        x3 = x[-2:]
+        y3 = y[-2:]
+        z3 = z[-2:] 
+
+
+
+
         with open(file_path, mode='w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(['Sketch', 'Plane' , 'x', 'y', 'z'])
-            for i in range(len(x)):
+            writer.writerow(['Sketch', 'Plane', 'x', 'y', 'z'])
+
+            for i in range(len(x0)):
                 writer.writerow([0, 'XY' ,x[i] * 100, y[i] * 100, z[i] * 100])
+            
+            #for i in range(len(x0)):
+            #    writer.writerow([0, 'XY', 'Spline' ,x0[i] * 100, y0[i] * 100, z0[i] * 100])
+            #for i in range(len(x1)):
+            #    writer.writerow([0, 'XY', 'Line' ,x1[i] * 100, y1[i] * 100, z1[i] * 100])
+            #for i in range(len(x2)):
+            #    writer.writerow([0, 'XY', 'Spline' ,x2[i] * 100, y2[i] * 100, z2[i] * 100])
+            #for i in range(len(x3)):
+            #    writer.writerow([0, 'XY', 'Line' ,x3[i] * 100, y3[i] * 100, z3[i] * 100])
         
 
     def export_cover(self, user_settings, file_path):

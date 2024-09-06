@@ -150,15 +150,15 @@ class AdiabaticTempModule:
 
         self.initial_temp = ctk.CTkEntry(self.inletTemp_frame)
         self.initial_temp.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
-        self.initial_temp.bind("<KeyRelease>", self.update_reaction_label)
+        self.initial_temp.bind("<FocusOut>", self.update_reaction_label)
 
         self.temp_Int_step = ctk.CTkEntry(self.intStep_frame)
         self.temp_Int_step.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
-        self.temp_Int_step.bind("<KeyRelease>", self.update_reaction_label)
+        self.temp_Int_step.bind("<FocusOut>", self.update_reaction_label)
 
         self.temp_guess = ctk.CTkEntry(self.seedTemp_frame)
         self.temp_guess.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
-        self.temp_guess.bind("<KeyRelease>", self.update_reaction_label)
+        self.temp_guess.bind("<FocusOut>", self.update_reaction_label)
 
         ctk.CTkLabel(self.reactivos_frame, text="Reactivos", font=ctk.CTkFont(size=12, weight="bold")).grid(row=0, column=0, columnspan=2, sticky="ew")
         ctk.CTkLabel(self.productos_frame, text="Productos", font=ctk.CTkFont(size=12, weight="bold")).grid(row=0, column=0, columnspan=2, sticky="ew")
@@ -385,7 +385,7 @@ class AdiabaticTempModule:
 
         mole_entry = ctk.CTkEntry(self.reactivos_frame)
         mole_entry.grid(row=self.reactivo_row, column=0, padx=5, pady=5, sticky="ew")
-        mole_entry.bind("<KeyRelease>", self.update_reaction_label)
+        mole_entry.bind("<FocusOut>", self.update_reaction_label)
         option_reactivos = ctk.CTkOptionMenu(self.reactivos_frame, values=components, command=lambda x: self.update_reaction_label())
         option_reactivos.grid(row=self.reactivo_row, column=1, padx=5, pady=5, sticky="ew")
         self.reactivos_widgets.append((mole_entry, option_reactivos))
@@ -405,7 +405,7 @@ class AdiabaticTempModule:
 
         mole_entry = ctk.CTkEntry(self.productos_frame)
         mole_entry.grid(row=self.producto_row, column=0, padx=5, pady=5, sticky="ew")
-        mole_entry.bind("<KeyRelease>", self.update_reaction_label)
+        mole_entry.bind("<FocusOut>", self.update_reaction_label)
         option_productos = ctk.CTkOptionMenu(self.productos_frame, values=components, command=lambda x: self.update_reaction_label())
         option_productos.grid(row=self.producto_row, column=1, padx=5, pady=5, sticky="ew")
         self.productos_widgets.append((mole_entry, option_productos))

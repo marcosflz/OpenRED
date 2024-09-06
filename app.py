@@ -44,7 +44,8 @@ def open_on_saving_directory():
     if working_path:
         file_path = os.path.join(working_path, "config.json")
         if os.path.isfile(file_path):
-            messagebox.showerror("Error de directorio", "Ya existe un archivo de configuración, por favor selecciona otro directorio.", parent=main_frame)
+            messagebox.showerror(
+                "Error de directorio", "Ya existe un archivo de configuración, por favor selecciona otro directorio.", parent=main_frame)
             return False
         else:
             save_dir_path(working_path)
@@ -244,6 +245,8 @@ def load_configuration(working_path):
                             widget.deselect()
 
             EngineCADDesing_module_instance.update_plots()
+
+            TestingBed_module_instance.create_checklist()
         
 
         except FileNotFoundError:
@@ -264,6 +267,7 @@ def on_closing():
         if answer:
             save_configuration()
         clear_dir_path()
+        TestingBed_module_instance.on_close()
         main_frame.after(100, main_frame.quit)  # Usar after para permitir que se completen las tareas pendientes
         main_frame.quit()
 

@@ -13,8 +13,10 @@ import customtkinter as ctk
 from PIL import Image, ImageTk, ImageDraw, ImageOps
 
 import serial.tools.list_ports
+from datetime import datetime
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.cm as cm

@@ -36,6 +36,24 @@ def get_database_components():
     latex_map = dict(zip(components, latex_components))
     return [components, latex_map]
 
+def get_propellant_value(column_name, cell_value):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    
+    # Define the SQL query to fetch the components based on the criteria
+    query = f"""
+    SELECT DISTINCT {column_name} 
+    FROM propelente 
+    WHERE propelente.Propelente = ?"""  # Assuming "column2" is the second column's name
+
+    cursor.execute(query, (cell_value,))
+    components = [row[0] for row in cursor.fetchall()]
+    
+    # Close the connection
+    conn.close()
+
+    return components
+
 def convert_to_latex(component):
     # Remove any text in parentheses
     component = re.sub(r'\(.*?\)', '', component).strip()
@@ -197,6 +215,55 @@ def insert_fig(fig, frame, resize='Manual', l=0.1, r=0.9, t=0.9, b=0.2):
     # Llamar al on_resize manualmente para redimensionar inmediatamente
     frame.update_idletasks()
     on_resize(force_resize=True)
+    plt.close(fig)
+
+
+def gaugePlot(perc, magnitude, units=None, maxValue=0):
+    fig, ax = plt.subplots(figsize=(8, 8))
+
+    # Crear un gradiente de colores alrededor del borde del círculo exterior
+    n = 50  # Número de segmentos para el degradado
+    cmap = plt.get_cmap('coolwarm')  # Mapa de colores
+    theta = np.linspace(0, np.pi, n)  # Dividir el semicírculo en 'n' segmentos
+
+    for i in range(n-1):
+        # Invertir el orden de los colores del gradiente
+        color = cmap((n - 1 - i) / (n - 1))  # Obtener el color en orden inverso
+        wedge = patches.Wedge(center=(0, 0), r=2, theta1=np.degrees(theta[i]), 
+                              theta2=np.degrees(theta[i+1]), width=0.5, facecolor=color, edgecolor='black', linewidth=1)
+        ax.add_patch(wedge)
+
+    # Limitar el porcentaje al rango [0, 1] para que no exceda el ángulo máximo
+    perc_fix = min(perc, 1)
+
+    # Calcular la posición de la aguja
+    needle_angle = np.pi * (1 - perc_fix)
+    ax.annotate(f'{perc * maxValue:.2f}', xytext=(0, 0), 
+                xy=(1.5 * np.cos(needle_angle), 1.5 * np.sin(needle_angle)),
+                arrowprops=dict(arrowstyle="wedge, tail_width=0.8", color="black", shrinkA=10),
+                bbox=dict(boxstyle="circle", facecolor="black", linewidth=1),
+                fontsize=9, color="white", ha="center")
+    
+    # Agregar el título justo debajo del gráfico
+    if maxValue != 0:
+        ax.text(0.5, -0.1,  f'Max. {magnitude}: {maxValue:.2f} {units}', ha='center', va='center', fontsize=10, fontweight='bold', transform=ax.transAxes)
+    else:
+        ax.text(0.5, -0.1, magnitude, ha='center', va='center', fontsize=10, fontweight='bold', transform=ax.transAxes)
+
+
+    # Ajustar las escalas de los ejes para que el círculo no se deforme
+    ax.set_aspect('equal', 'box')
+
+    # Configurar los límites de los ejes
+    ax.set_xlim(-2.1, 2.1)
+    ax.set_ylim(-0.4, 2.1)
+    fig.tight_layout()
+    ax.set_axis_off()
+    plt.close(fig)
+
+    return fig
+
+
 
 
 
@@ -318,3 +385,31 @@ def solve_ode_system(f_system, u0, h, method, t_max, divergence_threshold=1e6, s
         return 
     
     return sol, t
+
+
+def getSerialValues(line):
+    """
+    Extrae los valores de tiempo, fuerza y temperatura de una línea de texto 
+    con el formato "t(s): <valor>\t F(kg): <valor>\t T(K): <valor>".
+
+    Args:
+    line (str): Línea de texto que contiene los valores.
+
+    Returns:
+    tuple: Una tupla con los valores de tiempo, fuerza y temperatura como floats.
+           Devuelve None si no se encuentran los valores en el formato esperado.
+    """
+    # Expresión regular para capturar los tres valores específicos en el formato correcto
+    match = re.match(r"t\(s\):\s*([-+]?\d*\.\d+|\d+)\s*F\(kg\):\s*([-+]?\d*\.\d+|\d+)\s*T\(K\):\s*([-+]?\d*\.\d+|\d+)", line)
+
+    if match:  # Si la línea coincide con el formato esperado
+        # Extraer los tres valores y convertirlos a flotantes
+        return tuple(map(float, match.groups()))
+    else:
+        # Retornar None si no se encuentra el formato esperado
+        return None
+
+
+
+
+
