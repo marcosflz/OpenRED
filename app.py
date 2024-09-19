@@ -11,6 +11,7 @@ from front_3 import *
 from front_4 import *
 from front_5 import *
 from front_6 import *
+from front_7 import *
 
 # Llamar a la función para inicializar la base de datos al iniciar el programa
 initialize_database()
@@ -103,6 +104,8 @@ def save_configuration():
                     "TOPBN_theta_t": get_entry_value(nozzleDesing_module_instance.TOPN_entries[1]),
                     "TOPBN_theta_e": get_entry_value(nozzleDesing_module_instance.TOPN_entries[2]),
                     "TOPBN_percentL": get_entry_value(nozzleDesing_module_instance.TOPN_entries[3]),
+                    "CONE_K_factor": get_entry_value(nozzleDesing_module_instance.CONE_entries[0]),
+                    "CONE_theta_t": get_entry_value(nozzleDesing_module_instance.CONE_entries[1]),
                 },
                 "tab_3": tab_3_config,    
             }
@@ -217,6 +220,7 @@ def load_configuration(working_path):
             nozzleDesing_module_instance.update_plot()
             nozzleDesing_module_instance.nPoints_entry.delete(0, tk.END)
             nozzleDesing_module_instance.nPoints_entry.insert(0, tab_2_config["n_res"])
+
             nozzleDesing_module_instance.TOPN_entries[0].delete(0, tk.END)
             nozzleDesing_module_instance.TOPN_entries[0].insert(0, tab_2_config["TOPBN_K_factor"])
             nozzleDesing_module_instance.TOPN_entries[1].delete(0, tk.END)
@@ -225,6 +229,11 @@ def load_configuration(working_path):
             nozzleDesing_module_instance.TOPN_entries[2].insert(0, tab_2_config["TOPBN_theta_e"])
             nozzleDesing_module_instance.TOPN_entries[3].delete(0, tk.END)
             nozzleDesing_module_instance.TOPN_entries[3].insert(0, tab_2_config["TOPBN_percentL"])
+
+            nozzleDesing_module_instance.CONE_entries[0].delete(0, tk.END)
+            nozzleDesing_module_instance.CONE_entries[0].insert(0, tab_2_config["CONE_K_factor"])
+            nozzleDesing_module_instance.CONE_entries[1].delete(0, tk.END)
+            nozzleDesing_module_instance.CONE_entries[1].insert(0, tab_2_config["CONE_theta_t"])
 
             # Cargar configuracion de tab_3
             EngineCADDesing_module_instance.build_entries(on_load=True, file=tab_3_config["NozzleConfig"])
@@ -338,6 +347,9 @@ EngineCADDesing_module_instance = EngineCADModule(tabs_content["tab_3"])
 tabs_content["tab_4"] = ctk.CTkFrame(content_frame)
 TestingBed_module_instance = TestingBedModule(tabs_content["tab_4"])
 
+tabs_content["tab_5"] = ctk.CTkFrame(content_frame)
+CFD_module_instance = CFD_Module(tabs_content["tab_5"])
+
 
 # Crear botones para las pestañas
 tabsList = [
@@ -345,7 +357,8 @@ tabsList = [
     ("Engine Design", "tab_1"),
     ("Nozzle Desing", "tab_2"),
     ("CAD Design", "tab_3"),
-    ("Test Bed", "tab_4")
+    ("Test Bed", "tab_4"),
+    ("OpenFOAM Maker", "tab_5")
 ]
 
 for tab, tag in tabsList:

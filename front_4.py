@@ -62,7 +62,7 @@ class NozzleDesingModule:
         self.nPoints_entry = ctk.CTkEntry(self.inputs_frame)
         self.nPoints_entry.grid(row=4, column=1, padx=inputsPad, pady=inputsPad, sticky='nswe')
 
-        nozzles = ["TOPN-BN", "MOC-2D"]
+        nozzles = ["TOPN-BN", "CONE-LN"]
         self.nozzleTypeMenu = ctk.CTkOptionMenu(self.inputs_frame, values=nozzles, command=self.update_options)
         self.nozzleTypeMenu.grid(row=5, column=0, columnspan=2, padx=inputsPad, pady=inputsPad, sticky='nswe')
 
@@ -265,7 +265,7 @@ class NozzleDesingModule:
             "Rt (m)", "R2 (m)"
             ]
         
-        self.results_MOC2DLabels = [
+        self.results_CONELabels = [
             "DP. Thrust (kg)", "Med. Thrust (kg)", 
             "CF (DP.)", "CF (Med.)",
             "It", "Isp",
@@ -312,11 +312,11 @@ class NozzleDesingModule:
         
 
         self.TOPN_widgets = []
-        self.MOC2D_widgets = []
+        self.CONE_widgets = []
         self.selection = 'TOPN-BN'  # Initialize selection
 
         self.create_TOPN_entries()
-        self.create_MOC2D_entries()
+        self.create_CONE_entries()
         self.update_options('TOPN-BN')
 
 
@@ -349,7 +349,8 @@ class NozzleDesingModule:
         self.calculation_running = True
 
         nozzleClasses = {
-            "TOPN-BN": BellNozzle
+            "TOPN-BN": BellNozzle,
+            "CONE-LN": ConeNozzle
         }
         
         self.engine_config = self.file_path_label.cget("text")
@@ -361,6 +362,8 @@ class NozzleDesingModule:
 
         if self.nozzle_config == "TOPN-BN":
             nozzleEntries = self.TOPN_entries
+        elif self.nozzle_config == "CONE-LN":
+            nozzleEntries = self.CONE_entries
 
         for entry in nozzleEntries:
             self.specInputs.append(float(entry.get()))
@@ -370,6 +373,8 @@ class NozzleDesingModule:
 
         if self.nozzle_config == "TOPN-BN":
             loop_func = self.calculatedNozzle.run_TOPBN_step 
+        elif self.nozzle_config == "CONE-LN":
+            loop_func = self.calculatedNozzle.run_CONE_step 
 
         # Empezar el cálculo paso a paso
         self.run_calculations_step(loop_func)
@@ -737,7 +742,7 @@ class NozzleDesingModule:
     def update_options(self, selection):
         self.selection = selection
         # Ocultar todos los widgets actuales
-        allWidgets = self.TOPN_widgets + self.MOC2D_widgets
+        allWidgets = self.TOPN_widgets + self.CONE_widgets
         for widget in allWidgets:
             widget.grid_forget()
 
@@ -747,11 +752,11 @@ class NozzleDesingModule:
                 row, col = divmod(i, 2)
                 widget.grid(row=row, column=col, padx=10, pady=5, sticky="nsew")
                 self.results_tempLabels = self.results_TOPBNLabels
-        elif selection == "MOC-2D":
-            for i, widget in enumerate(self.MOC2D_widgets):
+        elif selection == "CONE-LN":
+            for i, widget in enumerate(self.CONE_widgets):
                 row, col = divmod(i, 2)
                 widget.grid(row=row, column=col, padx=10, pady=5, sticky="nsew")
-                self.results_tempLabels = self.results_MOC2DLabels
+                self.results_tempLabels = self.results_CONELabels
 
         self.add_labels_and_entries(self.numericResults_frame, self.results_tempLabels)
         
@@ -778,23 +783,22 @@ class NozzleDesingModule:
             self.TOPN_widgets.append(label)
             self.TOPN_widgets.append(entry)
 
-    def create_MOC2D_entries(self):
+    def create_CONE_entries(self):
         # Crear entradas específicas para End-Burner
-        self.MOC2D_entries = []
-        self.MOC2D_labels = [
-            "End-Burner Param 1:",
-            "End-Burner Param 2:",
-            "End-Burner Param 3:"
+        self.CONE_entries = []
+        self.CONE_labels = [
+            "K (Factor Garganta):",
+            "theta_t (deg):",
         ]
 
-        for i, label_text in enumerate(self.MOC2D_labels):
+        for i, label_text in enumerate(self.CONE_labels):
             label = ctk.CTkLabel(self.nozzleOptions, text=label_text)
             label.grid(row=i, column=0, padx=10, pady=5, sticky="nsew")
             entry = ctk.CTkEntry(self.nozzleOptions)
             entry.grid(row=i, column=1, padx=10, pady=5, sticky="nsew")
-            self.MOC2D_entries.append(entry)
-            self.MOC2D_widgets.append(label)
-            self.MOC2D_widgets.append(entry)
+            self.CONE_entries.append(entry)
+            self.CONE_widgets.append(label)
+            self.CONE_widgets.append(entry)
 
 
 
@@ -897,6 +901,9 @@ class NozzleDesingModule:
             if inputs["NozzleConfig"] == "TOPN-BN":
                 nozzleEntries = self.TOPN_entries
                 nozzleLabels = self.TOPN_labels
+            elif inputs["NozzleConfig"] == "CONE-LN":
+                nozzleEntries = self.CONE_entries
+                nozzleLabels = self.CONE_entries
 
             for label, entry in zip(nozzleLabels, nozzleEntries):
                 specInputs[label] = float(entry.get())
@@ -909,7 +916,7 @@ class NozzleDesingModule:
 
                 
 
-            if inputs["NozzleConfig"] == "TOPN-BN":
+            if inputs["NozzleConfig"] == "TOPN-BN" or inputs["NozzleConfig"] == "CONE-LN":
                 calculatedResults["PR_Crit0"] = self.calculatedNozzle.PR_crit
                 calculatedResults["PR_Crit1"] = self.calculatedNozzle.PRatio_1
                 calculatedResults["PR_Crit2"] = self.calculatedNozzle.PRatio_2
