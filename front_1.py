@@ -22,7 +22,7 @@ class TermoquimicaWindow:
         # Crear tablas si no existen
         # Moved
 
-        self.columnTags = ("id", "Component", "MolWeight", "Hf0 (298K)", "minColdTemp", "maxColdTemp", "minHotTemp", "maxHotTemp",
+        self.columnTags = ("ID", "Component", "MolWeight", "Hf0 (298K)", "minColdTemp", "maxColdTemp", "minHotTemp", "maxHotTemp",
                       "a1_cold", "a2_cold", "a3_cold", "a4_cold", "a5_cold",
                       "a1_hot", "a2_hot", "a3_hot", "a4_hot", "a5_hot")
         

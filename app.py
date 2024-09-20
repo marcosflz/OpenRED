@@ -286,6 +286,10 @@ main_frame = ctk.CTk()
 main_frame.geometry("1920x1080")
 main_frame.title("Display de la Reacción")
 
+# Configurar pesos para el grid
+main_frame.grid_rowconfigure(0, weight=1)
+main_frame.grid_columnconfigure(1, weight=1)
+
 # Diccionario para guardar las pestañas
 tabs_content = {}
 adiabatic_module_instance = None
@@ -320,16 +324,6 @@ tabs_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 content_frame = ctk.CTkFrame(main_frame)
 content_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
-# Configurar pesos para el grid
-main_frame.grid_rowconfigure(0, weight=1)
-main_frame.grid_columnconfigure(1, weight=1)
-
-# Función para cambiar el contenido
-def change_tab(tab_name):
-    for tab in tabs_content.values():
-        tab.pack_forget()
-    tabs_content[tab_name].pack(expand=True, fill="both")
-
 
 # Crear contenido para las pestañas
 tabs_content["tab_0"] = ctk.CTkFrame(content_frame)
@@ -350,6 +344,30 @@ TestingBed_module_instance = TestingBedModule(tabs_content["tab_4"])
 tabs_content["tab_5"] = ctk.CTkFrame(content_frame)
 CFD_module_instance = CFD_Module(tabs_content["tab_5"])
 
+## Función recursiva para cambiar el color de todos los frames
+#def change_color_scheme_recursive(widget, color):
+#    if isinstance(widget, ctk.CTkFrame):  # Verifica si el widget es un frame
+#        widget.configure(fg_color=color)
+#    # Recorre todos los hijos del widget actual (si los tiene)
+#    for child in widget.winfo_children():
+#        change_color_scheme_recursive(child, color)
+#
+## Función para cambiar el color de todos los frames dentro de main_frame
+#def change_color_scheme(color):
+#    change_color_scheme_recursive(main_frame, color)
+#
+## Agregar la opción de cambiar el color en el menú de preferencias
+#preferences_menu.add_command(label="Color Azul", command=lambda: change_color_scheme("#1F6AA5"))
+#preferences_menu.add_command(label="Color Rojo", command=lambda: change_color_scheme("#E74C3C"))
+#preferences_menu.add_command(label="Color Verde", command=lambda: change_color_scheme("#27AE60"))
+#
+## Inicializar la aplicación con un color por defecto
+#initial_color = "#1F6AA5"
+#change_color_scheme(initial_color)
+
+
+# Diccionario para almacenar referencias a los botones
+tab_buttons = {}
 
 # Crear botones para las pestañas
 tabsList = [
@@ -361,10 +379,32 @@ tabsList = [
     ("OpenFOAM Maker", "tab_5")
 ]
 
-for tab, tag in tabsList:
-    ctk.CTkButton(tabs_frame, text=tab, command=lambda tag=tag: change_tab(tag)).pack(pady=10, padx=10, fill="x")
+# Color cuando un botón está seleccionado y el color por defecto
+selected_color = "#3498db"  # Color azul claro
+default_color = "#2c3e50"  # Color gris oscuro
 
-# Mostrar el contenido de la primera pestaña por defecto
+# Función para cambiar el color de los botones
+def update_button_colors(selected_tag):
+    for tag, button in tab_buttons.items():
+        if tag == selected_tag:
+            button.configure(fg_color=selected_color)  # Cambiar al color seleccionado
+        else:
+            button.configure(fg_color=default_color)   # Restaurar el color por defecto
+
+# Modificación en la creación de los botones para almacenar referencias
+for tab, tag in tabsList:
+    button = ctk.CTkButton(tabs_frame, text=tab, command=lambda tag=tag: change_tab(tag))
+    button.pack(pady=10, padx=10, fill="x")
+    tab_buttons[tag] = button  # Guardar referencia al botón en el diccionario
+
+# Actualizar la función de cambio de pestañas
+def change_tab(tab_name):
+    for tab in tabs_content.values():
+        tab.pack_forget()
+    tabs_content[tab_name].pack(expand=True, fill="both")
+    update_button_colors(tab_name)  # Cambiar el color del botón seleccionado
+
+# Mostrar el contenido de la primera pestaña por defecto y actualizar el color del botón
 change_tab(tabsList[0][1])
 
 # Vincular la función de guardado al evento de cierre de la ventana

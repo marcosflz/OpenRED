@@ -1,7 +1,6 @@
 from imports import *
 from functions import *
 
-from back_0 import *
 from back_1 import *
 from back_2 import *
 
@@ -77,17 +76,10 @@ class NozzleDesingModule:
         self.pressureGraph_Frame.bind("<Button-1>", self.update_plot)
         
 
-
-        self.graphs_frame = ctk.CTkFrame(self.content_frame)
-        self.graphs_frame.grid(row=0, rowspan=3, column=1, padx=10, pady=10, sticky='nswe')
-        self.graphs_frame.grid_columnconfigure(0, weight=1)
-        self.graphs_frame.grid_rowconfigure(0, weight=1)
-
-        self.resultsTabs = ctk.CTkTabview(self.graphs_frame)
-        self.resultsTabs.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
+        self.resultsTabs = ctk.CTkTabview(self.content_frame)
+        self.resultsTabs.grid(row=0, rowspan=3, column=1, padx=10, pady=10, sticky='nswe')
         self.resultsTabs.add("Características") 
         self.resultsTabs.add("Puntos de Operación") 
-
 
 
         self.characteristics_frame = ctk.CTkFrame(self.resultsTabs.tab("Características"))

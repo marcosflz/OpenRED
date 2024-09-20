@@ -126,7 +126,23 @@ class AdiabaticTempModule:
         self.tree_frame.grid_rowconfigure(0, weight=1)
         self.tree_frame.bind("<Enter>", lambda event: self.populate_treeview())
 
-        self.tree = ttk.Treeview(self.tree_frame, columns=("id", "Propelente", "T_ad", "MolWeight", "Cp", "Cv", "R", "gamma", "cChar", "Density", "P1_min", "P1_max","a", "n"), show="headings")
+        self.tree = ttk.Treeview(self.tree_frame, columns=(
+            "ID", 
+            "Propellant", 
+            "T1 (K)", 
+            "M (kg/mol)", 
+            "Cp (J/KgK)", 
+            "Cv (J/KgK)", 
+            "R (J/KgK)", 
+            "gamma", 
+            "c*", 
+            "rho", 
+            "P1 - Min. (Pa)", 
+            "P1 - Max. (Pa)",
+            "a (cm/s)", 
+            "n"
+            ), show="headings")
+        
         for col in self.tree["columns"]:
             self.tree.heading(col, text=col)
             self.tree.column(col, anchor="center")

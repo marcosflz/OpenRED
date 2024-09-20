@@ -39,6 +39,8 @@ def adiabaticTemp_calc(reac, prod, t0, tGuess, hStep):
     cChar           = np.sqrt(gamma * R_prod * tSol) / (gamma * np.sqrt((2 / (gamma + 1))**((gamma + 1)/(gamma - 1))))
     return tSol, molWeight_prod, cp_Mass, cv_Mass, R_prod, gamma, cChar
 
+
+
 class polynomialCp:
     def __init__(self, component):
         self.R = 8.31446261815324
