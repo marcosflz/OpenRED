@@ -45,6 +45,7 @@ class TubularGrain:
             term_0 = self.R * self.T1
             term_1 = (self.rho_b * self.a * P**self.n * 1e-2 * self.Ab(r)/self.Vc(r)) 
             term_2 = (P * np.pi * self.rThrt**2) / (self.cChar * self.Vc(r))
+            print(self.Ab(r), self.Vc(r))
             return term_0 * (term_1 - term_2)
 
         def r_dot(u):

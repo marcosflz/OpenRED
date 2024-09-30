@@ -529,6 +529,6 @@ class PropellantDesignModule:
             
             # Guardar datos en un archivo JSON
             with open(file_path, 'w') as json_file:
-                json.dump(results, json_file)
+                json.dump(results, json_file, indent=4)
             
             messagebox.showinfo("Guardar archivo", f"Resultados guardados en {file_path}", parent=self.content_frame)

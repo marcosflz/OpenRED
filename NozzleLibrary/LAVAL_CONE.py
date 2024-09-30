@@ -1,7 +1,32 @@
 from imports import *
 from functions import *
-
+    
+    
 class ConeNozzle:
+    nozzle_type = "CONE-LN"
+
+    @staticmethod
+    def get_input_labels():
+        return {
+            "K (Factor Garganta)": "CONE-LN_k",
+            "theta_t (deg)": "CONE-LN_theta_t",
+        }
+
+    @staticmethod
+    def get_result_labels():
+        return [
+            "DP. Thrust (kg)1", "Med. Thrust (kg)", 
+            "CF (DP.)", "CF (Med.)",
+            "Vs (DP.)", "Vs (Med.)",
+            "Ts (DP.)", "Ts (Med.)",
+            "Ps (DP.)", "Ps (Med.)",
+            "It", "Isp",
+            "AR", "MS",
+            "Longitud (m)",
+            "Rt (m)", "R2 (m)"
+        ]
+
+
     def __init__(self, defCheck, P1, n, ENGINE, specInputs):
 
         self.P1 = P1
@@ -32,8 +57,8 @@ class ConeNozzle:
         self.T1 = self.propellant_Data['T_ad']
         self.cChar = self.propellant_Data['cChar']
 
-        self.K2 = specInputs[0]
-        self.theta_n = np.deg2rad(specInputs[1])
+        self.K2 = specInputs["CONE-LN_k"]
+        self.theta_n = np.deg2rad(specInputs["CONE-LN_theta_t"])
 
         self.M2 = np.sqrt((2 / (self.gamma - 1)) * ((self.P1 / self.P0)**((self.gamma - 1)/self.gamma) - 1))
         self.e  = (1/self.M2) * ((2/(self.gamma + 1))*(1 + ((self.gamma - 1)/2) * self.M2**2))**((self.gamma + 1)/(2*(self.gamma - 1)))
@@ -423,7 +448,7 @@ class ConeNozzle:
 
         
 
-    def run_CONE_step(self, current_step):
+    def run_step(self, current_step):
         i = current_step
         P_Off = self.P_t[i]
         P0 = self.P0

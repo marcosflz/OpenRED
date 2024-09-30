@@ -273,7 +273,8 @@ class BellNozzle:
             return underExpOperation(P_Off,P0)
         
         
-
+    def f_lambda(self, theta_e):
+        return 0.5 * (1 + np.cos(theta_e))
     
     def f_throat(self, th):
         x = self.K2 * self.Rt * np.cos(th)

@@ -436,6 +436,33 @@ def getSerialValues(line):
         return None
 
 
+def importLibraries(lib):
+    root = os.getcwd()
+    libraryDir = os.path.join(root, lib)
+
+    if not os.path.isdir(libraryDir):
+        print(f"La ruta {libraryDir} no existe.")
+        return {}
+
+    if libraryDir not in sys.path:
+        sys.path.append(libraryDir)
+
+    nozzleClasses = {}
+    for fileName in os.listdir(libraryDir):
+        if fileName.endswith('.py') and fileName != '__init__.py':
+            modName = fileName[:-3]
+            try:
+                modulo = importlib.import_module(modName)
+                # Obtener todas las clases definidas en el módulo
+                classes = [obj for name, obj in inspect.getmembers(modulo, inspect.isclass) if obj.__module__ == modulo.__name__]
+                for classs in classes:
+                    # Verificar si la clase tiene el atributo 'nozzle_type'
+                    if hasattr(classs, 'nozzle_type'):
+                        nozzle_type = getattr(classs, 'nozzle_type')
+                        nozzleClasses[nozzle_type] = classs
+            except ImportError as e:
+                print(f"No se pudo importar el módulo {modName}: {e}")
+    return nozzleClasses
 
 
 

@@ -1,7 +1,33 @@
 from imports import *
 from functions import *
 
+
 class BellNozzle:
+    nozzle_type = "TOPN-BN"
+
+    @staticmethod
+    def get_input_labels():
+        return {
+            "K (Factor Garganta)": "TOP-BN_k",
+            "theta_t (deg)": "TOP-BN_theta_t",
+            "theta_e (deg)": "TOP-BN_theta_e",
+            "% (L. Cono)": "TOP-BN_cone_length_percent"
+        }
+
+    @staticmethod
+    def get_result_labels():
+        return [
+            "DP. Thrust (kg)2", "Med. Thrust (kg)", 
+            "CF (DP.)", "CF (Med.)",
+            "Vs (DP.)", "Vs (Med.)",
+            "Ts (DP.)", "Ts (Med.)",
+            "Ps (DP.)", "Ps (Med.)",
+            "It", "Isp",
+            "AR", "MS",
+            "Longitud (m)",
+            "Rt (m)", "R2 (m)"
+        ]
+
     def __init__(self, defCheck, P1, n, ENGINE, specInputs):
 
         self.P1 = P1
@@ -32,10 +58,10 @@ class BellNozzle:
         self.T1 = self.propellant_Data['T_ad']
         self.cChar = self.propellant_Data['cChar']
 
-        self.K2 = specInputs[0]
-        self.theta_n = np.deg2rad(specInputs[1])
-        self.theta_e = np.deg2rad(specInputs[2])
-        self.percL = specInputs[3]
+        self.K2 = specInputs["TOP-BN_k"]
+        self.theta_n = np.deg2rad(specInputs["TOP-BN_theta_t"])
+        self.theta_e = np.deg2rad(specInputs["TOP-BN_theta_e"])
+        self.percL = specInputs["TOP-BN_cone_length_percent"]
 
 
 
@@ -273,7 +299,8 @@ class BellNozzle:
             return underExpOperation(P_Off,P0)
         
         
-
+    def f_lambda(self, theta_e):
+        return 0.5 * (1 + np.cos(theta_e))
     
     def f_throat(self, th):
         x = self.K2 * self.Rt * np.cos(th)
@@ -419,7 +446,7 @@ class BellNozzle:
 
         
 
-    def run_TOPBN_step(self, current_step):
+    def run_step(self, current_step):
         i = current_step
         P_Off = self.P_t[i]
         P0 = self.P0
