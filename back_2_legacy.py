@@ -8,20 +8,20 @@ class BellNozzle:
         self.n = n
         self.engine_Data = self.get_engine_data(ENGINE)
 
-        self.propellant = self.engine_Data["Propellant"]
-        self.P0         = self.engine_Data["P0"]
-        self.Rt         = self.engine_Data["Rt"]
+        self.propellant = self.engine_Data["inputs"]["Propellant"]
+        self.P0         = self.engine_Data["inputs"]["P0"]
+        self.Rt         = self.engine_Data["inputs"]["Rt"]
 
-        self.mass       = self.engine_Data["totalMass"]
-        self.time       = self.engine_Data["totalTime"]
+        self.mass       = self.engine_Data["results"]["totalMass"]
+        self.time       = self.engine_Data["results"]["totalTime"]
 
-        self.t          = self.engine_Data["tree_data"]["Tiempo (s)"]
-        self.P_t        = self.engine_Data["tree_data"]["Presi\u00f3n (Pa)"]
-        self.G_t        = self.engine_Data["tree_data"]["Flujo M\u00e1sico (kg/s)"]
-        self.M_t        = self.engine_Data["tree_data"]["Masa (kg)"]
+        self.t          = self.engine_Data["results"]["tree_data"]["Tiempo (s)"]
+        self.P_t        = self.engine_Data["results"]["tree_data"]["Presi\u00f3n (Pa)"]
+        self.G_t        = self.engine_Data["results"]["tree_data"]["Flujo M\u00e1sico (kg/s)"]
+        self.M_t        = self.engine_Data["results"]["tree_data"]["Masa (kg)"]
 
         if defCheck:
-            self.G      = self.engine_Data["meanMassFlow"]
+            self.G      = self.engine_Data["results"]["meanMassFlow"]
         else:
             self.G      = self.interpolate_mass_flow(self.P1)
         

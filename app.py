@@ -53,66 +53,6 @@ def open_on_saving_directory():
             return True
 
 
-#def save_configuration():
-#    try:
-#        file_path = os.path.join(working_path, "config.json")
-#    except Exception:
-#        if open_on_saving_directory():
-#            file_path = os.path.join(working_path, "config.json")
-#        else:
-#            return
-#    try:
-#        tab_3_config = {
-#                "NozzleConfig": EngineCADDesing_module_instance.file_name
-#            }
-#        tab_3_config.update({
-#                key: widget.get() if isinstance(widget, (ctk.CTkEntry, ctk.CTkOptionMenu, ctk.CTkCheckBox)) else widget.get() for key, widget in EngineCADDesing_module_instance.widgets_dict.items()
-#        })
-#    except Exception:
-#        tab_3_config = {"None": None}
-#
-#    if file_path:
-#        config = {
-#            "tabs": {
-#                "tab_0": {
-#                    "reactivos": [(get_entry_value(entry), combo.get()) for entry, combo in adiabatic_module_instance.reactivos_widgets],
-#                    "productos": [(get_entry_value(entry), combo.get()) for entry, combo in adiabatic_module_instance.productos_widgets],
-#                    "initial_temp": get_entry_value(adiabatic_module_instance.initial_temp),
-#                    "temp_Int_step": get_entry_value(adiabatic_module_instance.temp_Int_step),
-#                    "temp_guess": get_entry_value(adiabatic_module_instance.temp_guess)
-#                },
-#                "tab_1": {
-#                    "propellant": engineDesing_module_instance.propellant_selector.get(),
-#                    "geoConfig": engineDesing_module_instance.grainGeo_selector.get(),
-#                    "tubular_rIn": get_entry_value(engineDesing_module_instance.tubular_entries[0]),
-#                    "tubular_rOut": get_entry_value(engineDesing_module_instance.tubular_entries[1]),
-#                    "tubular_rt": get_entry_value(engineDesing_module_instance.tubular_entries[2]),
-#                    "tubular_lComb": get_entry_value(engineDesing_module_instance.tubular_entries[3]),
-#                    "endBurner_lTube": get_entry_value(engineDesing_module_instance.end_burner_entries[0]),
-#                    "endBurner_lProp": get_entry_value(engineDesing_module_instance.end_burner_entries[1]),
-#                    "endBurner_rOut": get_entry_value(engineDesing_module_instance.end_burner_entries[2]),
-#                    "endBurner_rThrt": get_entry_value(engineDesing_module_instance.end_burner_entries[3]),
-#                    "P0": get_entry_value(engineDesing_module_instance.ambientPressureEntry),
-#                    "dr": get_entry_value(engineDesing_module_instance.timeStepEntry),
-#                },
-#                "tab_2": {
-#                    "engine_config": nozzleDesing_module_instance.file_path_label.cget("text"),
-#                    "SwitchState":nozzleDesing_module_instance.pressureCheck_Box.get(),
-#                    "P1": get_entry_value(nozzleDesing_module_instance.pressure_entry),
-#                    "n_res":get_entry_value(nozzleDesing_module_instance.nPoints_entry),
-#                    "TOPBN_K_factor": get_entry_value(nozzleDesing_module_instance.TOPN_entries[0]),
-#                    "TOPBN_theta_t": get_entry_value(nozzleDesing_module_instance.TOPN_entries[1]),
-#                    "TOPBN_theta_e": get_entry_value(nozzleDesing_module_instance.TOPN_entries[2]),
-#                    "TOPBN_percentL": get_entry_value(nozzleDesing_module_instance.TOPN_entries[3]),
-#                    "CONE_K_factor": get_entry_value(nozzleDesing_module_instance.CONE_entries[0]),
-#                    "CONE_theta_t": get_entry_value(nozzleDesing_module_instance.CONE_entries[1]),
-#                },
-#                "tab_3": tab_3_config,    
-#            }
-#        }
-#        with open(file_path, 'w') as config_file:
-#            json.dump(config, config_file)
-
 
 
 def save_configuration():
@@ -124,19 +64,23 @@ def save_configuration():
         else:
             return
     
-    # Tab 3 Configuration (Engine CAD Design Module)
-    try:
-        tab_3_config = {
-            "NozzleConfig": EngineCADDesing_module_instance.file_name
-        }
-        # Update with the entries present in the dynamic widgets dict
-        tab_3_config.update({
-            key: widget.get() if isinstance(widget, (ctk.CTkEntry, ctk.CTkOptionMenu, ctk.CTkCheckBox)) else widget.get() 
-            for key, widget in EngineCADDesing_module_instance.widgets_dict.items()
-        })
-    except Exception as e:
-        print(f"Error in Tab 3 configuration: {e}")
-        tab_3_config = {"None": None}
+
+
+    tab_1_config = {
+        "propellant": engineDesing_module_instance.propellant_selector.get(),
+        "geoConfig": engineDesing_module_instance.grainGeo_selector.get(),
+        "P0":       get_entry_value(engineDesing_module_instance.ambientPressureEntry),
+        "Rt":       get_entry_value(engineDesing_module_instance.throatRadiEntry),
+        "Rc":       get_entry_value(engineDesing_module_instance.caseRadiEntry),
+        "Lc":       get_entry_value(engineDesing_module_instance.lCombEntry),
+        "dt":       get_entry_value(engineDesing_module_instance.timeStepEntry),
+        "dh":       get_entry_value(engineDesing_module_instance.spaceStepEntry),
+        "ItMax":    get_entry_value(engineDesing_module_instance.maxItersEntry),
+    }
+    # Loop over all nozzle types and collect input entries for each type
+    for grain_type, entries in engineDesing_module_instance.specInputs_entries.items():
+        for entry_name, entry_widget in entries.items():
+            tab_1_config[f"{grain_type}_{entry_name}"] = get_entry_value(entry_widget[1])  # The entry widget is in position 1
 
     # Tab 2 Configuration (Nozzle Design Module)
     tab_2_config = {
@@ -152,6 +96,22 @@ def save_configuration():
         for entry_name, entry_widget in entries.items():
             tab_2_config[f"{nozzle_type}_{entry_name}"] = get_entry_value(entry_widget[1])  # The entry widget is in position 1
 
+        # Tab 3 Configuration (Engine CAD Design Module)
+    try:
+        tab_3_config = {
+            "NozzleConfig": EngineCADDesing_module_instance.file_name
+        }
+        # Update with the entries present in the dynamic widgets dict
+        tab_3_config.update({
+            key: widget.get() if isinstance(widget, (ctk.CTkEntry, ctk.CTkOptionMenu, ctk.CTkCheckBox)) else widget.get() 
+            for key, widget in EngineCADDesing_module_instance.widgets_dict.items()
+        })
+    except Exception as e:
+        print(f"Error in Tab 3 configuration: {e}")
+        tab_3_config = {"None": None}
+
+    
+
     # Tab 0 and Tab 1 configurations
     config = {
         "tabs": {
@@ -162,20 +122,7 @@ def save_configuration():
                 "temp_Int_step": get_entry_value(adiabatic_module_instance.temp_Int_step),
                 "temp_guess": get_entry_value(adiabatic_module_instance.temp_guess)
             },
-            "tab_1": {
-                "propellant": engineDesing_module_instance.propellant_selector.get(),
-                "geoConfig": engineDesing_module_instance.grainGeo_selector.get(),
-                "tubular_rIn": get_entry_value(engineDesing_module_instance.tubular_entries[0]),
-                "tubular_rOut": get_entry_value(engineDesing_module_instance.tubular_entries[1]),
-                "tubular_rt": get_entry_value(engineDesing_module_instance.tubular_entries[2]),
-                "tubular_lComb": get_entry_value(engineDesing_module_instance.tubular_entries[3]),
-                "endBurner_lTube": get_entry_value(engineDesing_module_instance.end_burner_entries[0]),
-                "endBurner_lProp": get_entry_value(engineDesing_module_instance.end_burner_entries[1]),
-                "endBurner_rOut": get_entry_value(engineDesing_module_instance.end_burner_entries[2]),
-                "endBurner_rThrt": get_entry_value(engineDesing_module_instance.end_burner_entries[3]),
-                "P0": get_entry_value(engineDesing_module_instance.ambientPressureEntry),
-                "dr": get_entry_value(engineDesing_module_instance.timeStepEntry),
-            },
+            "tab_1": tab_1_config,
             "tab_2": tab_2_config,
             "tab_3": tab_3_config
         }
@@ -189,154 +136,6 @@ def save_configuration():
 
 
 
-#def load_configuration(working_path):
-#    file_path = os.path.join(working_path, "config.json")
-#    if os.path.exists(file_path):
-#        try:
-#            with open(file_path, 'r') as config_file:
-#                config = json.load(config_file)
-#
-#            # Restaurar la configuración de las pestañas
-#            tab_0_config = config["tabs"]["tab_0"]
-#            tab_1_config = config["tabs"]["tab_1"]
-#            tab_2_config = config["tabs"]["tab_2"]
-#            tab_3_config = config["tabs"]["tab_3"]
-#
-#
-#
-#            # Clear existing widgets
-#            for entry, combo in adiabatic_module_instance.reactivos_widgets:
-#                entry.destroy()
-#                combo.destroy()
-#            adiabatic_module_instance.reactivos_widgets.clear()
-#            adiabatic_module_instance.reactivo_row = 2
-#
-#            for entry, combo in adiabatic_module_instance.productos_widgets:
-#                entry.destroy()
-#                combo.destroy()
-#            adiabatic_module_instance.productos_widgets.clear()
-#            adiabatic_module_instance.producto_row = 2
-#
-#            # Load reactivos
-#            for mole, reactivo in tab_0_config["reactivos"]:
-#                adiabatic_module_instance.add_reactivo()
-#                adiabatic_module_instance.reactivos_widgets[-1][0].insert(0, mole)
-#                adiabatic_module_instance.reactivos_widgets[-1][1].set(reactivo)
-#
-#            # Load productos
-#            for mole, producto in tab_0_config["productos"]:
-#                adiabatic_module_instance.add_producto()
-#                adiabatic_module_instance.productos_widgets[-1][0].insert(0, mole)
-#                adiabatic_module_instance.productos_widgets[-1][1].set(producto)
-#
-#            # Load initial temperature and combustion performance
-#            adiabatic_module_instance.initial_temp.delete(0, tk.END)
-#            adiabatic_module_instance.initial_temp.insert(0, tab_0_config["initial_temp"])
-#            adiabatic_module_instance.temp_Int_step.delete(0, tk.END)
-#            adiabatic_module_instance.temp_Int_step.insert(0, tab_0_config["temp_Int_step"])
-#            adiabatic_module_instance.temp_guess.delete(0, tk.END)
-#            adiabatic_module_instance.temp_guess.insert(0, tab_0_config["temp_guess"])
-#            adiabatic_module_instance.update_reaction_label()
-#
-#            # Cargar configuración de tab_1
-#            engineDesing_module_instance.propellant_selector.set(tab_1_config["propellant"])
-#            engineDesing_module_instance.grainGeo_selector.set(tab_1_config["geoConfig"])
-#            engineDesing_module_instance.update_entries(tab_1_config["geoConfig"])
-#
-#            engineDesing_module_instance.tubular_entries[0].delete(0, tk.END)
-#            engineDesing_module_instance.tubular_entries[0].insert(0, tab_1_config["tubular_rIn"])
-#            engineDesing_module_instance.tubular_entries[1].delete(0, tk.END)
-#            engineDesing_module_instance.tubular_entries[1].insert(0, tab_1_config["tubular_rOut"])
-#            engineDesing_module_instance.tubular_entries[2].delete(0, tk.END)
-#            engineDesing_module_instance.tubular_entries[2].insert(0, tab_1_config["tubular_rt"])
-#            engineDesing_module_instance.tubular_entries[3].delete(0, tk.END)
-#            engineDesing_module_instance.tubular_entries[3].insert(0, tab_1_config["tubular_lComb"])
-#
-#            engineDesing_module_instance.end_burner_entries[0].delete(0, tk.END)
-#            engineDesing_module_instance.end_burner_entries[0].insert(0, tab_1_config["endBurner_lTube"])
-#            engineDesing_module_instance.end_burner_entries[1].delete(0, tk.END)
-#            engineDesing_module_instance.end_burner_entries[1].insert(0, tab_1_config["endBurner_lProp"])
-#            engineDesing_module_instance.end_burner_entries[2].delete(0, tk.END)
-#            engineDesing_module_instance.end_burner_entries[2].insert(0, tab_1_config["endBurner_rOut"])
-#            engineDesing_module_instance.end_burner_entries[3].delete(0, tk.END)
-#            engineDesing_module_instance.end_burner_entries[3].insert(0, tab_1_config["endBurner_rThrt"])
-#
-#            engineDesing_module_instance.ambientPressureEntry.delete(0, tk.END)
-#            engineDesing_module_instance.ambientPressureEntry.insert(0, tab_1_config["P0"])
-#            engineDesing_module_instance.timeStepEntry.delete(0, tk.END)
-#            engineDesing_module_instance.timeStepEntry.insert(0, tab_1_config["dr"])
-#
-#            engineDesing_module_instance.update_plot()
-#
-#            # Cargar configuracion de tab_2
-#            engine_path = os.path.join(working_path, "Engines", tab_2_config["engine_config"])
-#            nozzleDesing_module_instance.get_engine_data(on_load=True, file=engine_path)
-#            nozzleDesing_module_instance.pressure_entry.delete(0, tk.END)
-#            nozzleDesing_module_instance.pressure_entry.insert(0, tab_2_config["P1"])
-#
-#            if tab_2_config["SwitchState"] == 1:
-#                nozzleDesing_module_instance.pressureCheck_Box.configure(state="normal")
-#                nozzleDesing_module_instance.pressureCheck_Box.select()  
-#                nozzleDesing_module_instance.pressureSlide_Bar.configure(state="disabled", button_color="gray", button_hover_color="gray")
-#                nozzleDesing_module_instance.pressure_entry.delete(0, tk.END)
-#                nozzleDesing_module_instance.pressure_entry.insert(0, str(nozzleDesing_module_instance.meanP))
-#                nozzleDesing_module_instance.pressure_entry.configure(state="disabled")
-#                nozzleDesing_module_instance.pressureSlide_Bar.set(nozzleDesing_module_instance.meanP)
-#            else:
-#                nozzleDesing_module_instance.pressureCheck_Box.configure(state="normal")
-#                nozzleDesing_module_instance.pressureCheck_Box.deselect()    
-#                nozzleDesing_module_instance.pressureSlide_Bar.configure(state="normal", button_color="#1F6AA5", button_hover_color="#144870")
-#                nozzleDesing_module_instance.pressureSlide_Bar.set(float(tab_2_config["P1"]))
-#                nozzleDesing_module_instance.pressure_entry.delete(0, tk.END)
-#                nozzleDesing_module_instance.pressure_entry.insert(0, str(tab_2_config["P1"]))
-#                nozzleDesing_module_instance.pressure_entry.configure(state="normal")
-#
-#            
-#            nozzleDesing_module_instance.update_plot()
-#            nozzleDesing_module_instance.nPoints_entry.delete(0, tk.END)
-#            nozzleDesing_module_instance.nPoints_entry.insert(0, tab_2_config["n_res"])
-#
-#            nozzleDesing_module_instance.TOPN_entries[0].delete(0, tk.END)
-#            nozzleDesing_module_instance.TOPN_entries[0].insert(0, tab_2_config["TOPBN_K_factor"])
-#            nozzleDesing_module_instance.TOPN_entries[1].delete(0, tk.END)
-#            nozzleDesing_module_instance.TOPN_entries[1].insert(0, tab_2_config["TOPBN_theta_t"])
-#            nozzleDesing_module_instance.TOPN_entries[2].delete(0, tk.END)
-#            nozzleDesing_module_instance.TOPN_entries[2].insert(0, tab_2_config["TOPBN_theta_e"])
-#            nozzleDesing_module_instance.TOPN_entries[3].delete(0, tk.END)
-#            nozzleDesing_module_instance.TOPN_entries[3].insert(0, tab_2_config["TOPBN_percentL"])
-#
-#            nozzleDesing_module_instance.CONE_entries[0].delete(0, tk.END)
-#            nozzleDesing_module_instance.CONE_entries[0].insert(0, tab_2_config["CONE_K_factor"])
-#            nozzleDesing_module_instance.CONE_entries[1].delete(0, tk.END)
-#            nozzleDesing_module_instance.CONE_entries[1].insert(0, tab_2_config["CONE_theta_t"])
-#
-#            # Cargar configuracion de tab_3
-#            EngineCADDesing_module_instance.build_entries(on_load=True, file=tab_3_config["NozzleConfig"])
-#
-#            # Asignar valores a los widgets en widgets_dict
-#            for key, value in tab_3_config.items():
-#                if key in EngineCADDesing_module_instance.widgets_dict:
-#                    widget = EngineCADDesing_module_instance.widgets_dict[key]
-#                    if isinstance(widget, ctk.CTkOptionMenu):
-#                        widget.set(value)
-#                    elif isinstance(widget, ctk.CTkEntry):
-#                        widget.delete(0, tk.END)
-#                        widget.insert(0, value)
-#                    elif isinstance(widget, ctk.CTkCheckBox):
-#                        if value:
-#                            widget.select()
-#                        else:
-#                            widget.deselect()
-#
-#            EngineCADDesing_module_instance.update_plots()
-#
-#            TestingBed_module_instance.create_checklist()
-#        
-#
-#        except FileNotFoundError:
-#            print("No previous configuration found. Starting with default values.")
-#        except Exception as e:
-#            print(f"Error loading configuration: {e}")
 
 def load_configuration(working_path):
     file_path = os.path.join(working_path, "config.json")
@@ -381,32 +180,33 @@ def load_configuration(working_path):
             tab_1_config = config["tabs"]["tab_1"]
             engineDesing_module_instance.propellant_selector.set(tab_1_config["propellant"])
             engineDesing_module_instance.grainGeo_selector.set(tab_1_config["geoConfig"])
-            engineDesing_module_instance.update_entries(tab_1_config["geoConfig"])
-
-            engineDesing_module_instance.tubular_entries[0].delete(0, tk.END)
-            engineDesing_module_instance.tubular_entries[0].insert(0, tab_1_config["tubular_rIn"])
-            engineDesing_module_instance.tubular_entries[1].delete(0, tk.END)
-            engineDesing_module_instance.tubular_entries[1].insert(0, tab_1_config["tubular_rOut"])
-            engineDesing_module_instance.tubular_entries[2].delete(0, tk.END)
-            engineDesing_module_instance.tubular_entries[2].insert(0, tab_1_config["tubular_rt"])
-            engineDesing_module_instance.tubular_entries[3].delete(0, tk.END)
-            engineDesing_module_instance.tubular_entries[3].insert(0, tab_1_config["tubular_lComb"])
-
-            engineDesing_module_instance.end_burner_entries[0].delete(0, tk.END)
-            engineDesing_module_instance.end_burner_entries[0].insert(0, tab_1_config["endBurner_lTube"])
-            engineDesing_module_instance.end_burner_entries[1].delete(0, tk.END)
-            engineDesing_module_instance.end_burner_entries[1].insert(0, tab_1_config["endBurner_lProp"])
-            engineDesing_module_instance.end_burner_entries[2].delete(0, tk.END)
-            engineDesing_module_instance.end_burner_entries[2].insert(0, tab_1_config["endBurner_rOut"])
-            engineDesing_module_instance.end_burner_entries[3].delete(0, tk.END)
-            engineDesing_module_instance.end_burner_entries[3].insert(0, tab_1_config["endBurner_rThrt"])
+            engineDesing_module_instance.update_options(tab_1_config["geoConfig"])
 
             engineDesing_module_instance.ambientPressureEntry.delete(0, tk.END)
             engineDesing_module_instance.ambientPressureEntry.insert(0, tab_1_config["P0"])
+            engineDesing_module_instance.throatRadiEntry.delete(0, tk.END)
+            engineDesing_module_instance.throatRadiEntry.insert(0, tab_1_config["Rt"])
+            engineDesing_module_instance.caseRadiEntry.delete(0, tk.END)
+            engineDesing_module_instance.caseRadiEntry.insert(0, tab_1_config["Rc"])
+            engineDesing_module_instance.lCombEntry.delete(0, tk.END)
+            engineDesing_module_instance.lCombEntry.insert(0, tab_1_config["Lc"])
             engineDesing_module_instance.timeStepEntry.delete(0, tk.END)
-            engineDesing_module_instance.timeStepEntry.insert(0, tab_1_config["dr"])
+            engineDesing_module_instance.timeStepEntry.insert(0, tab_1_config["dt"])
+            engineDesing_module_instance.spaceStepEntry.delete(0, tk.END)
+            engineDesing_module_instance.spaceStepEntry.insert(0, tab_1_config["dh"])
+            engineDesing_module_instance.maxItersEntry.delete(0, tk.END)
+            engineDesing_module_instance.maxItersEntry.insert(0, tab_1_config["ItMax"])
+
+            # Loop over all nozzle types and load input entries for each type
+            for grain_type, entries in engineDesing_module_instance.specInputs_entries.items():
+                for entry_name, entry_widget in entries.items():
+                    full_key = f"{grain_type}_{entry_name}"
+                    if full_key in tab_1_config:
+                        entry_widget[1].delete(0, tk.END)
+                        entry_widget[1].insert(0, tab_1_config[full_key])
 
             engineDesing_module_instance.update_plot()
+
 
             # Load Tab 2 Configuration (Nozzle Design)
             tab_2_config = config["tabs"]["tab_2"]
@@ -542,7 +342,7 @@ tabs_content["tab_0"] = ctk.CTkFrame(content_frame)
 adiabatic_module_instance = AdiabaticTempModule(tabs_content["tab_0"])
 
 tabs_content["tab_1"] = ctk.CTkFrame(content_frame)
-engineDesing_module_instance = PropellantDesignModule(tabs_content["tab_1"])
+engineDesing_module_instance = PropellantDesignModule(tabs_content["tab_1"], main_frame)
 
 tabs_content["tab_2"] = ctk.CTkFrame(content_frame)
 nozzleDesing_module_instance = NozzleDesingModule(tabs_content["tab_2"])

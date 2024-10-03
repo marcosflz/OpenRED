@@ -2,6 +2,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.optimize import fsolve
 import sympy as sp
+import math
 
 import tkinter as tk
 from tkinter import ttk
@@ -19,8 +20,10 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from matplotlib.patches import Circle
 import matplotlib.cm as cm
 import matplotlib as mpl
+from collections import deque
 
 import io
 import sqlite3

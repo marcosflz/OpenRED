@@ -9,12 +9,9 @@ class EngineCADBuilder_ConventionalNozzle:
         self.engineData = get_data(type='Engines', file=self.engineUsed)
         self.nozzle_arch = self.nozzleData["Inputs"]["NozzleConfig"]
 
-        self.geometry = self.engineData["GrainGeo"]
+        self.geometry = self.engineData["inputs"]["GrainGeo"]
+        self.LComb = self.engineData["inputs"]["Lc"] 
 
-        if self.geometry == 'Tubular':
-            self.LComb = self.engineData["Lc"] 
-        elif self.geometry == 'End-Burner':
-            self.LComb = self.engineData["Lp"]
 
         self.LNozz = self.nozzleData["calculatedResults"]["Longitud (m)"]
 
@@ -55,12 +52,12 @@ class EngineCADBuilder_ConventionalNozzle:
         return x, y
     
     def convergent_cone(self, user_settings, offset=0):
-        RCartucho = self.engineData["Re"] + user_settings["t_cartridge"]
+        RCartucho = self.engineData["inputs"]["R2"] + user_settings["t_cartridge"]
         alpha = user_settings["alpha"] * np.pi / 2
         dx = (RCartucho - self.y3) / np.tan(alpha)
         dx_p = user_settings["t_cartridge"] / np.tan(alpha)
         x = self.x3 - dx + dx_p
-        y = self.engineData["Re"]
+        y = self.engineData["inputs"]["R2"]
         return x, y 
 
     def find_tangent_points(self, Px, Py, r):
@@ -235,7 +232,7 @@ class EngineCADBuilder_ConventionalNozzle:
     def sketchCartridge(self, axes, user_settings):
         t_cartridge = user_settings["t_cartridge"]
         self.x_cart = self.x6
-        self.yUp_cart = self.engineData["Re"]
+        self.yUp_cart = self.engineData["inputs"]["R2"]
         self.yDown_cart = -self.yUp_cart - t_cartridge
         cartridge_up = patches.Rectangle((self.x_cart, self.yUp_cart), self.LComb, t_cartridge, edgecolor='k', facecolor='yellow')
         cartridge_down = patches.Rectangle((self.x_cart, self.yDown_cart), self.LComb, t_cartridge, edgecolor='k', facecolor='yellow')
@@ -264,20 +261,19 @@ class EngineCADBuilder_ConventionalNozzle:
 
     def sketchPropellant(self, axes, user_settings):
         
-        if self.geometry == 'Tubular':
-            propellant_thickness = self.engineData["Re"] - self.engineData["Ri"]
-            x = self.x6 
-            yUp = self.engineData["Ri"]
-            yDown = -self.engineData["Re"]
-            propellant_up = patches.Rectangle((x, yUp), self.LComb, propellant_thickness, edgecolor='k', facecolor='brown')
-            propellant_down = patches.Rectangle((x, yDown), self.LComb, propellant_thickness, edgecolor='k', facecolor='brown')
-            axes.add_patch(propellant_up)
-            axes.add_patch(propellant_down)
-        elif self.geometry == 'End-Burner':
-            x, y = self.x01c, -self.engineData["Re"]
-            w, h = self.LComb, 2 * self.engineData["Re"]
-            propellant = patches.Rectangle((x, y), w, h, edgecolor='k', facecolor='brown')
-            axes.add_patch(propellant)
+        propellant_thickness = self.engineData["inputs"]["R2"] - self.engineData["inputs"]["r_in"]
+        x = self.x6 
+        yUp = self.engineData["inputs"]["r_in"]
+        yDown = -self.engineData["inputs"]["R2"]
+        propellant_up = patches.Rectangle((x, yUp), self.LComb, propellant_thickness, edgecolor='k', facecolor='brown')
+        propellant_down = patches.Rectangle((x, yDown), self.LComb, propellant_thickness, edgecolor='k', facecolor='brown')
+        axes.add_patch(propellant_up)
+        axes.add_patch(propellant_down)
+        #elif self.geometry == 'End-Burner':
+        #    x, y = self.x01c, -self.engineData["inputs"]["R2"]
+        #    w, h = self.LComb, 2 * self.engineData["inputs"]["R2"]
+        #    propellant = patches.Rectangle((x, y), w, h, edgecolor='k', facecolor='brown')
+        #    axes.add_patch(propellant)
 
 
 
@@ -291,10 +287,10 @@ class EngineCADBuilder_ConventionalNozzle:
         w_b = w
         h_b = user_settings["r_elect"] + user_settings["d_elect"]/2
 
-        if self.geometry == 'Tubular':
-            y6c, y1c = self.y6c, self.y1c
-        elif self.geometry == 'End-Burner':
-            y6c, y1c = 0, 0
+        #if self.geometry == 'Tubular':
+        y6c, y1c = self.y6c, self.y1c
+        #elif self.geometry == 'End-Burner':
+        #    y6c, y1c = 0, 0
 
         if not user_settings["cring"]:
 
@@ -340,10 +336,10 @@ class EngineCADBuilder_ConventionalNozzle:
                 [y6c, y1c],
             ))
 
-        if self.geometry == 'Tubular':
-            if user_settings["on_Background"]:
-                backGround = patches.Rectangle((self.x6c, -h_b), w_b, 2*h_b, edgecolor='k', facecolor='darkgrey')
-                axes.add_patch(backGround)
+        #if self.geometry == 'Tubular':
+        if user_settings["on_Background"]:
+            backGround = patches.Rectangle((self.x6c, -h_b), w_b, 2*h_b, edgecolor='k', facecolor='darkgrey')
+            axes.add_patch(backGround)
 
         axes.plot(self.cover_x, self.cover_y, c='k', lw=1)
         axes.plot(self.cover_x, -self.cover_y ,c='k', lw=1)
@@ -351,11 +347,11 @@ class EngineCADBuilder_ConventionalNozzle:
         axes.fill(self.cover_x, self.cover_y, alpha=0.3, color='grey')
         axes.fill(self.cover_x, -self.cover_y, alpha=0.3, color='grey')
 
-        if self.geometry == 'Tubular':
-            innerPart = patches.Rectangle((self.x6c, -h), w, 2*h, edgecolor='k', facecolor='lightgray', lw=1)
-            axes.add_patch(innerPart)
-        elif self.geometry == 'End-Burner':
-            pass
+        #if self.geometry == 'Tubular':
+        innerPart = patches.Rectangle((self.x6c, -h), w, 2*h, edgecolor='k', facecolor='lightgray', lw=1)
+        axes.add_patch(innerPart)
+        #elif self.geometry == 'End-Burner':
+        #    pass
 
 
 
@@ -455,24 +451,24 @@ class EngineCADBuilder_ConventionalNozzle:
 
         self.x1_T1, self.y1_T1 = self.x6 - t_wall, 0
         self.x2_T1, self.y2_T1 = self.x4 + t_wall + extra_len, 0
-        self.x3_T1, self.y3_T1 = self.x2_T1, self.engineData["Ri"]
+        self.x3_T1, self.y3_T1 = self.x2_T1, self.engineData["inputs"]["Ri"]
         self.x4_T1, self.y4_T1 = self.x6, self.y3_T1
         self.x5_T1, self.y5_T1 = self.x6, self.y6
         self.x6_T1, self.y6_T1 = self.x6 + cover_len, self.y6
         self.x7_T1, self.y7_T1 = self.x6_T1, self.y6_T1 + t_wall
         self.x8_T1, self.y8_T1 = self.x1_T1, self.y7_T1
 
-        self.x1_T2, self.y1_T2 = self.x4 + t_wall, self.engineData["Ri"]
+        self.x1_T2, self.y1_T2 = self.x4 + t_wall, self.engineData["inputs"]["Ri"]
         self.x2_T2, self.y2_T2 = self.x1_T2, self.y7_T1
         self.x3_T2, self.y3_T2 = self.x2_T2 - cover_len - t_wall, self.y7_T1
         self.x4_T2, self.y4_T2 = self.x3_T2, self.y6_T1
         self.x5_T2, self.y5_T2 = self.x5, self.y6
-        self.x6_T2, self.y6_T2 = self.x5_T2, self.engineData["Ri"]
+        self.x6_T2, self.y6_T2 = self.x5_T2, self.engineData["inputs"]["Ri"]
 
-        self.x1_T3, self.y1_T3 = self.x1_T2 + user_settings["nut_h"], self.engineData["Ri"]
+        self.x1_T3, self.y1_T3 = self.x1_T2 + user_settings["nut_h"], self.engineData["inputs"]["Ri"]
         self.x2_T3, self.y2_T3 = self.x1_T3, self.y1_T3 + user_settings["nut_d"]
         self.x3_T3, self.y3_T3 = self.x1_T2, self.y2_T3
-        self.x4_T3, self.y4_T3 = self.x1_T2, self.engineData["Ri"]
+        self.x4_T3, self.y4_T3 = self.x1_T2, self.engineData["inputs"]["Ri"]
 
         self.cover_tool_1_x = np.concatenate((
             [self.x1_T1, self.x2_T1],
@@ -580,7 +576,7 @@ class EngineCADBuilder_ConventionalNozzle:
         
         Ri_cover = self.y6_T1
         Rext_cover = self.y7_T1
-        R_mould = self.engineData["Ri"]
+        R_mould = self.engineData["inputs"]["Ri"]
 
         circle_exterior = patches.Circle((0, 0), Rext_cover, facecolor='lightgray', edgecolor='k', linewidth=2)
         circle_interior = patches.Circle((0, 0), Ri_cover, facecolor='lightgray', edgecolor='k', linewidth=2)
@@ -594,7 +590,7 @@ class EngineCADBuilder_ConventionalNozzle:
 
         Ri_cover = self.y6_T1
         Rext_cover = self.y7_T1
-        R_mould = self.engineData["Ri"]
+        R_mould = self.engineData["inputs"]["Ri"]
 
         circle_exterior = patches.Circle((0, 0), Rext_cover, facecolor='lightgray', edgecolor='k', linewidth=2)
         circle_interior = patches.Circle((0, 0), Ri_cover, facecolor='lightgray', edgecolor='k', linewidth=2)

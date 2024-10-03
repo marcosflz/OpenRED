@@ -32,6 +32,7 @@ class NozzleDesingModule:
         self.inputs_frame.grid_rowconfigure(4,weight=1)
         self.inputs_frame.grid_rowconfigure(5,weight=1)
         self.inputs_frame.grid_rowconfigure(6,weight=1)
+        self.inputs_frame.grid_rowconfigure(7,weight=1)
         self.inputs_frame.grid_columnconfigure(0,weight=1)
         self.inputs_frame.grid_columnconfigure(1,weight=1)
         self.inputs_frame.grid_columnconfigure(2,weight=15)
@@ -40,7 +41,7 @@ class NozzleDesingModule:
         self.inputsLabel = ctk.CTkLabel(self.inputs_frame, text="Inputs")
         self.inputsLabel.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky='nswe')
 
-        inputsPad = 10
+        inputsPad = 5
 
         self.load_file_button = ctk.CTkButton(self.inputs_frame, text="Cargar Motor", command=self.get_engine_data)
         self.load_file_button.grid(row=1, column=0, padx=inputsPad, pady=inputsPad, sticky='nswe')
@@ -66,16 +67,21 @@ class NozzleDesingModule:
         self.nPoints_entry = ctk.CTkEntry(self.inputs_frame)
         self.nPoints_entry.grid(row=4, column=1, padx=inputsPad, pady=inputsPad, sticky='nswe')
 
+        self.timeNormalization_label = ctk.CTkLabel(self.inputs_frame, text="Paso Temporal (s): ")
+        self.timeNormalization_label.grid(row=5, column=0, padx=inputsPad, pady=inputsPad, sticky='nswe')
+        self.timeNormalization_entry = ctk.CTkEntry(self.inputs_frame)
+        self.timeNormalization_entry.grid(row=5, column=1, padx=inputsPad, pady=inputsPad, sticky='nswe')
+
         #nozzles = ["TOPN-BN", "CONE-LN"]
         nozzle_types = list(self.nozzleClasses.keys())
         self.nozzleTypeMenu = ctk.CTkOptionMenu(self.inputs_frame, values=nozzle_types, command=self.update_options)
-        self.nozzleTypeMenu.grid(row=5, column=0, columnspan=2, padx=inputsPad, pady=inputsPad, sticky='nswe')
+        self.nozzleTypeMenu.grid(row=6, column=0, columnspan=2, padx=inputsPad, pady=inputsPad, sticky='nswe')
 
         self.nozzleOptions = ctk.CTkScrollableFrame(self.inputs_frame)
-        self.nozzleOptions.grid(row=6, column=0, columnspan=2, padx=inputsPad, pady=inputsPad, sticky='nswe')
+        self.nozzleOptions.grid(row=7, column=0, columnspan=2, padx=inputsPad, pady=inputsPad, sticky='nswe')
 
         self.pressureGraph_Frame = ctk.CTkFrame(self.inputs_frame)
-        self.pressureGraph_Frame.grid(row=1, column=2, rowspan=6, padx=inputsPad, pady=inputsPad, sticky='nswe')
+        self.pressureGraph_Frame.grid(row=1, column=2, rowspan=7, padx=inputsPad, pady=inputsPad, sticky='nswe')
         self.pressureGraph_Frame.grid_rowconfigure(0, weight=1)
         self.pressureGraph_Frame.configure(fg_color="white")
         self.pressureGraph_Frame.grid_propagate(False)
@@ -362,7 +368,7 @@ class NozzleDesingModule:
         self.P1 = float(self.pressure_entry.get())
         self.n = float(self.nPoints_entry.get())
         self.defaultState = self.pressureCheck_Box.get()
-        self.specInputs = []
+        #self.specInputs = []
 
         selected_nozzle_class = self.nozzleClasses.get(self.nozzle_config)
 
@@ -611,6 +617,7 @@ class NozzleDesingModule:
                 widget.grid_forget()
 
         self.result_labels = []
+        self.resultsEntries = {}
 
         # Crear los labels de resultados
         for i, label_text in enumerate(data_list):
@@ -619,6 +626,7 @@ class NozzleDesingModule:
 
             entry = ctk.CTkEntry(frame)
             entry.grid(row=i+1, column=1, padx=5, pady=5, sticky='we')
+            self.resultsEntries[label_text] = entry
 
             # Guardar los widgets para luego poder ocultarlos o mostrarlos
             self.result_labels.append(label)
@@ -636,6 +644,7 @@ class NozzleDesingModule:
 
     def update_results_entries(self, result_array):
         # Actualizar las entradas de resultados dinámicamente
+
         for i, key in enumerate(self.resultsEntries):
             entry = self.resultsEntries.get(key)
             if entry:
@@ -725,28 +734,28 @@ class NozzleDesingModule:
                 self.engine_Data = json.load(file)
 
             try:
-                self.propellant = self.engine_Data["Propellant"]
-                self.P0         = self.engine_Data["P0"]
-                self.Rt         = self.engine_Data["Rt"]
+                self.propellant = self.engine_Data["inputs"]["Propellant"]
+                self.P0         = self.engine_Data["inputs"]["P0"]
+                self.Rt         = self.engine_Data["inputs"]["Rt"]
 
-                self.meanP      = self.engine_Data["meanPressure"]
-                self.maxP       = self.engine_Data["maxPressure"]
-                self.minP       = self.engine_Data["minPressure"]
+                self.meanP      = self.engine_Data["results"]["meanPressure"]
+                self.maxP       = self.engine_Data["results"]["maxPressure"]
+                self.minP       = self.engine_Data["results"]["minPressure"]
 
-                self.meanG      = self.engine_Data["meanMassFlow"]
-                self.maxG       = self.engine_Data["maxMassFlow"]
-                self.minG       = self.engine_Data["minMassFlow"]
+                self.meanG      = self.engine_Data["results"]["meanMassFlow"]
+                self.maxG       = self.engine_Data["results"]["maxMassFlow"]
+                self.minG       = self.engine_Data["results"]["minMassFlow"]
                 
-                self.mass       = self.engine_Data["totalMass"]
-                self.time       = self.engine_Data["totalTime"]
+                self.mass       = self.engine_Data["results"]["totalMass"]
+                self.time       = self.engine_Data["results"]["totalTime"]
 
-                self.t          = self.engine_Data["tree_data"]["Tiempo (s)"]
-                self.P          = self.engine_Data["tree_data"]["Presi\u00f3n (Pa)"]
-                self.G          = self.engine_Data["tree_data"]["Flujo M\u00e1sico (kg/s)"]
-                self.M          = self.engine_Data["tree_data"]["Masa (kg)"]
+                self.t          = self.engine_Data["results"]["tree_data"]["Tiempo (s)"]
+                self.P          = self.engine_Data["results"]["tree_data"]["Presi\u00f3n (Pa)"]
+                self.G          = self.engine_Data["results"]["tree_data"]["Flujo M\u00e1sico (kg/s)"]
+                self.M          = self.engine_Data["results"]["tree_data"]["Masa (kg)"]
 
                 self.file_path_label.configure(text=self.file_name)
-            except Exception:
+            except Exception as e:
                 messagebox.showerror("Error", "Archivo no válido.", parent=self.content_frame)
                 self.file_path_label.configure(text="Archivo Inválido")
                 return
@@ -868,6 +877,7 @@ class NozzleDesingModule:
         # Actualizar la selección actual
         self.selection = selection
 
+
         # Si ya hemos creado los widgets para esta opción, simplemente los mostramos
         if self.selection in self.specInputs_entries:
             self.show_widgets()
@@ -879,6 +889,8 @@ class NozzleDesingModule:
         selected_nozzle_class = self.nozzleClasses.get(self.selection)
         result_labels = selected_nozzle_class.get_result_labels()
         self.add_labels_and_entries(self.numericResults_frame, result_labels)
+
+
 
     def hide_result_labels(self):
         """ Ocultar los labels de resultados previos. """
@@ -1081,7 +1093,6 @@ class NozzleDesingModule:
                 timeResults_data["CF"].append(float(values[2]))
 
 
-
             # Recopilar datos adicionales
             inputs = {
                 "NozzleConfig": self.nozzle_config,
@@ -1089,32 +1100,24 @@ class NozzleDesingModule:
                 "P1": self.P1,
                 "n": self.n,
                 "EngineConfig": self.engine_config,
+                "specInputs": self.specInputs
             }
 
-            specInputs = {}
-            if inputs["NozzleConfig"] == "TOPN-BN":
-                nozzleEntries = self.TOPN_entries
-                nozzleLabels = self.TOPN_labels
-            elif inputs["NozzleConfig"] == "CONE-LN":
-                nozzleEntries = self.CONE_entries
-                nozzleLabels = self.CONE_entries
-
-            for label, entry in zip(nozzleLabels, nozzleEntries):
-                specInputs[label] = float(entry.get())
-
-            inputs["specInputs"] = specInputs
+            # Suponiendo que self.specInputs es un diccionario
+            #inputs.update(self.specInputs)
 
             calculatedResults = {}
-            for label, value in zip(self.results_tempLabels, self.result_array[0]):
-                calculatedResults[label] = value
+            for i, key in enumerate(self.resultsEntries):
+                entry = self.resultsEntries.get(key)
+                if entry:
+                    # Añadiendo la entrada al diccionario calculatedResults
+                    calculatedResults[key] = float(get_entry_value(entry))
+           
+            calculatedResults["PR_Crit0"] = float(get_entry_value(self.PR_Crit_0_Entry))
+            calculatedResults["PR_Crit1"] = float(get_entry_value(self.PR_Crit_1_Entry))
+            calculatedResults["PR_Crit2"] = float(get_entry_value(self.PR_Crit_2_Entry))
+            calculatedResults["PR_Crit3"] = float(get_entry_value(self.PR_Crit_3_Entry))
 
-                
-
-            if inputs["NozzleConfig"] == "TOPN-BN" or inputs["NozzleConfig"] == "CONE-LN":
-                calculatedResults["PR_Crit0"] = self.calculatedNozzle.PR_crit
-                calculatedResults["PR_Crit1"] = self.calculatedNozzle.PRatio_1
-                calculatedResults["PR_Crit2"] = self.calculatedNozzle.PRatio_2
-                calculatedResults["PR_Crit3"] = self.calculatedNozzle.PRatio_3
 
             results = {
                 "Inputs": inputs,
