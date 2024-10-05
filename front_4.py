@@ -352,7 +352,21 @@ class NozzleDesingModule:
     def calculate_n_show(self):
         self.create_progress_window()
         self.progress_var.set(0)
-        self.total_steps = len(self.P)
+
+
+        self.engine_config = self.file_path_label.cget("text")
+        self.nozzle_config = self.nozzleTypeMenu.get()
+        self.P1 = float(self.pressure_entry.get())
+        self.n = float(self.nPoints_entry.get())
+        self.dt = float(get_entry_value(self.timeNormalization_entry))
+        self.defaultState = self.pressureCheck_Box.get()
+
+
+        if not self.dt:
+            self.total_steps = len(self.P) 
+        else:
+            self.total_steps = len(np.arange(self.t[0], self.t[-1], self.dt))
+
         self.current_step = 0
         self.calculation_running = True
 
@@ -363,11 +377,7 @@ class NozzleDesingModule:
         
 
 
-        self.engine_config = self.file_path_label.cget("text")
-        self.nozzle_config = self.nozzleTypeMenu.get()
-        self.P1 = float(self.pressure_entry.get())
-        self.n = float(self.nPoints_entry.get())
-        self.defaultState = self.pressureCheck_Box.get()
+        
         #self.specInputs = []
 
         selected_nozzle_class = self.nozzleClasses.get(self.nozzle_config)
@@ -390,7 +400,7 @@ class NozzleDesingModule:
                 messagebox.showerror("Error", "Por favor, introduce valores numéricos válidos.", parent=self.content_frame)
                 return
 
-        self.calculatedNozzle = selected_nozzle_class(self.defaultState, self.P1, self.n, self.engine_config, self.specInputs)
+        self.calculatedNozzle = selected_nozzle_class(self.defaultState, self.P1, self.n, self.dt, self.engine_config, self.specInputs)
         self.calculatedNozzle.calculation_running = self.calculation_running  # Pasar la variable de control
 
 #        if self.nozzle_config == "TOPN-BN":

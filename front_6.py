@@ -485,7 +485,7 @@ class TestingBedModule:
             engineData = get_data(type='Engines', file=engineUsed)
 
             self.maxThrust = nozzle_data["calculatedResults"]["Med. Thrust (kg)"]
-            propellant = engineData["Propellant"]
+            propellant = engineData["inputs"]["Propellant"]
             self.maxTemp = get_propellant_value('T_ad', propellant)[0]
             
 

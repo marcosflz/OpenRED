@@ -28,10 +28,11 @@ class BellNozzle:
             "Rt (m)", "R2 (m)"
         ]
 
-    def __init__(self, defCheck, P1, n, ENGINE, specInputs):
+    def __init__(self, defCheck, P1, n, dt, ENGINE, specInputs):
 
         self.P1 = P1
         self.n = n
+        self.dt = dt
         self.engine_Data = self.get_engine_data(ENGINE)
 
         self.propellant = self.engine_Data["inputs"]["Propellant"]
@@ -50,6 +51,12 @@ class BellNozzle:
             self.G      = self.engine_Data["results"]["meanMassFlow"]
         else:
             self.G      = self.interpolate_mass_flow(self.P1)
+
+        
+        self.P_t = self.normalize_time_data(self.t, self.P_t)[1]
+        self.G_t = self.normalize_time_data(self.t, self.G_t)[1]
+        self.M_t = self.normalize_time_data(self.t, self.M_t)[1]
+        self.t = self.normalize_time_data(self.t, self.engine_Data["results"]["tree_data"]["Presi\u00f3n (Pa)"])[0]
         
         self.propellant_Data = self.get_propellant_data()
 
@@ -443,8 +450,16 @@ class BellNozzle:
         ax.set_title('Pressure Ratio Distribution Along the Nozzle')
         ax.grid(True, which='both', linestyle='--', color='gray', linewidth=0.5)
         return fig
+    
 
-        
+
+    def normalize_time_data(self, time, data):
+        if self.dt == 0:
+            return time, data  
+        new_time = np.arange(time[0], time[-1], self.dt)
+        new_data = np.interp(new_time, time, data)
+        return new_time, new_data
+
 
     def run_step(self, current_step):
         i = current_step
@@ -554,3 +569,4 @@ class BellNozzle:
         ax.set_title('Pressure Ratio Distribution Along the Nozzle')
         ax.grid(True, which='both', linestyle='--', color='gray', linewidth=0.5)
         return fig
+    

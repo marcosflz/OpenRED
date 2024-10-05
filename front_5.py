@@ -42,10 +42,10 @@ class EngineCADModule:
         self.EngineView_frame.configure(fg_color="white")
         self.EngineView_frame.grid_propagate(False)
         
-        self.MountView_frame = ctk.CTkFrame(self.tab_view_graphs.tab("Engine"))
-        self.MountView_frame.grid(row=1, column=1, padx=10, pady=10, sticky='nswe')
-        self.MountView_frame.configure(fg_color="white")
-        self.MountView_frame.grid_propagate(False)
+        self.NozzleView_frame = ctk.CTkFrame(self.tab_view_graphs.tab("Engine"))
+        self.NozzleView_frame.grid(row=1, column=1, padx=10, pady=10, sticky='nswe')
+        self.NozzleView_frame.configure(fg_color="white")
+        self.NozzleView_frame.grid_propagate(False)
 
 
 
@@ -134,7 +134,6 @@ class EngineCADModule:
             file_path = filedialog.askopenfilename(defaultextension=".json", filetypes=[("JSON files", "*.json"), ("All files", "*.*")])
         else:
             file_path = file
-
         if file_path:
             self.file_name = os.path.basename(file_path)
             try:
@@ -155,25 +154,25 @@ class EngineCADModule:
                         'cover_t':          "Espesor de la cubierta (m)",
                         'r_elect':          "Radio posición electrodo (m)",
                         'd_elect':          "Diámetro del electrodo (m)",    
-                        'upper_offset':     "Offset Superior Montura (m)",
-                        'lower_offset':     "Offset Inferior Montura (m)",
-                        'T_height':         "Altura de T (m)",
-                        'T_Re':             "Anchura exterior de T(m)",
-                        'T_Ri':             "Anchura interior de T(m)",
-                        'mount_low_len':    "Longitud inferior de Montura (m)", 
-                        'mount_high_len':   "Longitud superior de Montura (m)",
-                        'rail_len':         "Longitud del rail (m)",
-                        "oring":            "Junta tórica - Tobera",
-                        "cring":            "Junta tórica - Cubierta",
-                        "on_ORing":         "Mostrar Junta tórica - Tobera",
-                        "on_CRing":         "Mostrar Junta tórica - Cubierta",
+                        #'upper_offset':     "Offset Superior Montura (m)",
+                        #'lower_offset':     "Offset Inferior Montura (m)",
+                        #'T_height':         "Altura de T (m)",
+                        #'T_Re':             "Anchura exterior de T(m)",
+                        #'T_Ri':             "Anchura interior de T(m)",
+                        #'mount_low_len':    "Longitud inferior de Montura (m)", 
+                        #'mount_high_len':   "Longitud superior de Montura (m)",
+                        #'rail_len':         "Longitud del rail (m)",
+                        #"oring":            "Junta tórica - Tobera",
+                        #"cring":            "Junta tórica - Cubierta",
+                        #"on_ORing":         "Mostrar Junta tórica - Tobera",
+                        #"on_CRing":         "Mostrar Junta tórica - Cubierta",
                         "on_Cartridge":     "Mostrar Cartucho",
                         "on_Propellant":    "Mostrar Propelente",
                         "on_Engine":        "Mostrar Motor",
                         "on_Cover":         "Mostrar Cubierta",
-                        "on_Axis":          "Mostrar Eje",
-                        "on_Background":    "Mostrar Fondo",
-                        "on_Mount":         "Mostrar Montura",
+                        #"on_Axis":          "Mostrar Eje",
+                        #"on_Background":    "Mostrar Fondo",
+                        #"on_Mount":         "Mostrar Montura",
                         "t_factor":         "Factor Espesor Tools (%)",
                         "extra_len":        "Longitud Extra de molde (m)",
                         "cover_len":        "Longitud exterior molde (m)",
@@ -242,20 +241,20 @@ class EngineCADModule:
         try:
             self.user_settings = self.collect_widget_values()
             engine_fig = self.engineBuild.plot_Engine(self.user_settings)
-            cover_fig = self.engineBuild.plot_frontCover(self.user_settings)
-            mount_fig = self.engineBuild.plot_mount_front(self.user_settings)
+            cover_fig = self.engineBuild.plot_CoverFront(self.user_settings)
+            nozzle_fig = self.engineBuild.plot_NozzleFront(self.user_settings)
 
-            tool_covers_fig = self.engineBuild.plot_Tools(self.user_settings)
-            tool_coverFront_1_fig = self.engineBuild.plot_Front1_Tools(self.user_settings)
-            tool_coverFront_2_fig = self.engineBuild.plot_Front2_Tools(self.user_settings)
+            #tool_covers_fig = self.engineBuild.plot_Tools(self.user_settings)
+            #tool_coverFront_1_fig = self.engineBuild.plot_Front1_Tools(self.user_settings)
+            #tool_coverFront_2_fig = self.engineBuild.plot_Front2_Tools(self.user_settings)
 
             insert_fig(engine_fig, self.EngineView_frame)
             insert_fig(cover_fig, self.CoverView_frame)
-            insert_fig(mount_fig, self.MountView_frame)
+            insert_fig(nozzle_fig, self.NozzleView_frame)
 
-            insert_fig(tool_covers_fig, self.CastingMould_frame)
-            insert_fig(tool_coverFront_1_fig, self.CoverView1_frame)
-            insert_fig(tool_coverFront_2_fig, self.CoverView2_frame)
+            #insert_fig(tool_covers_fig, self.CastingMould_frame)
+            #insert_fig(tool_coverFront_1_fig, self.CoverView1_frame)
+            #insert_fig(tool_coverFront_2_fig, self.CoverView2_frame)
 
         except Exception as e:
             print("An error occurred:", e)

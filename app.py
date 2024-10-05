@@ -251,7 +251,7 @@ def load_configuration(working_path):
             # Load Tab 3 Configuration
             tab_3_config = config["tabs"]["tab_3"]
             EngineCADDesing_module_instance.build_entries(on_load=True, file=tab_3_config["NozzleConfig"])
-
+            print('llamada')
             for key, value in tab_3_config.items():
                 if key in EngineCADDesing_module_instance.widgets_dict:
                     widget = EngineCADDesing_module_instance.widgets_dict[key]
@@ -269,7 +269,8 @@ def load_configuration(working_path):
             EngineCADDesing_module_instance.update_plots()
             TestingBed_module_instance.create_checklist()
 
-        except FileNotFoundError:
+        except FileNotFoundError as e:
+            print(e)
             print("No previous configuration found. Starting with default values.")
         except Exception as e:
             print(f"Error loading configuration: {e}")
