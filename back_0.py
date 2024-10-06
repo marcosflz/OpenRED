@@ -2,42 +2,6 @@ from imports import *
 from functions import *
 
 
-def adiabaticTemp_calc(reac, prod, t0, tGuess, hStep):
-    if hStep <= 0:
-        return messagebox.showinfo("Error", "Valor de paso de integración no válido.")
-    
-
-    reac_moles = [item[0] for item in reac]
-    prod_moles = [item[0] for item in prod]
-
-    reac_comps = [polynomialCp(item[1]) for item in reac]
-    prod_comps = [polynomialCp(item[1]) for item in prod]
-
-    hf0_reac = sum([n * r.Hf0 for n,r in zip(reac_moles,reac_comps)])
-    hf0_prod = sum([n * p.Hf0 for n,p in zip(prod_moles,prod_comps)])
-
-    molWeight_prod = sum([n * r.MolWeight for n,r in zip(prod_moles,prod_comps)]) / sum([n for n in prod_moles])
-
-    def heat_balance(t):
-
-        hCp_reac = sum([n * integration(r.cp, 298, t0, hStep) for n,r in zip(reac_moles,reac_comps)])
-        hCp_prod = sum([n * integration(p.cp, 298, t,  hStep) for n,p in zip(prod_moles,prod_comps)])
-
-        Q_Disp = hf0_reac + hCp_reac
-        Q_Req  = hf0_prod + hCp_prod
-
-        delta = (Q_Disp - Q_Req)
-        return delta
-    
-    prodMol         = sum([n for n in prod_moles])
-    tSol            = newtonRaph(heat_balance, tGuess, tol=hStep, max_iter=10000, h=hStep)
-    molWeight_prod  = (sum([n * r.MolWeight for n,r in zip(prod_moles,prod_comps)]) / prodMol)*1e-3
-    cp_Mass         =  (sum([n * r.cp(tSol) for n,r in zip(prod_moles,prod_comps)]) / prodMol) / molWeight_prod
-    R_prod          = 8.31446261815324/molWeight_prod
-    cv_Mass         = cp_Mass - R_prod
-    gamma           = cp_Mass/cv_Mass
-    cChar           = np.sqrt(gamma * R_prod * tSol) / (gamma * np.sqrt((2 / (gamma + 1))**((gamma + 1)/(gamma - 1))))
-    return tSol, molWeight_prod, cp_Mass, cv_Mass, R_prod, gamma, cChar
 
 
 
@@ -94,4 +58,43 @@ class polynomialCp:
         else:
             value = 0
         return value
+    
+    
+def adiabaticTemp_calc(reac, prod, t0, tGuess, hStep):
+    if hStep <= 0:
+        return messagebox.showinfo("Error", "Valor de paso de integración no válido.")
+    
+
+    reac_moles = [item[0] for item in reac]
+    prod_moles = [item[0] for item in prod]
+
+    reac_comps = [polynomialCp(item[1]) for item in reac]
+    prod_comps = [polynomialCp(item[1]) for item in prod]
+
+    hf0_reac = sum([n * r.Hf0 for n,r in zip(reac_moles,reac_comps)])
+    hf0_prod = sum([n * p.Hf0 for n,p in zip(prod_moles,prod_comps)])
+
+    molWeight_prod = sum([n * r.MolWeight for n,r in zip(prod_moles,prod_comps)]) / sum([n for n in prod_moles])
+
+    def heat_balance(t):
+
+        hCp_reac = sum([n * integration(r.cp, 298, t0, hStep) for n,r in zip(reac_moles,reac_comps)])
+        hCp_prod = sum([n * integration(p.cp, 298, t,  hStep) for n,p in zip(prod_moles,prod_comps)])
+
+        Q_Disp = hf0_reac + hCp_reac
+        Q_Req  = hf0_prod + hCp_prod
+
+        delta = (Q_Disp - Q_Req)
+        return delta
+    
+    prodMol         = sum([n for n in prod_moles])
+    tSol            = newtonRaph(heat_balance, tGuess, tol=hStep, max_iter=10000, h=hStep)
+    molWeight_prod  = (sum([n * r.MolWeight for n,r in zip(prod_moles,prod_comps)]) / prodMol)*1e-3
+    cp_Mass         =  (sum([n * r.cp(tSol) for n,r in zip(prod_moles,prod_comps)]) / prodMol) / molWeight_prod
+    R_prod          = 8.31446261815324/molWeight_prod
+    cv_Mass         = cp_Mass - R_prod
+    gamma           = cp_Mass/cv_Mass
+    cChar           = np.sqrt(gamma * R_prod * tSol) / (gamma * np.sqrt((2 / (gamma + 1))**((gamma + 1)/(gamma - 1))))
+    return tSol, molWeight_prod, cp_Mass, cv_Mass, R_prod, gamma, cChar
+
     

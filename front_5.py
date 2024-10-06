@@ -1,9 +1,7 @@
 from imports import *
 from functions import *
 
-from back_0 import *
-from back_1 import *
-from back_3 import *
+from back_2 import *
 
 class EngineCADModule:
     def __init__(self, content_frame):
@@ -121,11 +119,11 @@ class EngineCADModule:
         self.export_cover_button = ctk.CTkButton(self.export_frame, text="Cover Sketch", command=lambda: self.export_sketch(self.user_settings, 'Cover'))
         self.export_cover_button.grid(row=0, column=1, padx=10, pady=10, sticky='nswe')
 
-        self.export_mount_button = ctk.CTkButton(self.export_frame, text="Mount Sketch", command=lambda: self.export_sketch(self.user_settings, 'Mount'))
-        self.export_mount_button.grid(row=1, column=0, padx=10, pady=10, sticky='nswe')
+        #self.export_mount_button = ctk.CTkButton(self.export_frame, text="Mount Sketch", command=lambda: self.export_sketch(self.user_settings, 'Mount'))
+        #self.export_mount_button.grid(row=1, column=0, padx=10, pady=10, sticky='nswe')
 
         self.export_tools_button = ctk.CTkButton(self.export_frame, text="Tools Sketch", command=lambda: self.export_sketch(self.user_settings, 'Tools'))
-        self.export_tools_button.grid(row=1, column=1, padx=10, pady=10, sticky='nswe')
+        self.export_tools_button.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky='nswe')
 
         self.widgets_dict = {}
 
@@ -152,7 +150,7 @@ class EngineCADModule:
                         'bolt_OffSet':      "Longitud tornillo (m)",
                         'hBoltFactor':      "Factor de altura del tornillo (%)",
                         'cover_t':          "Espesor de la cubierta (m)",
-                        'r_elect':          "Radio posición electrodo (m)",
+                        'dy_elect':         "Distancia entre electrodos (m)",
                         'd_elect':          "Diámetro del electrodo (m)",    
                         #'upper_offset':     "Offset Superior Montura (m)",
                         #'lower_offset':     "Offset Inferior Montura (m)",
@@ -178,9 +176,11 @@ class EngineCADModule:
                         "cover_len":        "Longitud exterior molde (m)",
                         "on_CoverCast1":    "Cubierta de molde",
                         "on_CoverCast2":    "Sujección de molde",
+                        "on_CastBolt":      "Tornillo de Tuerca",
+                        "on_Mould":         "Molde de propelente",
                         "on_CastNut":       "Tuerca de molde",
                         "nut_h":            "Altura de Tuerca (m)",
-                        "nut_d":            "Incremento de radio tuerca (m)"
+                        "nut_dr":            "Incremento radio de Tuerca (m)"
                     }
 
                     self.engineBuild = EngineCADBuilder_ConventionalNozzle(self.file_name)
@@ -244,17 +244,17 @@ class EngineCADModule:
             cover_fig = self.engineBuild.plot_CoverFront(self.user_settings)
             nozzle_fig = self.engineBuild.plot_NozzleFront(self.user_settings)
 
-            #tool_covers_fig = self.engineBuild.plot_Tools(self.user_settings)
-            #tool_coverFront_1_fig = self.engineBuild.plot_Front1_Tools(self.user_settings)
-            #tool_coverFront_2_fig = self.engineBuild.plot_Front2_Tools(self.user_settings)
+            tool_covers_fig = self.engineBuild.plot_Tools(self.user_settings)
+            tool_coverFront_1_fig = self.engineBuild.plot_ToolMould(self.user_settings)
+            tool_coverFront_2_fig = self.engineBuild.plot_ToolMouldFix(self.user_settings)
 
             insert_fig(engine_fig, self.EngineView_frame)
             insert_fig(cover_fig, self.CoverView_frame)
             insert_fig(nozzle_fig, self.NozzleView_frame)
 
-            #insert_fig(tool_covers_fig, self.CastingMould_frame)
-            #insert_fig(tool_coverFront_1_fig, self.CoverView1_frame)
-            #insert_fig(tool_coverFront_2_fig, self.CoverView2_frame)
+            insert_fig(tool_covers_fig, self.CastingMould_frame)
+            insert_fig(tool_coverFront_1_fig, self.CoverView1_frame)
+            insert_fig(tool_coverFront_2_fig, self.CoverView2_frame)
 
         except Exception as e:
             print("An error occurred:", e)
@@ -287,8 +287,8 @@ class EngineCADModule:
         elif sketch_type == 'Cover':
             self.engineBuild.export_cover(user_settings, file_path)
 
-        elif sketch_type == 'Mount':
-            self.engineBuild.export_mount(user_settings, file_path)
+        #elif sketch_type == 'Mount':
+        #    self.engineBuild.export_mount(user_settings, file_path)
         
         elif sketch_type == 'Tools':
             self.engineBuild.export_tools(user_settings, file_path)

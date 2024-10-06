@@ -62,7 +62,7 @@
         "tab_2": {
             "engine_config": "KNSU-32-RT65.json",
             "SwitchState": 1,
-            "P1": "790255.1256683324",
+            "P1": "790190.5221096972",
             "n_res": "50",
             "nozzle_type": "TOPN-BN",
             "CONE-LN_CONE-LN_k": "0",
@@ -83,22 +83,22 @@
             "bolt_OffSet": "0.02",
             "hBoltFactor": "0.5",
             "cover_t": "0.01",
-            "r_elect": "0.0025",
+            "dy_elect": "0.005",
             "d_elect": "0.001",
             "on_Cartridge": 1,
             "on_Propellant": 1,
             "on_Engine": 1,
             "on_Cover": 1,
-            "on_Axis": 1,
-            "on_Background": 1,
-            "t_factor": "",
-            "extra_len": "",
-            "cover_len": "",
+            "t_factor": "1",
+            "extra_len": "0.02",
+            "cover_len": "0.01",
             "on_CoverCast1": 1,
             "on_CoverCast2": 1,
+            "on_CastBolt": 1,
+            "on_Mould": 1,
             "on_CastNut": 1,
-            "nut_h": "",
-            "nut_d": ""
+            "nut_h": "0.005",
+            "nut_dr": "0.005"
         }
     }
 }

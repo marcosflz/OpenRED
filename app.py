@@ -1,9 +1,6 @@
 from imports import *
 from functions import *
 
-#from back_0 import *
-#from back_1 import *
-
 from front_0 import *
 from front_1 import *
 from front_2 import *
@@ -12,6 +9,7 @@ from front_4 import *
 from front_5 import *
 from front_6 import *
 from front_7 import *
+
 
 # Llamar a la función para inicializar la base de datos al iniciar el programa
 initialize_database()
@@ -297,7 +295,7 @@ def on_closing():
 # Inicializar la aplicación
 main_frame = ctk.CTk()
 main_frame.geometry("1920x1080")
-main_frame.title("Display de la Reacción")
+main_frame.title("PropelX OpenWorks")
 
 # Configurar pesos para el grid
 main_frame.grid_rowconfigure(0, weight=1)
@@ -356,28 +354,6 @@ TestingBed_module_instance = TestingBedModule(tabs_content["tab_4"])
 
 tabs_content["tab_5"] = ctk.CTkFrame(content_frame)
 CFD_module_instance = CFD_Module(tabs_content["tab_5"])
-
-## Función recursiva para cambiar el color de todos los frames
-#def change_color_scheme_recursive(widget, color):
-#    if isinstance(widget, ctk.CTkFrame):  # Verifica si el widget es un frame
-#        widget.configure(fg_color=color)
-#    # Recorre todos los hijos del widget actual (si los tiene)
-#    for child in widget.winfo_children():
-#        change_color_scheme_recursive(child, color)
-#
-## Función para cambiar el color de todos los frames dentro de main_frame
-#def change_color_scheme(color):
-#    change_color_scheme_recursive(main_frame, color)
-#
-## Agregar la opción de cambiar el color en el menú de preferencias
-#preferences_menu.add_command(label="Color Azul", command=lambda: change_color_scheme("#1F6AA5"))
-#preferences_menu.add_command(label="Color Rojo", command=lambda: change_color_scheme("#E74C3C"))
-#preferences_menu.add_command(label="Color Verde", command=lambda: change_color_scheme("#27AE60"))
-#
-## Inicializar la aplicación con un color por defecto
-#initial_color = "#1F6AA5"
-#change_color_scheme(initial_color)
-
 
 # Diccionario para almacenar referencias a los botones
 tab_buttons = {}

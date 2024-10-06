@@ -1,11 +1,6 @@
 from imports import *
 from functions import *
 
-#from back_1 import *
-#from back_2 import *
-
-
-
 
 class NozzleDesingModule:
     def __init__(self, content_frame):

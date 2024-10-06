@@ -7,7 +7,7 @@ class PropellantRegresionLSM:
         # Parámetros de la simulación
         self.textbox = textbox
         self.dt = dt
-        self.h = dh * 1000
+        self.h = dh #* 1000
         self.maxIters = int(maxIters)
         self.workingPrecision = workingPrecision
         self.image_resolution = image_resolution
@@ -120,11 +120,11 @@ class PropellantRegresionLSM:
                     np.minimum(D_minY, 0)**2 + np.maximum(D_plusY, 0)**2)
 
         # Actualiza phi
-        phi_new = self.phi[self.iterationCount - 1] - self.dt * (np.maximum(r_old * 1000, 0) * nabla_plus +
-                                            np.minimum(r_old * 1000, 0) * nabla_min)
+        phi_new = self.phi[self.iterationCount - 1] - self.dt * (np.maximum(r_old, 0) * nabla_plus +
+                                            np.minimum(r_old, 0) * nabla_min)
 
         radius = np.sqrt((self.X - 0.0)**2 + (self.Y - 0.0)**2)  # Centro en (0,0)
-        mask = radius > self.R2 * 1000
+        mask = radius > self.R2
         phi_new[mask] = phi_old[mask]  # Usar la misma forma que phi_old para evitar el IndexError
 
         self.phi[self.iterationCount] = phi_new
@@ -166,7 +166,7 @@ class PropellantRegresionLSM:
 
          # Calcular el radio para la máscara
         radius = np.sqrt((self.X - 0.0)**2 + (self.Y - 0.0)**2)  # Centro en (0,0)
-        mask = radius > self.R2 * 1000
+        mask = radius > self.R2
 
         while queue:
             x, y = queue.popleft()
@@ -191,8 +191,8 @@ class PropellantRegresionLSM:
         num_interior_points = np.sum(interior_mask)  # Contar los puntos interiores
         area = num_interior_points * (self.h**2)  # Área = número de puntos interiores * h^2
  
-        self.Ab[self.iterationCount] = (front_length * 1e-3) * self.l_comb
-        self.Vc[self.iterationCount] = (area * 1e-6) * self.l_comb
+        self.Ab[self.iterationCount] = (front_length) * self.l_comb
+        self.Vc[self.iterationCount] = (area) * self.l_comb
         self.Vp[self.iterationCount] = np.pi * (self.R2)**2 * self.l_comb  - self.Vc[self.iterationCount-1]
         self.Mp[self.iterationCount] = self.Vp[self.iterationCount-1] * self.rho_b
 
@@ -266,23 +266,19 @@ class PropellantRegresionLSM:
         ax.set_xlim(self.x_limits)
         ax.set_ylim(self.y_limits)
 
-        circle_outer = Circle((0.0, 0.0), self.R2 * 1e3, edgecolor='black', facecolor='lightgray', lw=4)
+        circle_outer = Circle((0.0, 0.0), self.R2, edgecolor='black', facecolor='lightgray', lw=4)
         ax.add_patch(circle_outer)
 
-        # Crear una matriz de colores con un canal alfa (RGBA)
-        color_matrix = np.zeros((*self.phi[0].shape, 4))  # Fondo transparente
-
-        # Colorear celdas entre -1e-2 y 1e-2 en negro (opaco)
-        color_matrix[(self.phi[0] >= -1e-2) & (self.phi[0] <= 1e-2)] = [0, 0, 0, 1]  # Negro (opaco)
-
-        # Colorear celdas menores que -1e-2 en transparente (fondo)
-        color_matrix[self.phi[0] < -1e-2] = [1, 1, 1, 1]  # Blanco (transparente)
-
-        # Colorear celdas mayores que 1e-2 en transparente (fondo)
-        color_matrix[self.phi[0] > 1e-2] = [1, 1, 1, 0]  # Blanco (transparente)
-
-        # Dibujar la matriz de colores en el gráfico
-        ax.imshow(color_matrix, extent=[self.x_limits[0], self.x_limits[1], self.y_limits[0], self.y_limits[1]], origin='lower', zorder=20)
+        ## Crear una matriz de colores con un canal alfa (RGBA)
+        #color_matrix = np.zeros((*self.phi[0].shape, 4))  # Fondo transparente
+        ## Colorear celdas entre -1e-2 y 1e-2 en negro (opaco)
+        #color_matrix[(self.phi[0] >= -1e-2) & (self.phi[0] <= 1e-2)] = [1, 1, 1, 0]  # Negro (opaco)
+        ## Colorear celdas menores que -1e-2 en transparente (fondo)
+        #color_matrix[self.phi[0] < -1e-2] = [1, 1, 1, 1]  # Blanco (transparente)
+        ## Colorear celdas mayores que 1e-2 en transparente (fondo)
+        #color_matrix[self.phi[0] > 1e-2] = [1, 1, 1, 0]  # Blanco (transparente)
+        ## Dibujar la matriz de colores en el gráfico
+        #ax.imshow(color_matrix, extent=[self.x_limits[0], self.x_limits[1], self.y_limits[0], self.y_limits[1]], origin='lower', zorder=20)
 
         # Definir un colormap (puedes elegir uno como 'viridis', 'plasma', etc.)
         cmap = cm.jet  # Puedes cambiar a otros mapas de colores como 'plasma', 'inferno', etc.

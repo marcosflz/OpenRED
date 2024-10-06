@@ -1,7 +1,6 @@
 from imports import *
 from functions import *
 
-from back_0 import *
 from back_1 import *
 
 class PropellantDesignModule:
@@ -588,7 +587,7 @@ class PropellantDesignModule:
     def run_simulation(self):
         grainConfigClass = self.selected_grain_config(self.init_specs, self.specInputs["R2"], self.specInputs["dh"])
         init_geo = grainConfigClass.getPhi()
-        self.propCAD = grainConfigClass.sketchCAD(self.specInputs["Lc"])
+        self.propCAD = grainConfigClass.sketchCAD()
 
         self.simulation = PropellantRegresionLSM(
             textbox=0, 
@@ -743,8 +742,9 @@ class PropellantDesignModule:
             inputs = {
                 "Propellant": re.sub(r'\s*\(\d+\)\s*', '', self.propellant_selector.get()),
                 "GrainGeo": self.grain_config,
-                "CADx": self.propCAD[0].tolist(),
-                "CADy": self.propCAD[1].tolist()
+                "CADx": self.propCAD[1][0].tolist(),
+                "CADy": self.propCAD[1][1].tolist(),
+                "CAD0": self.propCAD[0]
             }
 
             # Añadir todos los elementos de self.specInputs a inputs

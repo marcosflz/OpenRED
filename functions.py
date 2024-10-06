@@ -1,15 +1,5 @@
 from imports import *
 
-#def global_exception_handler(exc_type, exc_value, exc_traceback):
-#    if issubclass(exc_type, KeyboardInterrupt):
-#        # Permite la salida con Ctrl+C sin el trace del error
-#        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-#        return
-#    error_message = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-#    messagebox.showinfo("Error", f"Error:\n{error_message}")
-#
-## Establece la función global para manejar excepciones no controladas
-#sys.excepthook = global_exception_handler
 
 def get_data(type, file):
         with open('temp_dir.txt', 'r') as txt:
@@ -57,11 +47,14 @@ def get_propellant_value(column_name, cell_value):
 def convert_to_latex(component):
     # Remove any text in parentheses
     component = re.sub(r'\(.*?\)', '', component).strip()
-
     # Replace numbers with subscript format
     component = re.sub(r'(\d+)', r'_{\1}', component)
-    
     return component
+
+
+
+
+
 
 # Función para guardar el directorio en un archivo temporal
 def save_dir_path(dir_path):
@@ -463,6 +456,16 @@ def importLibraries(lib):
             except ImportError as e:
                 print(f"No se pudo importar el módulo {modName}: {e}")
     return nozzleClasses
+
+
+def get_circle_points(r, center=(0, 0), num_points=100):
+    # Crear un vector de ángulos
+    t = np.linspace(0, 2 * np.pi, num_points)
+    # Parametrizar el círculo y añadir el desplazamiento del centro
+    x = center[0] + r * np.cos(t)  # x del círculo
+    y = center[1] + r * np.sin(t)  # y del círculo
+    return x, y
+
 
 
 
