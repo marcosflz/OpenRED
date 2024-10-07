@@ -133,7 +133,7 @@ class TestingBedModule:
         self.update_Temp_plot()
         insert_fig(self.fig_Temp, self.display_4_frame)
 
-        self.fig_Gauge = gaugePlot(instValues=[0,0,0,0], maxValues=[1,1,1,1])
+        self.fig_Gauge = self.gaugePlot(instValues=[0,0,0,0], maxValues=[1,1,1,1])
         insert_fig(self.fig_Gauge, self.display_3_frame, resize='Manual', l=0.05, r=0.95, t=0.95, b=0.05)
 
         self.reset_plots()
@@ -218,7 +218,7 @@ class TestingBedModule:
         self.update_Temp_plot()
         self.fig_Temp.canvas.draw()
 
-        self.fig_Gauge = gaugePlot(instValues=[0, 0, 0, 0], maxValues=[1, 1, 1, 1])
+        self.fig_Gauge = self.gaugePlot(instValues=[0, 0, 0, 0], maxValues=[1, 1, 1, 1])
         insert_fig(self.fig_Gauge, self.display_3_frame, resize='Manual', l=0.05, r=0.95, t=0.95, b=0.05)
 
         # Limpiar los registros
@@ -264,7 +264,7 @@ class TestingBedModule:
             thrust = 0
             temp = 0
 
-        self.fig_Gauge = gaugePlot(instValues=[thrust, temp, 1, 1], maxValues=[self.maxThrust, self.maxTemp, 1, 1])
+        self.fig_Gauge = self.gaugePlot(instValues=[thrust, temp, 1, 1], maxValues=[self.maxThrust, self.maxTemp, 1, 1])
         insert_fig(self.fig_Gauge, self.display_3_frame, resize='Manual', l=0.05, r=0.95, t=0.95, b=0.05)
 
 
@@ -572,8 +572,77 @@ class TestingBedModule:
 
 
 
+    def gaugePlot(self, instValues, maxValues=[0,0,0,0]):
+        fig, ax = plt.subplots(figsize=(16, 16))
 
+        # Create a color gradient around the outer circle edge
+        n = 25  # Number of segments for the gradient
+        cmap = plt.get_cmap('plasma')  # Color map
+        delta = 0
+        theta = np.linspace(0 - delta, np.pi + delta, n)  # Divide the semicircle into 'n' segments
+
+        x = 1
+        y = 0.6
+        ri = 0.75
+        w = 0.25
+        edgCol = 'k'
+
+        instValues = np.array(instValues)
+        maxValues = np.array(maxValues)
+        percValues = instValues / maxValues
+
+        # Loop over the four positions to plot the gauges
+        for j, perc in enumerate(percValues):
+            # Determine the number of wedges to fill based on the percentage
+            num_fill = int(n * perc)  # Calculate the number of wedges to fill
+
+            # Determine the position offsets for each gauge
+            if j == 0:
+                x_pos, y_pos = -x, y
+            elif j == 1:
+                x_pos, y_pos = x, y
+            elif j == 2:
+                x_pos, y_pos = -x, -y
+            else:
+                x_pos, y_pos = x, -y
+
+            for i in range(n - 1):
+                # Set the color for each wedge
+                if num_fill > 0 and i >= (n - num_fill):
+                    color = cmap(i / (n - 1))  # Fill wedges in reverse order
+                else:
+                    color = 'lightgrey'  # Set the remaining wedges to light grey
+
+                # Create the wedges with the corresponding color
+                wedge = patches.Wedge(center=(x_pos, y_pos), r=ri + 0.05, theta1=np.degrees(theta[i]),
+                                    theta2=np.degrees(theta[i + 1]), width=w, facecolor=color, edgecolor=edgCol, linewidth=2)
+                ax.add_patch(wedge)
     
+
+        # Add text to the rectangles
+        ax.text(-x, 1.6 * y + 0.02 * ri    , f"{instValues[0]:.2f}", ha='center', va='center', fontsize=10, fontweight='bold')
+        ax.text(x, 1.6 * y + 0.02 * ri     , f"{instValues[1]:.2f}", ha='center', va='center', fontsize=10, fontweight='bold')
+        ax.text(-x, 0.4 * -y + 0.02 * ri   , f"{instValues[2]:.2f}", ha='center', va='center', fontsize=10, fontweight='bold')
+        ax.text(x, 0.4 * -y + 0.02 * ri    , f"{instValues[3]:.2f}", ha='center', va='center', fontsize=10, fontweight='bold')
+
+        ax.text(-x, 1.6 * y + 0.02 * ri    - 0.2, "THRUST (KG)"       , ha='center', va='center', fontsize=9, fontweight='bold')
+        ax.text(x, 1.6 * y + 0.02 * ri     - 0.2, "TEMPERATURE (K)"   , ha='center', va='center', fontsize=9, fontweight='bold')
+        ax.text(-x, 0.4 * -y + 0.02 * ri   - 0.2, "BATTERY LEVEL (%)" , ha='center', va='center', fontsize=9, fontweight='bold')
+        ax.text(x, 0.4 * -y + 0.02 * ri    - 0.2, "WATER LEVEL (%)"   , ha='center', va='center', fontsize=9, fontweight='bold')
+
+        # Fix the percentage to the range [0, 1] so it does not exceed the maximum angle
+
+        # Adjust axis scales so the circle does not get deformed
+        ax.set_aspect('equal', 'box')
+
+        # Set axis limits
+        ax.set_xlim(-2, 2)
+        ax.set_ylim(-0.6, 1.5)
+        fig.tight_layout()
+        ax.set_axis_off()
+        
+        return fig
+
 
 
 

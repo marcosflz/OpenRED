@@ -3,64 +3,80 @@ from functions import *
 
 
 class PropellantRegresionLSM:
-    def __init__(self, textbox, dt, dh, maxIters, phi0, init_data, workingPrecision, image_resolution):
-        # Parámetros de la simulación
+    def __init__(self, textbox: Any, dt: float, dh: float, maxIters: int, phi0: tuple[np.ndarray, np.ndarray, np.ndarray], init_data: dict, workingPrecision: int, image_resolution: tuple[int, int]):
+        """
+        Initialize the Propellant Regression Level Set Method (LSM) simulation.
+
+        Parameters:
+        - textbox (Any): Textbox for displaying messages or results.
+        - dt (float): Time step for the simulation.
+        - dh (float): Spatial step size.
+        - maxIters (int): Maximum number of iterations for the simulation.
+        - phi0 (tuple[np.ndarray, np.ndarray, np.ndarray]): Initial level set function and grid coordinates (X, Y).
+        - init_data (dict): Dictionary containing initial simulation data.
+        - workingPrecision (int): Precision for rounding time values.
+        - image_resolution (tuple[int, int]): Resolution for image outputs.
+        """
+
+        # Simulation parameters
         self.textbox = textbox
-        self.dt = dt
-        self.h = dh #* 1000
-        self.maxIters = int(maxIters)
-        self.workingPrecision = workingPrecision
-        self.image_resolution = image_resolution
+        self.dt = dt  # Time step
+        self.h = dh  # Spatial step size
+        self.maxIters = int(maxIters)  # Maximum iterations
+        self.workingPrecision = workingPrecision  # Working precision
+        self.image_resolution = image_resolution  # Image resolution
 
-
+        # Calculate the number of decimals for rounding based on dt
         self.decimals = max(0, -int(math.floor(math.log10(self.dt))))
-         
         
+        # Initialize iteration count
         self.iterationCount = 1
         
+        # Initialize level set function and grid coordinates
         self.phi_init, self.X, self.Y = phi0
 
-        # Obtener límites a partir de X y Y
+        # Get limits based on grid coordinates
         self.x_limits = (np.min(self.X), np.max(self.X))
         self.y_limits = (np.min(self.Y), np.max(self.Y))
 
-        self.P0     = init_data["P0"]
-        self.a      = init_data["a"] * 1e-2
-        self.n      = init_data["n"]
-        self.R      = init_data["R"]
-        self.T1     = init_data["T1"]
-        self.cChar  = init_data["cChar"] 
-        self.rho_b  = init_data["rho_b"] 
-        self.At     = init_data["Rt"]**2 * np.pi
-        self.l_comb = init_data["Lc"]
-        self.R2     = init_data["R2"]
+        # Extract initial data for simulation
+        self.P0     = init_data["P0"]  # Initial pressure
+        self.a      = init_data["a"] * 1e-2  # Some parameter a (converted from cm to m)
+        self.n      = init_data["n"]  # Some exponent n
+        self.R      = init_data["R"]  # Radius
+        self.T1     = init_data["T1"]  # Initial temperature
+        self.cChar  = init_data["cChar"]  # Characteristic speed
+        self.rho_b  = init_data["rho_b"]  # Density of the propellant
+        self.At     = init_data["Rt"]**2 * np.pi  # Throat area
+        self.l_comb = init_data["Lc"]  # Combustion length
+        self.R2     = init_data["R2"]  # Another radius
 
-
-
+        # Maximum and minimum pressures
         self.P1_max = init_data["P1_max"]
         self.P1_min = init_data["P1_min"]
 
-
-
-
+        # Time vector for the simulation
         self.time = np.round(np.arange(0, int(self.maxIters * self.dt) + self.dt, dt), self.workingPrecision)
 
-        self.P1 = np.zeros(self.maxIters)
-        self.r  = np.zeros(self.maxIters)
-        self.Ab = np.zeros(self.maxIters)
-        self.Vc = np.zeros(self.maxIters)
-        self.Vp = np.zeros(self.maxIters)
-        self.Mp = np.zeros(self.maxIters)
-        self.Gp = np.zeros(self.maxIters)
-        self.phi = np.zeros((self.maxIters, self.phi_init.shape[0], self.phi_init.shape[1]), dtype=np.float32)
+        # Initialize arrays for simulation results
+        self.P1 = np.zeros(self.maxIters)  # Pressure array
+        self.r  = np.zeros(self.maxIters)  # Some parameter r
+        self.Ab = np.zeros(self.maxIters)  # Area array
+        self.Vc = np.zeros(self.maxIters)  # Combustion volume
+        self.Vp = np.zeros(self.maxIters)  # Propellant volume
+        self.Mp = np.zeros(self.maxIters)  # Propellant mass
+        self.Gp = np.zeros(self.maxIters)  # Mass flow rate
+        self.phi = np.zeros((self.maxIters, self.phi_init.shape[0], self.phi_init.shape[1]), dtype=np.float32)  # Level set function over time
 
-        self.P1[0] = self.P0
-        self.r[0] = self.a * self.P0**self.n
-        self.phi[0] = self.phi_init
-        self.get_area_vol()
+        # Set initial conditions
+        self.P1[0] = self.P0  # Initial pressure
+        self.r[0] = self.a * self.P0**self.n  # Initial value for parameter r
+        self.phi[0] = self.phi_init  # Initial level set function
+        self.get_area_vol()  # Calculate area and volume
 
-        self.Vp[0] = np.pi * (self.R2)**2 * self.l_comb - self.Vc[0]
-        self.Mp[0] = self.Vp[0] * self.rho_b
+        # Calculate initial propellant volume and mass
+        self.Vp[0] = np.pi * (self.R2)**2 * self.l_comb - self.Vc[0]  # Initial volume of propellant
+        self.Mp[0] = self.Vp[0] * self.rho_b  # Initial mass of propellant
         
 
     
@@ -269,17 +285,6 @@ class PropellantRegresionLSM:
         circle_outer = Circle((0.0, 0.0), self.R2, edgecolor='black', facecolor='lightgray', lw=4)
         ax.add_patch(circle_outer)
 
-        ## Crear una matriz de colores con un canal alfa (RGBA)
-        #color_matrix = np.zeros((*self.phi[0].shape, 4))  # Fondo transparente
-        ## Colorear celdas entre -1e-2 y 1e-2 en negro (opaco)
-        #color_matrix[(self.phi[0] >= -1e-2) & (self.phi[0] <= 1e-2)] = [1, 1, 1, 0]  # Negro (opaco)
-        ## Colorear celdas menores que -1e-2 en transparente (fondo)
-        #color_matrix[self.phi[0] < -1e-2] = [1, 1, 1, 1]  # Blanco (transparente)
-        ## Colorear celdas mayores que 1e-2 en transparente (fondo)
-        #color_matrix[self.phi[0] > 1e-2] = [1, 1, 1, 0]  # Blanco (transparente)
-        ## Dibujar la matriz de colores en el gráfico
-        #ax.imshow(color_matrix, extent=[self.x_limits[0], self.x_limits[1], self.y_limits[0], self.y_limits[1]], origin='lower', zorder=20)
-
         # Definir un colormap (puedes elegir uno como 'viridis', 'plasma', etc.)
         cmap = cm.jet  # Puedes cambiar a otros mapas de colores como 'plasma', 'inferno', etc.
 
@@ -307,9 +312,6 @@ class PropellantRegresionLSM:
         ax.set_ylabel('Pressure')            # Add y-axis label
         ax.set_aspect('auto')                # Change aspect to auto
 
-        # Optionally set y-limits if needed
-        # ax.set_ylim(y_min, y_max)
-
         return fig
 
     def plot_massFlow(self):
@@ -331,43 +333,3 @@ class PropellantRegresionLSM:
         ax.set_aspect('auto')                    # Change aspect to auto
 
         return fig
-
-
-
-#       # Parámetros de la simulación
-#       
-#       dh = 0.1  # Paso espacial
-#       dt = 0.01  # Paso temporal
-#       maxIters = 10000
-#       
-#       r_circle = 5  # Radio de la circunferencia
-#       r_stop = 16  # Radio de detención
-#       
-#       x_limits = (-r_stop - 0.2 * r_stop, +r_stop + 0.2 * r_stop)  # Límites espaciales en la dirección x
-#       y_limits = (-r_stop - 0.2 * r_stop, +r_stop + 0.2 * r_stop)  # Límites espaciales en la dirección y
-#       
-#       center = (0, 0)
-#       length = 4  # Longitud del lado del cuadrado
-#       
-#       init_data = (
-#           1e5,             # Pa
-#           0.01 * 1e-2,                # mm/s
-#           0.31, 
-#           223,                # J/KgK
-#           1800,               # K
-#           989.8131693939902,         # mm/s
-#           1800,        # kg/mm^3
-#           np.pi * 0.005**2 ,       # m^2
-#           0.075                 # mm
-#           )
-#       
-#       
-#       init_geo = initialize_level_set_circle(0.0, 0.0, r_circle, x_limits, y_limits, dh)
-#       #init_geo = initialize_level_set_square(x_limits, y_limits, center, length, dh)
-#       # Crear y ejecutar la simulación
-#       simulation = PropellantRegresionLSM(textbox, dt, maxIters, r_stop, init_geo, init_data, 8, 30)
-#       phi, t, p = simulation.run()
-#       
-#       
-#       plt.plot(t, p)
-#       plt.show()
