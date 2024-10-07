@@ -1,6 +1,7 @@
 from imports import *
 
 
+
 def get_data(type, file):
     """
     Fetches JSON data from a specified file and directory.
