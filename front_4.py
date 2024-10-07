@@ -67,7 +67,7 @@ class NozzleDesingModule:
         self.timeNormalization_entry = ctk.CTkEntry(self.inputs_frame)
         self.timeNormalization_entry.grid(row=5, column=1, padx=inputsPad, pady=inputsPad, sticky='nswe')
 
-        #nozzles = ["TOPN-BN", "CONE-LN"]
+
         nozzle_types = list(self.nozzleClasses.keys())
         self.nozzleTypeMenu = ctk.CTkOptionMenu(self.inputs_frame, values=nozzle_types, command=self.update_options)
         self.nozzleTypeMenu.grid(row=6, column=0, columnspan=2, padx=inputsPad, pady=inputsPad, sticky='nswe')
@@ -252,33 +252,6 @@ class NozzleDesingModule:
 
         self.resultsEntries = {}
 
-        #self.results_TOPBNLabels = [
-        #    "DP. Thrust (kg)", "Med. Thrust (kg)", 
-        #    "CF (DP.)", "CF (Med.)",
-        #    "Vs (DP.)", "Vs (Med.)",
-        #    "Ts (DP.)", "Ts (Med.)",
-        #    "Ps (DP.)", "Ps (Med.)",
-        #    "It", "Isp",
-        #    "AR", "MS",
-        #    "Longitud (m)",
-        #    "Rt (m)", "R2 (m)"
-        #    ]
-        
-        #self.results_CONELabels = [
-        #    "DP. Thrust (kg)", "Med. Thrust (kg)", 
-        #    "CF (DP.)", "CF (Med.)",
-        #    "It", "Isp",
-        #    "Vs (DP.)", "Vs (Med.)",
-        #    "Ts (DP.)", "Ts (Med.)",
-        #    "Ps (DP.)", "Ps (Med.)",
-        #    "AR", "MS",
-        #    "Longitud (m)",
-        #    "Yt (m)", "Y2 (m)"
-        #    ]
-        
-
-        ## Llamar a la función para añadir labels y entries
-        #self.add_labels_and_entries(self.numericResults_frame, self.results_TOPBNLabels)
     
   
 
@@ -310,17 +283,13 @@ class NozzleDesingModule:
         self.exportData.grid(row=0, column=0, padx=10, pady=10, sticky='nswe')
         
 
-        #self.TOPN_widgets = []
-        #self.CONE_widgets = []
         self.specInputs_entries = {}
         self.create_widgets_for_all_nozzle_types()
 
         self.selection = nozzle_types[0]  # Initialize selection
         self.update_options(self.selection)
 
-        #self.create_TOPN_entries()
-        #self.create_CONE_entries()
-        #self.update_options('TOPN-BN')
+
 
 
 
@@ -365,25 +334,7 @@ class NozzleDesingModule:
         self.current_step = 0
         self.calculation_running = True
 
-        #nozzleClasses = {
-        #    "TOPN-BN": BellNozzle,
-        #    "CONE-LN": ConeNozzle
-        #}
-        
-
-
-        
-        #self.specInputs = []
-
         selected_nozzle_class = self.nozzleClasses.get(self.nozzle_config)
-
-#        if self.nozzle_config == "TOPN-BN":
-#            nozzleEntries = self.TOPN_entries
-#        elif self.nozzle_config == "CONE-LN":
-#            nozzleEntries = self.CONE_entries
-
-#        for entry in nozzleEntries:
-#            self.specInputs.append(float(entry.get()))
 
         # Obtener las entradas dinámicas
         self.specInputs = {}
@@ -397,11 +348,6 @@ class NozzleDesingModule:
 
         self.calculatedNozzle = selected_nozzle_class(self.defaultState, self.P1, self.n, self.dt, self.engine_config, self.specInputs)
         self.calculatedNozzle.calculation_running = self.calculation_running  # Pasar la variable de control
-
-#        if self.nozzle_config == "TOPN-BN":
-#            loop_func = self.calculatedNozzle.run_TOPBN_step 
-#        elif self.nozzle_config == "CONE-LN":
-#            loop_func = self.calculatedNozzle.run_CONE_step 
 
         # Ejecutar el cálculo paso a paso
         loop_func = self.calculatedNozzle.run_step
@@ -596,24 +542,7 @@ class NozzleDesingModule:
             print("An error occurred:", e)
             traceback.print_exc()
 
-    
-#    def add_labels_and_entries(self, frame, data_list):
-#        for i, text in enumerate(data_list):
-#            label = ctk.CTkLabel(frame, text=text)
-#            label.grid(row=i+1, column=0, padx=5, pady=5, sticky='w')
-#            entry = ctk.CTkEntry(frame)
-#            entry.grid(row=i+1, column=1, padx=5, pady=5, sticky='we')
-#            # Guardar la referencia del entry en el diccionario
-#            self.resultsEntries[text] = entry
 
-#    def add_labels_and_entries(self, frame, result_labels):
-#        self.resultsEntries = {}
-#        for i, label_text in enumerate(result_labels):
-#            label = ctk.CTkLabel(frame, text=label_text)
-#            label.grid(row=i+1, column=0, padx=5, pady=5, sticky='w')
-#            entry = ctk.CTkEntry(frame)
-#            entry.grid(row=i+1, column=1, padx=5, pady=5, sticky='we')
-#            self.resultsEntries[label_text] = entry
 
     def add_labels_and_entries(self, frame, data_list):
         # Limpiar los resultados anteriores
@@ -637,15 +566,7 @@ class NozzleDesingModule:
             self.result_labels.append(label)
             self.result_labels.append(entry)
 
-#    def update_results_entries(self, result_array):
-#        # Actualizar los entries
-#        for i, key in enumerate(self.results_tempLabels):
-#            entry = self.resultsEntries.get(key)
-#            if entry:
-#                entry.delete(0, tk.END)  # Limpiar el contenido actual del entry
-#                value = result_array[0][i]
-#                formatted_value = f"{value:.4e}" if value >= 1e6 else f"{value:.4f}"
-#                entry.insert(0, formatted_value)  # Insertar el nuevo valor formateado
+
 
     def update_results_entries(self, result_array):
         # Actualizar las entradas de resultados dinámicamente
@@ -834,26 +755,7 @@ class NozzleDesingModule:
 
 
 
-#    def update_options(self, selection):
-#        self.selection = selection
-#        # Ocultar todos los widgets actuales
-#        allWidgets = self.TOPN_widgets + self.CONE_widgets
-#        for widget in allWidgets:
-#            widget.grid_forget()
-#
-#         # Mostrar los widgets seleccionados
-#        if selection == "TOPN-BN":
-#            for i, widget in enumerate(self.TOPN_widgets):
-#                row, col = divmod(i, 2)
-#                widget.grid(row=row, column=col, padx=10, pady=5, sticky="nsew")
-#                self.results_tempLabels = self.results_TOPBNLabels
-#        elif selection == "CONE-LN":
-#            for i, widget in enumerate(self.CONE_widgets):
-#                row, col = divmod(i, 2)
-#                widget.grid(row=row, column=col, padx=10, pady=5, sticky="nsew")
-#                self.results_tempLabels = self.results_CONELabels
-#
-#        self.add_labels_and_entries(self.numericResults_frame, self.results_tempLabels)
+
 
     def create_widgets_for_all_nozzle_types(self):
         """Crea los widgets para cada tipo de tobera una sola vez y los almacena."""
@@ -952,43 +854,6 @@ class NozzleDesingModule:
         self.add_labels_and_entries(self.numericResults_frame, result_labels)
 
         
-                
-
-#    def create_TOPN_entries(self):
-#        # Crear entradas específicas para Tubular
-#        self.TOPN_entries = []
-#        self.TOPN_labels = [
-#            "K (Factor Garganta):",
-#            "theta_t (deg):",
-#            "theta_e (deg):",
-#            "% (L. Cono):"
-#        ]
-#
-#        for i, label_text in enumerate(self.TOPN_labels):
-#            label = ctk.CTkLabel(self.nozzleOptions, text=label_text)
-#            label.grid(row=i, column=0, padx=10, pady=5, sticky="nsew")
-#            entry = ctk.CTkEntry(self.nozzleOptions)
-#            entry.grid(row=i, column=1, padx=10, pady=5, sticky="nsew")
-#            self.TOPN_entries.append(entry)
-#            self.TOPN_widgets.append(label)
-#            self.TOPN_widgets.append(entry)
-#
-#    def create_CONE_entries(self):
-#        # Crear entradas específicas para End-Burner
-#        self.CONE_entries = []
-#        self.CONE_labels = [
-#            "K (Factor Garganta):",
-#            "theta_t (deg):",
-#        ]
-#
-#        for i, label_text in enumerate(self.CONE_labels):
-#            label = ctk.CTkLabel(self.nozzleOptions, text=label_text)
-#            label.grid(row=i, column=0, padx=10, pady=5, sticky="nsew")
-#            entry = ctk.CTkEntry(self.nozzleOptions)
-#            entry.grid(row=i, column=1, padx=10, pady=5, sticky="nsew")
-#            self.CONE_entries.append(entry)
-#            self.CONE_widgets.append(label)
-#            self.CONE_widgets.append(entry)
 
 
 
@@ -1040,7 +905,6 @@ class NozzleDesingModule:
             ax.plot(time_value, pressure_value, 'ro', label=f"{(pressure_value / self.maxP):.3f}")
             ax.legend()
             # Ajustar el aspecto del gráfico para evitar la distorsión
-            #ax.set_aspect('equal')
             # Añadir título y leyenda
         except Exception:
             fig, ax = plt.subplots(figsize=(1, 1))
@@ -1109,7 +973,7 @@ class NozzleDesingModule:
             }
 
             # Suponiendo que self.specInputs es un diccionario
-            #inputs.update(self.specInputs)
+
 
             calculatedResults = {}
             for i, key in enumerate(self.resultsEntries):

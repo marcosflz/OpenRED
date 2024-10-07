@@ -34,15 +34,7 @@ class PropellantDesignModule:
         self.numeric_inputs.grid_rowconfigure(0, weight=1)
         self.numeric_inputs.grid_rowconfigure(1, weight=1)
         self.numeric_inputs.grid_rowconfigure(2, weight=10)
-        #self.numeric_inputs.grid_rowconfigure(3, weight=1)
-        #self.numeric_inputs.grid_rowconfigure(4, weight=1)
-        #self.numeric_inputs.grid_rowconfigure(5, weight=1)
-        #self.numeric_inputs.grid_rowconfigure(6, weight=1)
         self.numeric_inputs.grid_propagate(False)
-
-
-        #self.inputsLabel = ctk.CTkLabel(self.inputs_frame, text="Inputs")
-        #self.inputsLabel.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
         self.get_propellants()
 
@@ -52,7 +44,7 @@ class PropellantDesignModule:
         self.propellant_selector.grid(row=0, column=2, columnspan=2, padx=(5, 10), pady=10, sticky="nsew")
         self.propellant_selector.bind("<Enter>", self.update_propellant_menu)
 
-        #grains = ["Tubular", "End-Burner"]
+
         grains = list(self.grainClasses.keys())
         self.grainGeo_label = ctk.CTkLabel(self.numeric_inputs, text="Geometría del grano")
         self.grainGeo_label.grid(row=1, column=0, columnspan=2, padx=(10, 5), pady=10, sticky="nsew")
@@ -154,60 +146,6 @@ class PropellantDesignModule:
 
         self.preRunFrame.set("Geometría")  # set currently visible tab
 
-
-
-
-        # Crear un Tabview
-        #self.inputImageTabview = ctk.CTkTabview(self.inputs_frame)
-        #self.inputImageTabview.grid(row=0, column=2, rowspan=5, padx=10, pady=10, sticky="nsew")
-
-        # Añadir dos pestañas al Tabview
-        #self.inputImage_frontSection = self.inputImageTabview.add("Sección Frontal")
-        #self.inputImage_profileSection = self.inputImageTabview.add("Sección Lateral")
-
-        #self.inputImageTabview.tab("Sección Frontal").grid_columnconfigure(0, weight=1)
-        #self.inputImageTabview.tab("Sección Frontal").grid_rowconfigure(0, weight=1)
-
-        #self.inputImageTabview.tab("Sección Lateral").grid_columnconfigure(0, weight=1)
-        #self.inputImageTabview.tab("Sección Lateral").grid_rowconfigure(0, weight=1)
-
-
-        # Frame en la primera pestaña
-        #self.inputImageFrame1 = ctk.CTkFrame(self.inputImage_frontSection)
-        #self.inputImageFrame1.grid(row=0, column=0, rowspan=5, padx=10, pady=10, sticky="nsew")
-        #self.inputImageFrame1.grid_propagate(False)
-        #self.inputImageFrame1.configure(fg_color="white")
-#        self.inputImageFrame1.bind("<Button-1>", self.update_plot)
-
-        # Frame en la segunda pestaña
-        #self.inputImageFrame2 = ctk.CTkFrame(self.inputImage_profileSection)
-        #self.inputImageFrame2.grid(row=0, column=0, rowspan=5, padx=10, pady=10, sticky="nsew")
-        #self.inputImageFrame2.grid_propagate(False)
-        #self.inputImageFrame2.configure(fg_color="white")
-#        self.inputImageFrame2.bind("<Button-1>", self.update_plot)
-
-
-        #self.inputImageFrame = ctk.CTkFrame(self.inputs_frame)
-        #self.inputImageFrame.grid(row=0, column=2, rowspan=5, padx=10, pady=10, sticky="nsew")
-        #self.inputImageFrame.grid_propagate(False)
-        #self.inputImageFrame.configure(fg_color="white")
-        #self.inputImageFrame.bind("<Button-1>", self.update_plot)
-
-        #self.outputs_frame = ctk.CTkTabview(self.content_frame)
-
-        #self.outputs_frame = ctk.CTkFrame(self.content_frame)
-        #self.outputs_frame.grid(row=1, rowspan=2, column=0, padx=10, pady=10, sticky="nsew")
-        #self.outputs_frame.grid_rowconfigure(0, weight=1)
-        #self.outputs_frame.grid_rowconfigure(1, weight=1)
-        #self.outputs_frame.grid_rowconfigure(2, weight=1)
-        #self.outputs_frame.grid_rowconfigure(3, weight=1)
-        #self.outputs_frame.grid_rowconfigure(4, weight=1)
-        #self.outputs_frame.grid_rowconfigure(5, weight=5)
-        #self.outputs_frame.grid_columnconfigure(0, weight=1)
-        #self.outputs_frame.grid_columnconfigure(1, weight=1)
-        #self.outputs_frame.grid_columnconfigure(2, weight=1)
-        #self.outputs_frame.grid_columnconfigure(3, weight=1)
-
         self.outputs_frame = ctk.CTkTabview(self.content_frame)
         self.outputs_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
         self.outputs_frame.grid_propagate(False)
@@ -259,16 +197,6 @@ class PropellantDesignModule:
         self.treeData_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
         self.treeData_frame.grid_columnconfigure(0, weight=1)
         self.treeData_frame.grid_rowconfigure(0, weight=1)
-        #self.outputs_numeric.grid_rowconfigure(0, weight=1)
-        #self.outputs_numeric.grid_rowconfigure(1, weight=1)
-        #self.outputs_numeric.grid_rowconfigure(2, weight=1)
-        #self.outputs_numeric.grid_rowconfigure(3, weight=1)
-        #self.outputs_numeric.grid_rowconfigure(4, weight=20)
-        #self.outputs_numeric.grid_columnconfigure(0, weight=1)
-        #self.outputs_numeric.grid_columnconfigure(1, weight=1)
-        #self.outputs_numeric.grid_columnconfigure(3, weight=1)
-        #self.outputs_numeric.grid_columnconfigure(4, weight=1)
-        
 
 
 
@@ -332,24 +260,6 @@ class PropellantDesignModule:
         self.outputs_frame.set("Gráficos")  # set currently visible tab
 
 
-
-
-
-        #self.buttonsFrame = ctk.CTkFrame(self.content_frame, height=5)
-        #self.buttonsFrame.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
-        #self.buttonsFrame.grid_rowconfigure(0, weight=1)  # Ensure buttons frame rows and columns expand correctly
-        #self.buttonsFrame.grid_columnconfigure(0, weight=1)
-        #self.buttonsFrame.grid_columnconfigure(1, weight=1)
-        #self.buttonsFrame.grid_columnconfigure(2, weight=1)
-        #self.buttonsFrame.grid_propagate(False)
-
-        #self.calcButton = ctk.CTkButton(self.buttonsFrame, text="Calcular combustión")#, command=self.calculate_n_show)
-        #self.calcButton.grid(row=0, column=1, columnspan=2, padx=10, pady=10, sticky="nsew")
-
-        #self.exportDataButton = ctk.CTkButton(self.buttonsFrame, text="Exportar Resultados", command=self.export_results)
-        #self.exportDataButton.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-
-
         self.specInputs_entries = {}
         self.create_widgets_for_all_grain_types()
 
@@ -357,18 +267,6 @@ class PropellantDesignModule:
         self.update_options(self.selection)
 
 
-
-#        self.tubular_widgets = []
-#        self.end_burner_widgets = []
-#        self.selection = 'Tubular'  # Initialize selection
-#
-#        self.create_tubular_entries()
-#        self.create_end_burner_entries()
-#
-#    
-#        self.update_entries("Tubular")
-
-        
         
     def create_widgets_for_all_grain_types(self):
         """Crea los widgets para cada tipo de tobera una sola vez y los almacena."""
@@ -496,82 +394,6 @@ class PropellantDesignModule:
         self.init_specs = {key: self.specInputs[key] for key in list(self.selected_grain_config.get_input_labels().values()) if key in self.specInputs}
 
 
-
-#    def calculate_n_show(self):
-#        self.get_inputs()
-#        grainConfigClass = self.selected_grain_config(self.init_specs, self.specInputs["R2"], self.specInputs["dh"])
-#        init_geo =  grainConfigClass.getPhi()
-#        
-#        simulation = PropellantRegresionLSM(
-#            textbox=0, 
-#            dt=self.specInputs["dt"], 
-#            dh=self.specInputs["dh"], 
-#            maxIters=self.specInputs["It"], 
-#            phi0=init_geo, 
-#            init_data=self.specInputs, 
-#            workingPrecision=8, 
-#            image_resolution=30
-#            )
-#        
-#        results = simulation.run(self.console_box)
-#        insert_fig(simulation.result_figure(), self.regression_frame)
-#        self.preRunFrame.set("Regresión")  # set currently visible tab
-#
-#        self.meanPressure_entry.configure(state='normal')  # Cambiar a estado 'normal'
-#        self.meanPressure_entry.delete(0, tk.END)  # Borrar el contenido actual
-#        self.meanPressure_entry.insert(0, np.mean(results["P1"][1:]))  # Insertar el nuevo valor
-#        self.meanPressure_entry.configure(state='readonly')  # Volver a 'readonly'
-#
-#        self.maxPressure_entry.configure(state='normal')  # Cambiar a estado 'normal'
-#        self.maxPressure_entry.delete(0, tk.END)  # Borrar el contenido actual
-#        self.maxPressure_entry.insert(0, np.max(results["P1"][1:]))  # Insertar el nuevo valor
-#        self.maxPressure_entry.configure(state='readonly')  # Volver a 'readonly'
-#
-#        self.minPressure_entry.configure(state='normal')  # Cambiar a estado 'normal'
-#        self.minPressure_entry.delete(0, tk.END)  # Borrar el contenido actual
-#        self.minPressure_entry.insert(0, np.min(results["P1"][1:]))  # Insertar el nuevo valor
-#        self.minPressure_entry.configure(state='readonly')  # Volver a 'readonly'
-#
-#        self.totalTime_entry.configure(state='normal')  # Cambiar a estado 'normal'
-#        self.totalTime_entry.delete(0, tk.END)  # Borrar el contenido actual
-#        self.totalTime_entry.insert(0, results["TIME"][-1])  # Insertar el nuevo valor
-#        self.totalTime_entry.configure(state='readonly')  # Volver a 'readonly'
-#
-#        self.meanMassFlow_entry.configure(state='normal')  # Cambiar a estado 'normal'
-#        self.meanMassFlow_entry.delete(0, tk.END)  # Borrar el contenido actual
-#        self.meanMassFlow_entry.insert(0, np.mean(results["GP"][1:]))  # Insertar el nuevo valor
-#        self.meanMassFlow_entry.configure(state='readonly')  # Volver a 'readonly'
-#
-#        self.maxMassFlow_entry.configure(state='normal')  # Cambiar a estado 'normal'
-#        self.maxMassFlow_entry.delete(0, tk.END)  # Borrar el contenido actual
-#        self.maxMassFlow_entry.insert(0, np.max(results["GP"][1:]))  # Insertar el nuevo valor
-#        self.maxMassFlow_entry.configure(state='readonly')  # Volver a 'readonly'
-#
-#        self.minMassFlow_entry.configure(state='normal')  # Cambiar a estado 'normal'
-#        self.minMassFlow_entry.delete(0, tk.END)  # Borrar el contenido actual
-#        self.minMassFlow_entry.insert(0, np.min(results["GP"][1:]))  # Insertar el nuevo valor
-#        self.minMassFlow_entry.configure(state='readonly')  # Volver a 'readonly'
-#
-#        self.totalMass_entry.configure(state='normal')  # Cambiar a estado 'normal'
-#        self.totalMass_entry.delete(0, tk.END)  # Borrar el contenido actual
-#        self.totalMass_entry.insert(0, results["MP"][0])  # Insertar el nuevo valor
-#        self.totalMass_entry.configure(state='readonly')  # Volver a 'readonly'
-#
-#        # Limpiar Treeview
-#        for row in self.tree.get_children():
-#            self.tree.delete(row)
-#        # Insertar nuevos datos en el Treeview
-#        tree_data = [results["TIME"][1:], results["P1"][1:], results["GP"][1:], results["MP"][1:]]
-#        decimal_places = len(str(self.specInputs["dt"]).split('.')[-1])
-#        for i in range(len(tree_data[0])):  # Asumiendo que todos los vectores tienen la misma longitud
-#            # Formatear el tiempo con el número de decimales adecuado
-#            formatted_time = f"{tree_data[0][i]:.{decimal_places}f}"
-#            row_data = [formatted_time] + [col[i] for col in tree_data[1:]]  # Crear una fila con elementos de cada vector en la misma posición
-#            self.tree.insert("", "end", values=row_data)
-#
-#        insert_fig(simulation.plot_pressure(), self.pressureFrame)
-#        insert_fig(simulation.plot_massFlow(), self.massFlowFrame)
-#        insert_fig(simulation.plot_massBurn(), self.massTimeFrame)
 
     def calculate_n_show(self):
         # Obtener los inputs

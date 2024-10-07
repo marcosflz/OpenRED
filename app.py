@@ -473,23 +473,23 @@ def main():
 
     # File menu with options to open, save, and exit
     file_menu = tk.Menu(menu, tearoff=0)
-    menu.add_cascade(label="Archivo", menu=file_menu)
-    file_menu.add_command(label="Abrir", command=open_directory)
-    file_menu.add_command(label="Guardar", command=save_configuration)
+    menu.add_cascade(label="File", menu=file_menu)
+    file_menu.add_command(label="Open", command=open_directory)
+    file_menu.add_command(label="Save", command=save_configuration)
     file_menu.add_separator()
-    file_menu.add_command(label="Salir", command=on_closing)
+    file_menu.add_command(label="Exit", command=on_closing)
 
     # Preferences menu for theme settings
     preferences_menu = tk.Menu(menu, tearoff=0)
-    menu.add_cascade(label="Preferencias", menu=preferences_menu)
-    preferences_menu.add_command(label="Modo Oscuro", command=lambda: ctk.set_appearance_mode("dark"))
-    preferences_menu.add_command(label="Modo Claro", command=lambda: ctk.set_appearance_mode("light"))
+    menu.add_cascade(label="Preferences", menu=preferences_menu)
+    preferences_menu.add_command(label="Dark Mode", command=lambda: ctk.set_appearance_mode("dark"))
+    preferences_menu.add_command(label="Light Mode", command=lambda: ctk.set_appearance_mode("light"))
 
     # Database menu for accessing thermochemical and propellant databases
     database_menu = tk.Menu(menu, tearoff=0)
-    menu.add_cascade(label="Base de Datos", menu=database_menu)
-    database_menu.add_command(label="Termoquímica", command=lambda: TermoquimicaWindow(main_frame))
-    database_menu.add_command(label="Propelentes", command=lambda: PropellantWindow(main_frame))
+    menu.add_cascade(label="Database", menu=database_menu)
+    database_menu.add_command(label="Thermochemical Data", command=lambda: TermoquimicaWindow(main_frame))
+    database_menu.add_command(label="Propellants Data", command=lambda: PropellantWindow(main_frame))
 
     # Create a left panel for navigation buttons (tabs)
     tabs_frame = ctk.CTkFrame(main_frame)

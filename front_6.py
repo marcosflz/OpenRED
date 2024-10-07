@@ -669,39 +669,6 @@ class TestingBedModule:
 
 
 
-#    def on_textbox_change(self, event):
-#        """Callback que se ejecuta cuando se modifica el contenido del CTkTextbox."""
-#        # Obtener la última línea del CTkTextbox
-#        last_line = self.serial_monitor_text.get("end-2l", "end-1c").strip()
-#
-#        # Verificar si la grabación está habilitada y procesar la última línea
-#        if self.serialRecording and last_line != self.last_processed_line:
-#            result = getSerialValues(last_line)
-#            if result:
-#                # Convertir el resultado a una tupla para comparar fácilmente
-#                record_tuple = tuple(result)
-#                
-#                # Convertir la tupla en un array numpy
-#                record_array = np.array(record_tuple).reshape(1, 3)
-#
-#                # Verificar si el registro no está ya en el array
-#                if not any(np.all(record_array == row) for row in self.records):
-#                    # Append el nuevo registro al array de numpy
-#                    self.records = np.vstack([self.records, record_array])
-#
-#                    # Guardar el nuevo registro en el archivo CSV
-#                    self.save_record_to_csv(record_tuple)
-#
-#                    # Actualizar los gráficos
-#                    self.update_Thrust_plot()
-#                    self.update_Temp_plot()
-#                    self.update_Gauge_plot()
-#
-#                # Actualizar la última línea procesada
-#                self.last_processed_line = last_line
-#
-#        # Restablecer el estado modificado del TextBox para futuras detecciones
-#        self.serial_monitor_text.edit_modified(False)
 
     def save_record_to_csv(self, record_tuple):
         """Guarda un registro individual en el archivo CSV."""
