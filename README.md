@@ -1,86 +1,76 @@
-# Source
+OpenRED - Rocketry Engine Designer
+==========
+![Logo](openred.jpg)
 
-![Project Logo](https://example.com/logo.png) <!-- Puedes agregar un logo si tienes uno -->
+Overview
+--------
 
-## Descripción
+OpenRED is an open-source software designed to assist in the design of rocket engines for college rocketry teams. The software features various modules that enable a concurrent workflow in developing different engine and nozzle prototypes. From the chemical definition of the propellant to testing and data post-processing, OpenRED guides users through the logical design process of a solid propellant rocket engine.
 
-`Source` es un proyecto desarrollado para [aquí puedes añadir una breve descripción del propósito del proyecto]. Este repositorio contiene el código fuente necesario para [descripción más detallada de las funcionalidades principales].
+Current Features:
+* Definition of any propellant through its chemical reaction and adiabatic flame temperature calculation.
+* Data bases for chemical components and propellants.
+* Engine desing module with LSM (Level-Set Method) for burning regression calculation. Users can make their own grain geometry module and edit existing ones.
+* Nozzle desing module which takes the designed engines as startpoint to draw the contours. Users can make their own nozzle solvers (limited to conventional bell shaped nozzles - aerospike soon).
+* CAD Design Module that lets the user export a csv file which can be imported through Sketcher to Fusion360 to get a sketch of the engine and the propellant casting tools.
+* Testing Module configured with WiFi ESP-32 modules that controls and receives data from a testing bench.
 
-## Características
+Planned Features:
+* Easy OpenFoam folder manager configurator for CFD simulations.
+* Post-Processing tools for each type of generated results file.
+* IA predictor of testing bed propulsive results from analytic desing.
 
-- **Funcionalidad 1**: Descripción breve de la funcionalidad 1.
-- **Funcionalidad 2**: Descripción breve de la funcionalidad 2.
-- **Funcionalidad 3**: Descripción breve de la funcionalidad 3.
 
-## Requisitos
+The calculations involved were sourced from Rocket Propulsion Elements by George Sutton and from [Richard Nakka's website](https://www.nakka-rocketry.net/rtheory.html) among many other sources.
 
-Asegúrate de tener los siguientes requisitos antes de comenzar:
+![Screenshot](show_pic.png)
 
-- Python 3.x
-- Dependencias listadas en `requirements.txt`
+Download
+-------
+You can download the latest version for your system [here](https://github.com/reilleya/openMotor/releases/latest). From there, just unzip the file and run it. Alternatively, you can run it from source code to get the latest features. 
 
-Para instalar las dependencias, ejecuta:
-```bash
-pip install -r requirements.txt
+Building from Source
+--------------------
+The program is currently being developed using python 3.10. The dependencies are outlined in `requirements.txt`, the main ones include `PyQt6`, `matplot`, `numpy`, `scipy`, `scikit-fmm`, and `scikit-image`. Because the PyQt6 bindings are used for the GUI, Qt6 must also be installed.
+
+The easiest way to build/run from source code is to clone the repository and install the required dependencies into a virtual enviornment:
 ```
-
-## Uso
-
-Para ejecutar el proyecto, sigue estos pasos:
-
-1. Clona el repositorio:
-    ```bash
-    git clone https://github.com/marcosflz/source.git
-    ```
-2. Navega al directorio del proyecto:
-    ```bash
-    cd source
-    ```
-3. Ejecuta la aplicación:
-    ```bash
-    python app.py
-    ```
-
-## Estructura del Proyecto
-
-El proyecto tiene la siguiente estructura de directorios:
-
-```plaintext
-source/
-│
-├── app.py                # Archivo principal de la aplicación
-├── back_0.py             # Código backend
-├── front_0.py            # Código frontend parte 0
-├── front_1.py            # Código frontend parte 1
-├── front_2.py            # Código frontend parte 2
-├── front_3.py            # Código frontend parte 3
-├── functions.py          # Funciones auxiliares
-├── imports.py            # Importaciones necesarias
-├── database.db           # Base de datos
-├── tests.ipynb           # Pruebas en Jupyter Notebook
-├── requirements.txt      # Archivo de dependencias
-├── legacy/               # Código legado
-└── workingDirectory/     # Directorio de trabajo
+$ git clone https://github.com/reilleya/openMotor
+$ cd openMotor
+$ python3 -m venv .venv
+$ source .venv/bin/activate
+$ pip install -r requirements.txt
 ```
+If you are using a version of python that does not have a prebuilt version of one of the dependencies, the `pip` command above might fail with an error like:
+```
+Failed building wheel for scikit-fmm
+skfmm/fmm.cpp:4:10: fatal error: Python.h: No such file or directory
+```
+The fix is to install `python3-dev` or the equivalent with your system package manager.
 
-## Contribuciones
+#### UI Files:
+openMotor uses Qt Designer to lay out the GUI, which generates `.ui` files describing the user interface. 
+We use `pyuic5` to compile these files into Python source code which is then included in the program as ordinary source code.
 
-¡Las contribuciones son bienvenidas! Si deseas contribuir, sigue estos pasos:
+Because these autogenerated files are not committed to the source tree, you must build them by running:
+```
+$ python setup.py build_ui
+```
+Note that if you make changes to the UI using the `.ui` forms, you must re-build using the same command.
 
-1. Haz un fork del proyecto.
-2. Crea una nueva rama (`git checkout -b feature/nueva-funcionalidad`).
-3. Realiza tus cambios y haz commit (`git commit -am 'Añadir nueva funcionalidad'`).
-4. Sube tu rama (`git push origin feature/nueva-funcionalidad`).
-5. Abre un Pull Request.
+Once everything is set up, you can start openMotor by running: `python main.py`
+###### Note: On some systems, Python 2 and 3 are installed simultaneously, so you may have to specify which version to run when creating the venv. After the venv has been activated, the programs `python` and `pip` are aliased to the python runtime specific for your venv, so use those (instead of `pip3` and `python3`, on e.g. Debian Linux)
 
-## Licencia
+Data Files
+-----------
+openMotor uses [YAML](https://en.wikipedia.org/wiki/YAML) for data storage. Motor files have the extension `.ric` to differentiate them, but internally they are YAML and can be edited in a text editor if desired. The recommended MIME type for these files is `application/vnd.openmotor+yaml`.
 
-Este proyecto está bajo la Licencia MIT. Mira el archivo [LICENSE](LICENSE) para más detalles.
+The remaining user information, like propellant data and preferences, is stored in plain YAML files in `<AppData>\Local\openMotor` on Windows, `/Users/<username>/Library/Application Support/openMotor` on Mac OS, and `/home/<username>/.local/share/openMotor` on Linux.
 
-## Contacto
+License
+-------
+openMotor is released under the GNU GPL v3 license. The source code is distributed so you can build cool stuff with it, and so you don't have to trust the calculations are being done correctly. Check for yourself (and file an issue ticket!) if you doubt the results.
 
-Para más información o preguntas, puedes contactarme en [tu-email@example.com].
-
----
-
-¿Te gustaría añadir o modificar alguna sección específica en este README?
+Contributing
+------------
+As openMotor is open source, one of the goals of the project is to have as many eyes on the code as possible. I believe this is the best way to avoid bugs and also the easiest way to get new features added to the software. If you have ideas on how to improve the program or find an error, please open an issue ticket for discussion or file a pull request if possible.

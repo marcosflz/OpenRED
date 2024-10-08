@@ -1,8 +1,8 @@
 from imports import *
 from functions import *
 
-from back_0 import *
-from back_1 import *
+from back_modules.back_0 import *
+from back_modules.back_1 import *
 
 
 class PropellantWindow:

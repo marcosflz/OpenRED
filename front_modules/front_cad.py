@@ -1,7 +1,7 @@
 from imports import *
 from functions import *
 
-from back_2 import *
+from back_modules.back_2 import *
 
 class EngineCADModule:
     def __init__(self, content_frame):

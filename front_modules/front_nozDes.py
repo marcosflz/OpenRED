@@ -12,7 +12,7 @@ class NozzleDesingModule:
         self.content_frame.grid_columnconfigure(0, weight=1)
         self.content_frame.grid_columnconfigure(1, weight=2)
 
-        self.nozzleClasses = importLibraries(lib='NozzleLibrary')
+        self.nozzleClasses = importLibraries(lib='back_modules/NozzleLibrary')
 
         self.image_label = None
         self.updateIteration = 0

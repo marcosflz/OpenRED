@@ -1,7 +1,7 @@
 from imports import *
 from functions import *
 
-from back_1 import *
+from back_modules.back_1 import *
 
 class PropellantDesignModule:
     def __init__(self, content_frame: ctk.CTkFrame, main_frame: ctk.CTkFrame):
@@ -25,7 +25,7 @@ class PropellantDesignModule:
         self.image_label = None  # Initialize the image label (it will be set later)
 
         # Import the GrainLibrary dynamically and assign it to grainClasses
-        self.grainClasses = importLibraries(lib='GrainLibrary')  # Import the GrainLibrary (a custom library)
+        self.grainClasses = importLibraries(lib='back_modules/GrainLibrary')  # Import the GrainLibrary (a custom library)
 
         # Create frames inside content_frame
 

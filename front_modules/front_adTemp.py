@@ -1,7 +1,7 @@
 from imports import *
 from functions import *
 
-from back_0 import *
+from back_modules.back_0 import *
 
 class AdiabaticTempModule:
     def __init__(self, content_frame: ctk.CTkFrame):

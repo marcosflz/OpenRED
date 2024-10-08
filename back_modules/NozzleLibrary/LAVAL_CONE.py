@@ -1,23 +1,21 @@
 from imports import *
 from functions import *
-
-
-class BellNozzle:
-    nozzle_type = "TOPN-BN"
+    
+    
+class ConeNozzle:
+    nozzle_type = "CONE-LN"
 
     @staticmethod
     def get_input_labels():
         return {
-            "K (Factor Garganta)": "TOP-BN_k",
-            "theta_t (deg)": "TOP-BN_theta_t",
-            "theta_e (deg)": "TOP-BN_theta_e",
-            "% (L. Cono)": "TOP-BN_cone_length_percent"
+            "K (Factor Garganta)": "CONE-LN_k",
+            "theta_t (deg)": "CONE-LN_theta_t",
         }
 
     @staticmethod
     def get_result_labels():
         return [
-            "DP. Thrust (kg)", "Med. Thrust (kg)", 
+            "DP. Thrust (kg)1", "Med. Thrust (kg)", 
             "CF (DP.)", "CF (Med.)",
             "Vs (DP.)", "Vs (Med.)",
             "Ts (DP.)", "Ts (Med.)",
@@ -27,6 +25,7 @@ class BellNozzle:
             "Longitud (m)",
             "Rt (m)", "R2 (m)"
         ]
+
 
     def __init__(self, defCheck, P1, n, dt, ENGINE, specInputs):
 
@@ -52,11 +51,10 @@ class BellNozzle:
         else:
             self.G      = self.interpolate_mass_flow(self.P1)
 
-        
         self.P_t = self.normalize_time_data(self.t, self.P_t)[1]
         self.G_t = self.normalize_time_data(self.t, self.G_t)[1]
         self.M_t = self.normalize_time_data(self.t, self.M_t)[1]
-        self.t = self.normalize_time_data(self.t, self.engine_Data["results"]["tree_data"]["Presi\u00f3n (Pa)"])[0]
+        self.t = self.normalize_time_data(self.t, self.engine_Data["results"]["tree_data"]["Pressure (Pa)"])[0]
         
         self.propellant_Data = self.get_propellant_data()
 
@@ -65,39 +63,27 @@ class BellNozzle:
         self.T1 = self.propellant_Data['T_ad']
         self.cChar = self.propellant_Data['cChar']
 
-        self.K2 = specInputs["TOP-BN_k"]
-        self.theta_n = np.deg2rad(specInputs["TOP-BN_theta_t"])
-        self.theta_e = np.deg2rad(specInputs["TOP-BN_theta_e"])
-        self.percL = specInputs["TOP-BN_cone_length_percent"]
-
-
+        self.K2 = specInputs["CONE-LN_k"]
+        self.theta_n = np.deg2rad(specInputs["CONE-LN_theta_t"])
 
         self.M2 = np.sqrt((2 / (self.gamma - 1)) * ((self.P1 / self.P0)**((self.gamma - 1)/self.gamma) - 1))
         self.e  = (1/self.M2) * ((2/(self.gamma + 1))*(1 + ((self.gamma - 1)/2) * self.M2**2))**((self.gamma + 1)/(2*(self.gamma - 1)))
         self.T2 = self.T1 / (1 + ((self.gamma - 1)/2) * self.M2**2)
         self.V2 = self.M2 * np.sqrt(self.gamma * self.R * self.T2)
         self.R2 = self.Rt * np.sqrt(self.e)
-        self.F = self.G * self.V2 * self.f_lambda(self.theta_e)
+        self.F = self.G * self.V2 * self.f_lambda(self.theta_n)
         self.F_kg = self.G * self.V2 / 9.80665
 
         self.A2 = np.pi * self.R2**2
         self.At = np.pi * self.Rt**2
 
-
         self.thList = np.linspace(-np.pi/2, self.theta_n - np.pi/2, int(self.n/2))
         self.throatIndex = np.argmin(np.abs(self.thList + np.pi/2)) + 1
         self.geo_Throat = np.array([self.f_throat(th) for th in self.thList])
 
-        self.Nx, self.Ny = self.f_throat(self.theta_n - np.pi/2)
-        self.Ex, self.Ey = self.percL * ((np.sqrt(self.e) - 1) * self.Rt) / np.tan(self.theta_n/2), np.sqrt(self.e) * self.Rt
-        self.m1, self.m2 = np.tan(self.theta_n), np.tan(self.theta_e)
-        self.C1, self.C2 = self.Ny - self.m1 * self.Nx, self.Ey - self.m2 * self.Ex
-        self.Qx, self.Qy = (self.C2 - self.C1) / (self.m1 - self.m2), (self.C2 * self.m1 - self.C1 * self.m2) / (self.m1 - self.m2)
-
         tList = np.linspace(0, 1, int(self.n/2))
-        self.geo_Bell = np.array([self.f_bell(t) for t in tList])
-        self.geo_Nozzle = np.concatenate((self.geo_Throat, self.geo_Bell))
-
+        self.geo_Cone = np.array([self.f_Cone(t) for t in tList])
+        self.geo_Nozzle = np.concatenate((self.geo_Throat, self.geo_Cone))
 
         self.AR_x = self.geo_Nozzle[:,1]**2 / self.Rt**2
 
@@ -164,7 +150,7 @@ class BellNozzle:
             Ve = Mx[-1] * np.sqrt(self.gamma * self.R * Te)
             thrust = (G * Ve + self.A2 * (Pe - P0)) / 9.80665
 
-            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe, 'F': thrust * self.f_lambda(self.theta_e)}
+            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe, 'F': thrust * self.f_lambda(self.theta_n)}
 
         def inShockOperation(P_Off,P0):
             x = self.geo_Nozzle[self.throatIndex:, 0]
@@ -231,7 +217,7 @@ class BellNozzle:
             Ve = Mx[-1] * np.sqrt(self.gamma * self.R * Te)
             thrust = (G * Ve + self.A2 * (Pe - P0)) / 9.80665
 
-            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe, 'F': thrust * self.f_lambda(self.theta_e)}
+            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe, 'F': thrust * self.f_lambda(self.theta_n)}
 
         def exitShockOperation(P_Off,P0):
             Mx = np.append(self.M_x_Sup, self.M2NS(self.M_x_Sup[-1]))
@@ -249,7 +235,7 @@ class BellNozzle:
             Ve = Mx[-1] * np.sqrt(self.gamma * self.R * Te)
             thrust = (G * Ve + self.A2 * (Pe - P0)) / 9.80665
 
-            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe, 'F': thrust * self.f_lambda(self.theta_e)}
+            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe, 'F': thrust * self.f_lambda(self.theta_n)}
 
         def overExpansionOperation(P_Off,P0):
             Me = self.M2
@@ -264,7 +250,7 @@ class BellNozzle:
             Ve = Mx[-1] * np.sqrt(self.gamma * self.R * Te)
             thrust = (G * Ve + self.A2 * (Pe - P0)) / 9.80665
 
-            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe, 'F': thrust * self.f_lambda(self.theta_e)}
+            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe, 'F': thrust * self.f_lambda(self.theta_n)}
 
         def desingPointOperation(P_Off,P0):
             Pe = P_Off / self.P_ratio(self.M2)
@@ -274,7 +260,7 @@ class BellNozzle:
             Ve = self.M2 * np.sqrt(self.gamma * self.R * Te)
             thrust = (G * Ve ) / 9.80665
 
-            return {'Mach': self.M_x_Sup, 'PR': self.P_ratio(self.M_x_Sup) ** -1, 'x': self.geo_Nozzle[:, 0], 'Pe': Pe, 'F': thrust * self.f_lambda(self.theta_e)}
+            return {'Mach': self.M_x_Sup, 'PR': self.P_ratio(self.M_x_Sup) ** -1, 'x': self.geo_Nozzle[:, 0], 'Pe': Pe, 'F': thrust * self.f_lambda(self.theta_n)}
 
         def underExpOperation(P_Off,P0):
             Me = self.M2
@@ -288,7 +274,7 @@ class BellNozzle:
             Ve = Mx[-1] * np.sqrt(self.gamma * self.R * Te)
             thrust = (G * Ve + self.A2 * (Pe - P0)) / 9.80665
 
-            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe, 'F': thrust * self.f_lambda(self.theta_e)}
+            return {'Mach': Mx, 'PR': Px, 'x': xNozzle, 'Pe': Pe, 'F': thrust * self.f_lambda(self.theta_n)}
 
         if P_Off <= P1_CH:
             return subSonicOperation(P_Off,P0)
@@ -306,18 +292,33 @@ class BellNozzle:
             return underExpOperation(P_Off,P0)
         
         
-    def f_lambda(self, theta_e):
-        return 0.5 * (1 + np.cos(theta_e))
+
     
     def f_throat(self, th):
         x = self.K2 * self.Rt * np.cos(th)
         y = self.K2 * self.Rt * np.sin(th) + self.K2 * self.Rt + self.Rt
         return x,y
     
-    def f_bell(self, t):
-        x = (1 - t)**2 * self.Nx + 2 * (1 - t) * t * self.Qx + t**2 * self.Ex
-        y = (1 - t)**2 * self.Ny + 2 * (1 - t) * t * self.Qy + t**2 * self.Ey
-        return x,y
+    def f_Cone(self, t):
+        # Valores finales e iniciales de la recta
+        y1 = self.geo_Throat[-1, 1]  # y1: valor inicial en el eje Y
+        x1 = self.geo_Throat[-1, 0]  # x1: valor inicial en el eje X
+        ye = self.R2  # ye: valor final en el eje Y
+        Dx = (ye - y1) / np.tan(self.theta_n) # Diferencia en el eje Y
+        xe = x1 + Dx  # xe: valor final en el eje X
+
+        # Calcular valores intermedios usando la interpolación lineal
+        x = x1 + t * (xe - x1)  # Interpolación en el eje X
+        y = y1 + t * (ye - y1)  # Interpolación en el eje Y
+
+        # Devolver los valores interpolados
+        return x, y
+    
+
+
+    def f_lambda(self, theta_e):
+        return 0.5 * (1 + np.cos(theta_e))
+
     
     def f_AR(self, M, AR):
         return (1 / M) * ((2/(self.gamma + 1)) * (1 + ((self.gamma - 1)/2) * M**2))**((self.gamma + 1)/(2*(self.gamma - 1))) - AR
@@ -450,16 +451,8 @@ class BellNozzle:
         ax.set_title('Pressure Ratio Distribution Along the Nozzle')
         ax.grid(True, which='both', linestyle='--', color='gray', linewidth=0.5)
         return fig
-    
 
-
-    def normalize_time_data(self, time, data):
-        if self.dt == 0:
-            return time, data  
-        new_time = np.arange(time[0], time[-1], self.dt)
-        new_data = np.interp(new_time, time, data)
-        return new_time, new_data
-
+        
 
     def run_step(self, current_step):
         i = current_step
@@ -476,8 +469,16 @@ class BellNozzle:
         F1 = self.G_t[i] * self.V2_t[i]
         F2 = self.A2 * (self.P2_t[i] - P0)
 
-        self.F_t[i] = (F1 + F2) * self.f_lambda(self.theta_e)
+        self.F_t[i] = (F1 + F2) * self.f_lambda(self.theta_n)
         self.CF_t[i] = self.F_t[i] / (self.At * P_Off)
+
+
+    def normalize_time_data(self, time, data):
+        if self.dt == 0:
+            return time, data  
+        new_time = np.arange(time[0], time[-1], self.dt)
+        new_data = np.interp(new_time, time, data)
+        return new_time, new_data
 
 
     def calculated_results(self):
@@ -569,4 +570,3 @@ class BellNozzle:
         ax.set_title('Pressure Ratio Distribution Along the Nozzle')
         ax.grid(True, which='both', linestyle='--', color='gray', linewidth=0.5)
         return fig
-    

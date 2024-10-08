@@ -2,16 +2,16 @@ from imports import *
 from functions import *
 
 
-from front_doc      import *
-from front_adTemp   import *
-from front_chemWin  import *
-from front_propWin  import *
-from front_propDes  import *
-from front_nozDes   import *
-from front_cad      import *
-from front_cfd      import *
-from front_test     import *
-from front_post      import *
+from front_modules.front_doc      import *
+from front_modules.front_adTemp   import *
+from front_modules.front_chemWin  import *
+from front_modules.front_propWin  import *
+from front_modules.front_propDes  import *
+from front_modules.front_nozDes   import *
+from front_modules.front_cad      import *
+from front_modules.front_cfd      import *
+from front_modules.front_test     import *
+from front_modules.front_post      import *
 
 
 
@@ -491,11 +491,11 @@ def main():
     file_menu.add_separator()
     file_menu.add_command(label="Exit", command=on_closing)
 
-    ctk.set_default_color_theme("custom_themes/red.json") # Needs Fix
+    ctk.set_default_color_theme("themes/red.json") # Needs Fix
 
     # Create a function to load custom themes
     def load_custom_themes(theme_menu):
-        theme_dir = "custom_themes/"  # Directory containing theme JSON files
+        theme_dir = "themes/"  # Directory containing theme JSON files
         themes = [f for f in os.listdir(theme_dir) if f.endswith('.json')]  # List of theme files
 
         for theme in themes:
