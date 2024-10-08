@@ -4,38 +4,58 @@ from functions import *
 from back_1 import *
 
 class PropellantDesignModule:
-    def __init__(self, content_frame, main_frame):
-        self.main_frame = main_frame
+    def __init__(self, content_frame: ctk.CTkFrame, main_frame: ctk.CTkFrame):
+        """
+        Initializes the Propellant Design Module interface.
 
-        self.content_frame = content_frame
-        self.content_frame.grid_rowconfigure(0, weight=1)
-        self.content_frame.grid_columnconfigure(0, weight=1)
-        self.content_frame.grid_columnconfigure(1, weight=1)
-
-        self.image_label = None
-        self.grainClasses = importLibraries(lib='GrainLibrary')
-
-        # Crear frames dentro de content_frame
-        self.inputs_frame = ctk.CTkFrame(self.content_frame)
-        self.inputs_frame.grid(row=0, rowspan=2, column=0, padx=10, pady=10, sticky="nsew")
-        self.inputs_frame.grid_columnconfigure(0, weight=1)
-        self.inputs_frame.grid_rowconfigure(0, weight=1)
-        self.inputs_frame.grid_rowconfigure(1, weight=1)
-        self.inputs_frame.grid_propagate(False)
+        Args:
+            content_frame (ctk.CTkFrame): The frame where the main content will be placed.
+            main_frame (ctk.CTkFrame): The main frame encompassing all components.
+        """
         
-        # Obtener los propelentes iniciales y configurar el OptionMenu
+        # Store the main frame and content frame
+        self.main_frame = main_frame
+        self.content_frame = content_frame
+        
+        # Configure the grid layout for the content frame
+        self.content_frame.grid_rowconfigure(0, weight=1)  # Configure the first row to expand
+        self.content_frame.grid_columnconfigure(0, weight=1)  # Configure the first column to expand
+        self.content_frame.grid_columnconfigure(1, weight=1)  # Configure the second column to expand
 
+        self.image_label = None  # Initialize the image label (it will be set later)
+
+        # Import the GrainLibrary dynamically and assign it to grainClasses
+        self.grainClasses = importLibraries(lib='GrainLibrary')  # Import the GrainLibrary (a custom library)
+
+        # Create frames inside content_frame
+
+        # Create an input frame to hold user inputs
+        self.inputs_frame = ctk.CTkFrame(self.content_frame)
+        # Place the input frame on the grid, set its position, padding, and stickiness
+        self.inputs_frame.grid(row=0, rowspan=2, column=0, padx=10, pady=10, sticky="nsew")
+        
+        # Configure the layout of the input frame to ensure it adapts to content
+        self.inputs_frame.grid_columnconfigure(0, weight=1)  # Configure the first column to expand
+        self.inputs_frame.grid_rowconfigure(0, weight=1)  # Configure the first row to expand
+        self.inputs_frame.grid_rowconfigure(1, weight=1)  # Configure the second row to expand
+        self.inputs_frame.grid_propagate(False)  # Prevent the frame from resizing based on content
+
+        # Create a subframe to hold numeric inputs
         self.numeric_inputs = ctk.CTkFrame(self.inputs_frame, height=80)
+        # Place the numeric input frame on the grid, set its position, padding, and stickiness
         self.numeric_inputs.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-        self.numeric_inputs.grid_columnconfigure(0, weight=1)
-        self.numeric_inputs.grid_columnconfigure(1, weight=1)
-        self.numeric_inputs.grid_columnconfigure(2, weight=1)
-        self.numeric_inputs.grid_columnconfigure(3, weight=1)
-        self.numeric_inputs.grid_rowconfigure(0, weight=1)
-        self.numeric_inputs.grid_rowconfigure(1, weight=1)
-        self.numeric_inputs.grid_rowconfigure(2, weight=10)
-        self.numeric_inputs.grid_propagate(False)
+        
+        # Configure the grid layout for the numeric input frame
+        self.numeric_inputs.grid_columnconfigure(0, weight=1)  # First column expands
+        self.numeric_inputs.grid_columnconfigure(1, weight=1)  # Second column expands
+        self.numeric_inputs.grid_columnconfigure(2, weight=1)  # Third column expands
+        self.numeric_inputs.grid_columnconfigure(3, weight=1)  # Fourth column expands
+        self.numeric_inputs.grid_rowconfigure(0, weight=1)  # First row expands
+        self.numeric_inputs.grid_rowconfigure(1, weight=1)  # Second row expands
+        self.numeric_inputs.grid_rowconfigure(2, weight=10)  # Third row has more weight, so it expands more
+        self.numeric_inputs.grid_propagate(False)  # Prevent resizing based on the content
 
+        # Retrieve the list of propellants and configure the OptionMenu for selection
         self.get_propellants()
 
         self.propellant_label = ctk.CTkLabel(self.numeric_inputs, text="Propelente")

@@ -69,14 +69,14 @@ class PropellantRegresionLSM:
         self.phi = np.zeros((self.maxIters, self.phi_init.shape[0], self.phi_init.shape[1]), dtype=np.float32)  # Level set function over time
 
         # Set initial conditions
-        self.P1[0] = self.P0  # Initial pressure
-        self.r[0] = self.a * self.P0**self.n  # Initial value for parameter r
-        self.phi[0] = self.phi_init  # Initial level set function
-        self.get_area_vol()  # Calculate area and volume
+        self.P1[0] = self.P0                    # Initial pressure
+        self.r[0] = self.a * self.P0**self.n    # Initial value for parameter r
+        self.phi[0] = self.phi_init             # Initial level set function
+        self.get_area_vol()                     # Calculate area and volume
 
         # Calculate initial propellant volume and mass
         self.Vp[0] = np.pi * (self.R2)**2 * self.l_comb - self.Vc[0]  # Initial volume of propellant
-        self.Mp[0] = self.Vp[0] * self.rho_b  # Initial mass of propellant
+        self.Mp[0] = self.Vp[0] * self.rho_b                          # Initial mass of propellant
         
 
     
@@ -307,29 +307,29 @@ class PropellantRegresionLSM:
     def plot_pressure(self):
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.plot(self.time[:self.iterationCount], self.P1[:self.iterationCount])
-        ax.set_title('Pressure vs. Time')  # Updated title
-        ax.set_xlabel('Time')                # Add x-axis label
-        ax.set_ylabel('Pressure')            # Add y-axis label
-        ax.set_aspect('auto')                # Change aspect to auto
+        ax.set_title('Pressure vs. Time')           # Updated title
+        ax.set_xlabel('Time')                       # Add x-axis label
+        ax.set_ylabel('Pressure')                   # Add y-axis label
+        ax.set_aspect('auto')                       # Change aspect to auto
 
         return fig
 
     def plot_massFlow(self):
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.plot(self.time[:self.iterationCount], self.Gp[:self.iterationCount])
-        ax.set_title('Mass Flow vs. Time')    # Updated title
-        ax.set_xlabel('Time')                   # Add x-axis label
-        ax.set_ylabel('Mass Flow')              # Add y-axis label
-        ax.set_aspect('auto')                   # Change aspect to auto
+        ax.set_title('Mass Flow vs. Time')          # Updated title
+        ax.set_xlabel('Time')                       # Add x-axis label
+        ax.set_ylabel('Mass Flow')                  # Add y-axis label
+        ax.set_aspect('auto')                       # Change aspect to auto
 
         return fig
 
     def plot_massBurn(self):
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.plot(self.time[:self.iterationCount], self.Mp[:self.iterationCount])
-        ax.set_title('Mass Burn vs. Time')      # Updated title
-        ax.set_xlabel('Time')                    # Add x-axis label
-        ax.set_ylabel('Mass Burn')               # Add y-axis label
-        ax.set_aspect('auto')                    # Change aspect to auto
+        ax.set_title('Mass Burn vs. Time')          # Updated title
+        ax.set_xlabel('Time')                       # Add x-axis label
+        ax.set_ylabel('Mass Burn')                  # Add y-axis label
+        ax.set_aspect('auto')                       # Change aspect to auto
 
         return fig

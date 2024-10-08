@@ -55,7 +55,7 @@
             "dt": "0.005",
             "dh": "0.0001",
             "ItMax": "10000",
-            "Tubular-Grain_cx_real": "0",
+            "Tubular-Grain_cx_real": "0.005",
             "Tubular-Grain_cy_real": "0",
             "Tubular-Grain_r_in": "0.005"
         },
@@ -89,7 +89,7 @@
             "on_Propellant": 1,
             "on_Engine": 1,
             "on_Cover": 1,
-            "t_factor": "1",
+            "t_factor": "0.5",
             "extra_len": "0.02",
             "cover_len": "0.01",
             "on_CoverCast1": 1,

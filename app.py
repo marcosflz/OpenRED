@@ -1,14 +1,18 @@
 from imports import *
 from functions import *
 
-from front_0 import *
-from front_1 import *
-from front_2 import *
-from front_3 import *
-from front_4 import *
-from front_5 import *
-from front_6 import *
-from front_7 import *
+
+from front_doc      import *
+from front_adTemp   import *
+from front_chemWin  import *
+from front_propWin  import *
+from front_propDes  import *
+from front_nozDes   import *
+from front_cad      import *
+from front_cfd      import *
+from front_test     import *
+from front_post      import *
+
 
 
 
@@ -500,35 +504,44 @@ def main():
     content_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
     # Create content frames for each tab (initializing instances of each module)
-    tabs_content["tab_0"] = ctk.CTkFrame(content_frame)
-    adiabatic_module_instance = AdiabaticTempModule(tabs_content["tab_0"])
+    tabs_content["tab_adTemp"] = ctk.CTkFrame(content_frame)
+    adiabatic_module_instance = AdiabaticTempModule(tabs_content["tab_adTemp"])
 
-    tabs_content["tab_1"] = ctk.CTkFrame(content_frame)
-    engineDesing_module_instance = PropellantDesignModule(tabs_content["tab_1"], main_frame)
+    tabs_content["tab_propDes"] = ctk.CTkFrame(content_frame)
+    engineDesing_module_instance = PropellantDesignModule(tabs_content["tab_propDes"], main_frame)
 
-    tabs_content["tab_2"] = ctk.CTkFrame(content_frame)
-    nozzleDesing_module_instance = NozzleDesingModule(tabs_content["tab_2"])
+    tabs_content["tab_nozDes"] = ctk.CTkFrame(content_frame)
+    nozzleDesing_module_instance = NozzleDesingModule(tabs_content["tab_nozDes"])
 
-    tabs_content["tab_3"] = ctk.CTkFrame(content_frame)
-    EngineCADDesing_module_instance = EngineCADModule(tabs_content["tab_3"])
+    tabs_content["tab_cad"] = ctk.CTkFrame(content_frame)
+    EngineCADDesing_module_instance = EngineCADModule(tabs_content["tab_cad"])
 
-    tabs_content["tab_4"] = ctk.CTkFrame(content_frame)
-    TestingBed_module_instance = TestingBedModule(tabs_content["tab_4"])
+    tabs_content["tab_test"] = ctk.CTkFrame(content_frame)
+    TestingBed_module_instance = TestingBedModule(tabs_content["tab_test"])
 
-    tabs_content["tab_5"] = ctk.CTkFrame(content_frame)
-    CFD_module_instance = CFD_Module(tabs_content["tab_5"])
+    tabs_content["tab_cfd"] = ctk.CTkFrame(content_frame)
+    CFD_module_instance = CFD_Module(tabs_content["tab_cfd"])
+
+    tabs_content["tab_Doc"] = ctk.CTkFrame(content_frame)
+    DocModule_instance = DocModule(tabs_content["tab_Doc"])
+
+    tabs_content["tab_post"] = ctk.CTkFrame(content_frame)
+    PostProcessModule_instance = PostProcessModule(tabs_content["tab_post"])
 
     # Dictionary to store references to tab buttons for color changes
     tab_buttons = {}
 
+
     # Define a list of tab names and their corresponding tags
     tabsList = [
-        ("Adiabatic Flame\n Temperature", "tab_0"),
-        ("Engine Design", "tab_1"),
-        ("Nozzle Design", "tab_2"),
-        ("CAD Design", "tab_3"),
-        ("Test Bed", "tab_4"),
-        ("OpenFOAM Maker", "tab_5")
+        ("Documentation", "tab_Doc"),
+        ("Adiabatic Flame\n Temperature", "tab_adTemp"),
+        ("Engine Design", "tab_propDes"),
+        ("Nozzle Design", "tab_nozDes"),
+        ("CAD Design", "tab_cad"),
+        ("OpenFOAM Maker", "tab_cfd"),
+        ("Test Bed", "tab_test"),
+        ("Post-Processing", "tab_post")
     ]
 
     # Colors for the selected and default tab buttons

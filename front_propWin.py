@@ -147,7 +147,7 @@ class PropellantWindow:
         Returns:
             str: The cleaned component name without the trailing numbers in parentheses.
         """
-        # Elimina números entre paréntesis al final del componente
+        # Remove numbers in parentheses at the end of the component
         return re.sub(r'\(\d+\)$', '', component).strip()
 
 
@@ -158,7 +158,7 @@ class PropellantWindow:
 
         This method is called when the user attempts to close the window.
         """
-        # Restablecer la instancia de clase cuando la ventana se cierra
+        # Reset class instance when window closes
         PropellantWindow.instance = None
         self.window.destroy()
 
@@ -211,21 +211,21 @@ class PropellantWindow:
             *args: Variable length argument list, typically used for 
                 callback functions that may pass additional parameters.
         """
-        # Obtener el componente seleccionado
+        # Get the selected component
         selected_component = self.combobox_var.get()
 
-        # Extraer el ID del componente seleccionado
+        # Extract the ID of the selected component
         self.selected_id = selected_component.split('(')[-1].strip(')')
 
-        # Obtener los valores correspondientes de la base de datos
+        # Get the corresponding values ​​from the database
         self.c.execute("SELECT * FROM propelente WHERE id=?", (self.selected_id,))
         record = self.c.fetchone()
 
         if record:
-            # Rellenar los campos de entrada con los valores correspondientes
+            # Fill the input fields with the corresponding values
             for i, value in enumerate(record):
                 if i < 2:
-                    continue  # Saltar el ID ya que está en el combobox
+                    continue  # Skip the ID as it is in the combobox
                 tag = self.columnTags[i]
                 self.entries[tag].delete(0, tk.END)
                 self.entries[tag].insert(0, value)
@@ -246,7 +246,7 @@ class PropellantWindow:
             bool: True if the component contains at least one letter, 
                 False otherwise.
         """
-        # Verifica que el componente contiene al menos una letra
+        # Check that the component contains at least one letter
         return any(char.isalpha() for char in component)
 
 
@@ -270,7 +270,7 @@ class PropellantWindow:
         component_value = self.get_clean_component_name(component_value)
         
         if not self.validate_component(component_value):
-            messagebox.showerror("Invalid Input", "El componente debe contener al menos una letra.", parent=self.window)
+            messagebox.showerror("Invalid Input", "The component must contain at least one letter.", parent=self.window)
             return
 
         values = (component_value,) + tuple(self.get_entry_value(widget) for widget in self.entries[1:])
@@ -305,18 +305,18 @@ class PropellantWindow:
         component_value = self.get_clean_component_name(component_value)
 
         if not self.validate_component(component_value):
-            messagebox.showerror("Invalid Input", "El componente debe contener al menos una letra.", parent=self.window)
+            messagebox.showerror("Invalid Input", "The component must contain at least one letter.", parent=self.window)
             return
 
-        # Verificar que `self.selected_id` esté definido
+        # Check that `self.selected_id` is defined
         if not hasattr(self, 'selected_id'):
-            messagebox.showerror("Invalid Operation", "Seleccione un componente para editar.", parent=self.window)
+            messagebox.showerror("Invalid Operation", "Select a component to edit.", parent=self.window)
             return
 
-        # Crear la tupla de valores para la actualización
+        # Create the tuple of values ​​for the update
         values = (component_value,) + tuple(self.get_entry_value(self.entries[tag]) for tag in self.columnTags[2:]) + (self.selected_id,)
 
-        # Ejecutar la sentencia de actualización en la base de datos
+        # Execute the update statement on the database
         self.c.execute("""UPDATE propelente SET 
                         Propelente=?, T_ad=?, MolWeight=?, Cp=?, Cv=?, R=?, gamma=?, cChar=?, Density=?, P1_min=?, P1_max=?, a=?, n=?
                         WHERE id=?""", values)
@@ -345,7 +345,7 @@ class PropellantWindow:
         if selected_items:
             for selected in selected_items:
                 item = self.tree.item(selected)
-                record_id = item['values'][0]  # Obtener el ID de la fila seleccionada
+                record_id = item['values'][0]  # Get the ID of the selected row
                 self.c.execute("DELETE FROM propelente WHERE id=?", (record_id,))
             self.conn.commit()
             self.reassign_ids()
@@ -365,16 +365,16 @@ class PropellantWindow:
         Raises:
             sqlite3.Error: If there is an error executing the SQL command.
         """
-        # Obtener todos los registros ordenados por el ID actual
+        # Get all records sorted by the current ID
         self.c.execute("SELECT * FROM propelente ORDER BY id")
         records = self.c.fetchall()
 
-        # Reiniciar el contador de ID
+        # Reset ID counter
         new_id = 1
 
         for record in records:
-            old_id = record[0]  # El ID actual
-            # Actualizar el registro con el nuevo ID
+            old_id = record[0]  # The current ID
+            # Update the record with the new ID
             self.c.execute("""
                 UPDATE propelente 
                 SET id=? 
@@ -399,16 +399,16 @@ class PropellantWindow:
         Raises:
             sqlite3.Error: If there is an error executing the SQL command.
         """
-        # Limpiar el treeview
+        # Clear the treeview
         for row in self.tree.get_children():
             self.tree.delete(row)
 
-        # Insertar datos en el treeview
+        # Insert data into the treeview
         self.c.execute("SELECT * FROM propelente")
         for row in self.c.fetchall():
-            self.tree.insert("", "end", values=row)  # Incluir ID pero no mostrarlo en la interfaz
+            self.tree.insert("", "end", values=row)  # Include ID but do not display it in the interface
 
-        # Actualizar valores del combobox
+        # Update combobox values
         self.combobox.configure(values=self.get_components())
 
 
@@ -440,7 +440,7 @@ class PropellantWindow:
             P1_min = float(self.entries["P1_min"].get())
             P1_max = float(self.entries["P1_max"].get())
         except ValueError:
-            messagebox.showwarning("Aviso", "Por favor, ingrese valores válidos.")
+            messagebox.showwarning("Warning", "Please enter valid values.")
             return
 
         def r(P1, aCoef=a, nCoef=n):
@@ -449,13 +449,13 @@ class PropellantWindow:
         Pvalues = np.linspace(P1_min, P1_max, 1000)
         rValues = r(Pvalues)
 
-        # Crear el gráfico y guardarlo en un buffer
+        # Create the graph and save it to a buffer
         fig, ax = plt.subplots()
         ax.plot(Pvalues, rValues)
         ax.set_xlabel(r'Chamber Pressure $P_1$ ($Pa$)')
         ax.set_ylabel(r'Burning Rate $r$ ($cm/s$)')
         ax.grid(True)
-        ax.set_title(f'Propelente: {name}')
+        ax.set_title(f'Propellant: {name}')
 
         buf = io.BytesIO()
         fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0.1)
@@ -463,17 +463,17 @@ class PropellantWindow:
         buf.seek(0)
         image = Image.open(buf)
 
-        # Crear una nueva ventana para mostrar la imagen
+        # Create a new window to display the image
         plot_window = ctk.CTkToplevel(self.window)
-        plot_window.title("Tasa de Combustión")
+        plot_window.title("Burning Rate")
 
-        # Asegurarse de que la ventana emergente se mantenga en primer plano
+        # Make sure the popup stays in the foreground
         plot_window.transient(self.window)
         plot_window.grab_set()
         plot_window.lift()
 
-        # Mostrar la imagen en la nueva ventana usando CTkImage
+        # Display the image in the new window using CTkImage
         ctk_image = ctk.CTkImage(light_image=image, dark_image=image, size=image.size)
         img_label = ctk.CTkLabel(plot_window, text='', image=ctk_image)
-        img_label.image = ctk_image  # Mantener una referencia a la imagen
+        img_label.image = ctk_image  # Keep a reference to the image
         img_label.pack(fill=tk.BOTH, expand=True)
