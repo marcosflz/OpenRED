@@ -675,10 +675,10 @@ class NozzleDesingModule:
                 self.mass       = self.engine_Data["results"]["totalMass"]
                 self.time       = self.engine_Data["results"]["totalTime"]
 
-                self.t          = self.engine_Data["results"]["tree_data"]["Tiempo (s)"]
-                self.P          = self.engine_Data["results"]["tree_data"]["Presi\u00f3n (Pa)"]
-                self.G          = self.engine_Data["results"]["tree_data"]["Flujo M\u00e1sico (kg/s)"]
-                self.M          = self.engine_Data["results"]["tree_data"]["Masa (kg)"]
+                self.t          = self.engine_Data["results"]["tree_data"]["Time (s)"]
+                self.P          = self.engine_Data["results"]["tree_data"]["Pressure (Pa)"]
+                self.G          = self.engine_Data["results"]["tree_data"]["Mass Flow (kg/s)"]
+                self.M          = self.engine_Data["results"]["tree_data"]["Mass (kg)"]
 
                 self.file_path_label.configure(text=self.file_name)
             except Exception as e:

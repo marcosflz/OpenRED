@@ -448,6 +448,7 @@ def on_closing():
         main_frame.quit()
 
 
+
 def main():
 
     global main_frame
@@ -457,16 +458,23 @@ def main():
     global EngineCADDesing_module_instance
     global TestingBed_module_instance
 
+    # Colores
+    selected_color = "#e67e22"  # Reddish orange for selected (similar to the logo)
+    default_color = "#2c3e50"    # Dark grey for default
+
+    
+
     # Initialize the main application window
     main_frame = ctk.CTk()
-    main_frame.iconbitmap("propelx.ico")  # Set window icon
+    main_frame.iconbitmap("icon.ico")  # Set window icon
     main_frame.geometry("1920x1080")      # Set default window size
-    main_frame.title("PropelX OpenWorks")  # Set window title
+    main_frame.title("OpenRED")  # Set window title
 
     # Configure grid for window layout
     main_frame.grid_rowconfigure(0, weight=1)
     main_frame.grid_columnconfigure(1, weight=1)
-
+    
+ 
     # Dictionary to store tab content frames
     tabs_content = {}
     global adiabatic_module_instance
@@ -483,11 +491,35 @@ def main():
     file_menu.add_separator()
     file_menu.add_command(label="Exit", command=on_closing)
 
-    # Preferences menu for theme settings
+    ctk.set_default_color_theme("custom_themes/red.json") # Needs Fix
+
+    # Create a function to load custom themes
+    def load_custom_themes(theme_menu):
+        theme_dir = "custom_themes/"  # Directory containing theme JSON files
+        themes = [f for f in os.listdir(theme_dir) if f.endswith('.json')]  # List of theme files
+
+        for theme in themes:
+            theme_menu.add_command(
+                label=theme[:-5],  # Remove '.json' from the display name
+                command=lambda t=theme: ctk.set_default_color_theme(os.path.join(theme_dir, t)) 
+                )
+
+    # Create the preferences menu for theme settings
     preferences_menu = tk.Menu(menu, tearoff=0)
     menu.add_cascade(label="Preferences", menu=preferences_menu)
-    preferences_menu.add_command(label="Dark Mode", command=lambda: ctk.set_appearance_mode("dark"))
-    preferences_menu.add_command(label="Light Mode", command=lambda: ctk.set_appearance_mode("light"))
+
+    # Create a submenu for Modes
+    modes_menu = tk.Menu(preferences_menu, tearoff=0)
+    preferences_menu.add_cascade(label="Modes", menu=modes_menu)
+    modes_menu.add_command(label="Dark Mode", command=lambda: ctk.set_appearance_mode("dark"))
+    modes_menu.add_command(label="Light Mode", command=lambda: ctk.set_appearance_mode("light"))
+
+    # Create a submenu for Themes
+    themes_menu = tk.Menu(preferences_menu, tearoff=0)
+    preferences_menu.add_cascade(label="Themes", menu=themes_menu)
+
+    # Load custom themes into the themes menu
+    load_custom_themes(themes_menu)
 
     # Database menu for accessing thermochemical and propellant databases
     database_menu = tk.Menu(menu, tearoff=0)
@@ -545,16 +577,16 @@ def main():
     ]
 
     # Colors for the selected and default tab buttons
-    selected_color = "#3498db"  # Light blue for selected
-    default_color = "#2c3e50"   # Dark grey for default
+    # selected_color = "#3498db"  # Light blue for selected
+    # default_color = "#2c3e50"   # Dark grey for default
 
     # Function to update button colors when a tab is selected
-    def update_button_colors(selected_tag):
-        for tag, button in tab_buttons.items():
-            if tag == selected_tag:
-                button.configure(fg_color=selected_color)  # Highlight selected button
-            else:
-                button.configure(fg_color=default_color)   # Reset color for unselected buttons
+    #def update_button_colors(selected_tag):
+    #    for tag, button in tab_buttons.items():
+    #        if tag == selected_tag:
+    #            button.configure(fg_color=selected_color)  # Highlight selected button
+    #        else:
+    #            button.configure(fg_color=default_color)   # Reset color for unselected buttons
 
     # Create buttons for each tab in the left panel
     for tab, tag in tabsList:
@@ -567,7 +599,7 @@ def main():
         for tab in tabs_content.values():
             tab.pack_forget()  # Hide all tabs
         tabs_content[tab_name].pack(expand=True, fill="both")  # Show selected tab
-        update_button_colors(tab_name)  # Update button colors
+        #update_button_colors(tab_name)  # Update button colors
 
     # Display the first tab (default) and highlight its button
     change_tab(tabsList[0][1])

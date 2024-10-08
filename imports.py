@@ -12,6 +12,7 @@ from tkinter import filedialog
 from tkinter import messagebox
 from tkinter import simpledialog
 import customtkinter as ctk
+import customtkinter
 
 from PIL import Image, ImageTk, ImageDraw, ImageOps
 
