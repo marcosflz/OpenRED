@@ -27,7 +27,7 @@ The calculations involved were sourced from Rocket Propulsion Elements by George
 
 Download and source
 -------
-You can download the latest version of the installer for your system [here](https://github.com/reilleya/openMotor/releases/latest). The installer is made by inoSetup and the installations follows an easy wizard setup. Alternatively, you can run it from source code by downloading the zip file of the latest update or by git clone.
+You can download the latest version of the installer for your system [here](https://github.com/marcosflz/OpenRED/releases/tag/preview). The installer is made by inoSetup and the installations follows an easy wizard setup. Alternatively, you can run it from source code by downloading the zip file of the latest update or by git clone.
 
 The program is currently being developed using python 3.12.4. The pip dependencies are included in `requirements.txt`. This project consists mainly of `CustomTkinter`, `Tkinter`, `numpy`, `scipy`. Front modules inlude the GUI design with customtkinter logic. The same way Back modules have all the methods implemented to get the results.
 
