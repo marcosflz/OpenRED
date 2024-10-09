@@ -2,7 +2,6 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.optimize import fsolve
 from scipy.optimize import newton
-import sympy as sp
 import math
 from typing import Callable, Union, List, Optional, Tuple, Dict, Type, Any
 

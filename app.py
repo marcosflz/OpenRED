@@ -1,7 +1,6 @@
 from imports import *
 from functions import *
 
-
 from front_modules.front_doc      import *
 from front_modules.front_adTemp   import *
 from front_modules.front_chemWin  import *
@@ -12,9 +11,6 @@ from front_modules.front_cad      import *
 from front_modules.front_cfd      import *
 from front_modules.front_test     import *
 from front_modules.front_post      import *
-
-
-
 
 global main_frame
 global adiabatic_module_instance
@@ -32,7 +28,6 @@ initialize_database()
 closing = False
 working_path = None
 file_path = None
-
 
 
 def open_directory():
@@ -543,7 +538,7 @@ def main():
     engineDesing_module_instance = PropellantDesignModule(tabs_content["tab_propDes"], main_frame)
 
     tabs_content["tab_nozDes"] = ctk.CTkFrame(content_frame)
-    nozzleDesing_module_instance = NozzleDesingModule(tabs_content["tab_nozDes"])
+    nozzleDesing_module_instance = NozzleDesignModule(tabs_content["tab_nozDes"])
 
     tabs_content["tab_cad"] = ctk.CTkFrame(content_frame)
     EngineCADDesing_module_instance = EngineCADModule(tabs_content["tab_cad"])
@@ -575,18 +570,6 @@ def main():
         ("Test Bed", "tab_test"),
         ("Post-Processing", "tab_post")
     ]
-
-    # Colors for the selected and default tab buttons
-    # selected_color = "#3498db"  # Light blue for selected
-    # default_color = "#2c3e50"   # Dark grey for default
-
-    # Function to update button colors when a tab is selected
-    #def update_button_colors(selected_tag):
-    #    for tag, button in tab_buttons.items():
-    #        if tag == selected_tag:
-    #            button.configure(fg_color=selected_color)  # Highlight selected button
-    #        else:
-    #            button.configure(fg_color=default_color)   # Reset color for unselected buttons
 
     # Create buttons for each tab in the left panel
     for tab, tag in tabsList:

@@ -2,6 +2,6 @@ tk
 customtkinter
 Pillow
 matplotlib
-sqlite3
 scipy
 numpy
+pyserial

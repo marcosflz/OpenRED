@@ -71,6 +71,20 @@ src/
 └── icon.ico
 ```
 
+After installation through setup wizard, the OpenRED directory would have this structure.
+
+```plaintext
+install_dir/                   
+├── back_modules/         
+├── front_modules/     
+├── themes/
+├── app.exe
+├── database.db
+├── icon.ico
+├── unins000.dat
+└── unins000.exe
+```
+
 The working directory consists of a folder for each export files of different modules and two `JSON` files for configuration and state-saving as well as for checklist construction for Testing-Module.
 
 ```plaintext
