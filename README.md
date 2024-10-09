@@ -32,7 +32,7 @@ You can download the latest version of the installer for your system [here](http
 The program is currently being developed using python 3.12.4. The pip dependencies are included in `requirements.txt`. This project consists mainly of `CustomTkinter`, `Tkinter`, `numpy`, `scipy`. Front modules inlude the GUI design with customtkinter logic. The same way Back modules have all the methods implemented to get the results.
 
 ```
-$ git clone https://github.com/marcosflz/source.git
+$ git clone https://github.com/marcosflz/OpenRED.git
 ```
 
 Project and Working directory structures
