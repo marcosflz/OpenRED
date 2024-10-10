@@ -12,7 +12,7 @@ Current Features:
 * Data bases for chemical components and propellants.
 * Engine desing module with LSM (Level-Set Method) for burning regression calculation. Users can make their own grain geometry module and edit existing ones.
 * Nozzle desing module which takes the designed engines as startpoint to draw the contours. Users can make their own nozzle solvers (limited to conventional bell shaped nozzles - aerospike soon).
-* CAD Design Module that lets the user export a csv file which can be imported through Sketcher to Fusion360 to get a sketch of the engine and the propellant casting tools.
+* CAD Design Module that lets the user export a csv file which can be imported through [Sketcher to Fusion360](https://github.com/marcosflz/Fusion360-CSV-Sketcher)  to get a sketch of the engine and the propellant casting tools.
 * Testing Module configured with WiFi ESP-32 modules that controls and receives data from a testing bench.
 
 Planned Features:
