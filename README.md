@@ -106,6 +106,6 @@ License and Contributing
 -------
 OpenRED is released under the GNU GPL v3 license. The source code is distributed so any user can update the software and improve it. Any suggestion will be welcome. Take in mind that all calculations have been revised but this process isn´t perfect.
 
-Main Problems
+Known major issues
 --------------
 It is possible to encounter some issues when runing app.exe due to permissions. This can be bypassed by giving full admin permissions to the desktop shortcut or by installing OpenRED in a different directory. This problem arises from `database.db` file which will be deprecated in later versions.
