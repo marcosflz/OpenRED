@@ -1,4 +1,4 @@
-OpenRED - Rocketry Engine Designer
+OpenRED - Rocket Engine Designer
 ==========
 ![Logo](openred.jpg)
 
