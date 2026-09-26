@@ -1,111 +1,117 @@
-OpenRED - Rocket Engine Designer
-==========
-![Logo](openred.jpg)
+# OpenRED — Rocket Engine Designer
 
-Overview
---------
+OpenRED es una aplicación de escritorio de código abierto para el diseño de motores cohete de
+propelente sólido (equipos universitarios). Cubre el flujo completo: definición química del
+propelente, cálculo de la temperatura adiabática de llama, diseño del grano por Level-Set,
+diseño de tobera, generación de croquis CAD para Fusion360 y banco de pruebas con ESP32.
 
-OpenRED is an open-source software designed to assist in the design of rocket engines for college rocketry teams. The software features various modules that enable a concurrent workflow in developing different engine and nozzle prototypes. From the chemical definition of the propellant to testing and data post-processing, OpenRED guides users through the logical design process of a solid propellant rocket engine.
+Este repositorio contiene el **clon nativo de escritorio** (Tauri 2 + React + motor Python
+headless). El código original en Python/CustomTkinter se conserva en `legacy/` como referencia
+de paridad.
 
-Current Features:
-* Definition of any propellant through its chemical reaction and adiabatic flame temperature calculation.
-* Data bases for chemical components and propellants.
-* Engine desing module with LSM (Level-Set Method) for burning regression calculation. Users can make their own grain geometry module and edit existing ones.
-* Nozzle desing module which takes the designed engines as startpoint to draw the contours. Users can make their own nozzle solvers (limited to conventional bell shaped nozzles - aerospike soon).
-* CAD Design Module that lets the user export a csv file which can be imported through [Sketcher to Fusion360](https://github.com/marcosflz/Fusion360-CSV-Sketcher)  to get a sketch of the engine and the propellant casting tools.
-* Testing Module configured with WiFi ESP-32 modules that controls and receives data from a testing bench.
+> **¿Vas a añadir o modificar funcionalidad?** Lee `AGENTS.md`: flujo de trabajo, reglas de
+> contrato y paridad, comandos de verificación y trampas conocidas.
 
-Planned Features:
-* Easy OpenFoam folder manager configurator for CFD simulations.
-* Post-Processing tools for each type of generated results file.
-* IA predictor of testing bed propulsive results from analytic desing.
-
-
-The calculations involved were sourced from Rocket Propulsion Elements by George Sutton and from [Richard Nakka's website](https://www.nakka-rocketry.net/rtheory.html) among many other sources.
-
-![Screenshot](show_pic.png)
-
-Download and source
--------
-You can download the latest version of the installer for your system [here](https://github.com/marcosflz/OpenRED/releases/tag/preview). The installer is made by inoSetup and the installations follows an easy wizard setup. Alternatively, you can run it from source code by downloading the zip file of the latest update or by git clone.
-
-The program is currently being developed using python 3.12.4. The pip dependencies are included in `requirements.txt`. This project consists mainly of `CustomTkinter`, `Tkinter`, `numpy`, `scipy`. Front modules inlude the GUI design with customtkinter logic. The same way Back modules have all the methods implemented to get the results.
+## Arquitectura
 
 ```
-$ git clone https://github.com/marcosflz/OpenRED.git
+apps/desktop/src-tauri   Shell Rust/Tauri 2: ventana, supervisor del sidecar, router JSON-RPC,
+                         diálogos, logs, single-instance, updater
+apps/desktop/src         UI React 19 + TypeScript + Vite: 8 módulos, design system, ECharts, KaTeX
+engine/openred_engine    Sidecar Python 3.12 headless (JSON-RPC por stdio):
+                         • modules/back_0|1|2 (termodinámica, Level-Set, CAD) — puerto literal de legacy/
+                         • plugins/GrainLibrary, plugins/NozzleLibrary (contrato nozzle_type)
+                         • services/* (workspace, db, adiabatic, engine, nozzle, cad, testbed)
+                         • matplotlib(Agg)→PNG, pyserial + Transport mock
+contracts/               Contrato IPC congelado (methods.md), JSON Schemas y fixtures dorados
+tools/                   Paridad legacy↔clon, Python portable, empaquetado
+tests/                   Defectos y pruebas clean-machine
+legacy/                  Snapshot de la app original (referencia de paridad, no se despliega)
 ```
 
-Project and Working directory structures
------------
-The latest project structure consists of three main files and subfolders with the rest of modules.
+- **Sin Tcl/Tk**: el runtime Python excluye `tkinter`/`customtkinter`; las figuras se renderizan
+  con matplotlib (backend `Agg`) y viajan como PNG base64.
+- **Datos mutables fuera de la instalación**: `%APPDATA%\OpenRED` (o XDG) para `database.db`,
+  logs y caché. El "working directory" del usuario se elige desde la app y contiene
+  `Engines/ Nozzles/ Sketches/ Tests/ config.json`.
+- **Paridad**: mismos algoritmos, mismas semillas de `fsolve`, mismos formatos de fichero
+  (engine JSON, nozzle JSON, CSV CAD, CSV de tests) y la misma consola del cálculo LSM.
 
-```plaintext
-src/                   
-├── back_modules/      
-│   ├── GrainLibrary   
-│   ├── NozzleLibrary  
-│   ├── __init_.py     
-│   ├── back_0.py      
-│   ├── back_1.py
-│   └── back_2.py     
-├── front_modules/     
-│   ├── GrainLibrary   
-│   ├── NozzleLibrary  
-│   ├── __init_.py        
-│   ├── front_adTemp.py       
-│   ├── front_cad.py
-│   ├── front_cfd.py 
-│   ├── front_chemWin.py
-│   ├── front_doc.py
-│   ├── front_nozDes.py
-│   ├── front_post.py
-│   ├── front_propDes.py
-│   ├── front_propWin.py
-│   └── front_test.py
-├── themes/
-├── app.py
-├── functions.py
-├── imports.py
-├── database.db
-├── requirements.txt
-└── icon.ico
+## Desarrollo
+
+Requisitos: Rust ≥1.85, Node ≥20, [uv](https://docs.astral.sh/uv/).
+
+```powershell
+# 1) Motor (tests + ejecución)
+cd engine
+uv sync --extra dev
+uv run pytest -q
+uv run python -m openred_engine   # arranca el sidecar (JSON-RPC por stdin/stdout)
+
+# 2) UI (dev en navegador con backend simulado)
+cd apps\desktop
+npm ci
+npx vite                # http://localhost:5173 (mock, sin Rust)
+
+# 3) App completa (Tauri + motor real)
+$env:OPENRED_ENGINE_PYTHON = "$PWD\..\engine\.venv\Scripts\python.exe"
+$env:OPENRED_ENGINE_DIR    = (Resolve-Path "$PWD\..\engine")
+npm run tauri dev
 ```
 
-After installation through setup wizard, the OpenRED directory would have this structure.
+En release el shell usa el runtime empaquetado en `<install>\engine\python\python.exe` (con las
+dependencias dentro del propio runtime); en desarrollo se apuntan `OPENRED_ENGINE_PYTHON` y
+`OPENRED_ENGINE_DIR` al checkout (ver `apps/desktop/src-tauri/README.md`).
 
-```plaintext
-install_dir/                   
-├── back_modules/         
-├── front_modules/     
-├── themes/
-├── app.exe
-├── database.db
-├── icon.ico
-├── unins000.dat
-└── unins000.exe
+## Tests y paridad
+
+```powershell
+# Motor
+cd engine; uv run pytest -q                       # unitarios + golden vs legacy
+# UI
+cd apps\desktop; npx vitest run; npx tsc --noEmit
+# Shell Rust
+cd apps\desktop\src-tauri; cargo test
+# Paridad completa clon ↔ legacy (fixtures dorados)
+python tools/parity/gen_fixtures.py --legacy legacy --out contracts/fixtures --full
+python tools/parity/run_parity.py --full
 ```
 
-The working directory consists of a folder for each export files of different modules and two `JSON` files for configuration and state-saving as well as for checklist construction for Testing-Module.
+Los fixtures (`contracts/fixtures/`) se generan ejecutando el código de `legacy/` y son la
+referencia de las matrices T0–T4 del plan de migración. Toda divergencia debe documentarse en
+`tests/defects/`.
 
-```plaintext
-working_dir/                   
-├── Engines/      
-├── Nozzles/          
-├── Sketches/     
-├── Tests/ 
-├── checklist.json
-└── config.json
-```
+## Empaquetado
 
-Data Files
------------
-OpenRED uses [JSON](https://en.wikipedia.org/wiki/JSON) for every module export file, configuration file and checklist file. At this stage the only exports which are not `JSON` comes from CAD-Module and Testing-Module. There is also a `.db` file for the chemical and propellant data but in the future it will be updated to get a `JSON` based software.
+- `tools/python-portable/fetch_python.ps1` descarga python-build-standalone (tag y SHA-256
+  fijados en `tools/python-portable/python.lock`) e instala `engine/requirements-core.lock` con
+  **uv** dentro del propio runtime (fallback: pip).
+- `tools/packaging/build_engine_bundle.ps1` arma `artifacts/engine-bundle/` (runtime + motor + `engine.lock`).
+- `tools/packaging/build_installer.ps1` produce MSI/NSIS con `tauri build` (el bundle va como
+  `bundle.resources` de Tauri, copiado a `<install>/engine`).
+- Actualizaciones: `tauri-plugin-updater` con manifest firmado (`latest.json`); la clave pública
+  debe generarse en cada release.
 
+## Migrar datos del legacy
 
-License and Contributing
--------
-OpenRED is released under the GNU GPL v3 license. The source code is distributed so any user can update the software and improve it. Any suggestion will be welcome. Take in mind that all calculations have been revised but this process isn´t perfect.
+- `docs/MIGRACION_DATOS.md`: pasa `database.db` y el directorio de trabajo del legacy al clon
+  (`%APPDATA%\OpenRED\database.db` y `Documents\OpenRED`). Las tablas son idénticas, se copian
+  tal cual.
+- `tools/migration/verify_migration.py`: comprueba la migración contra el motor empaquetado
+  (41 comprobaciones: listados, BD, cálculo T2, CAD T3 y persistencia del workdir).
 
-Known major issues
---------------
-It is possible to encounter some issues when runing app.exe due to permissions. This can be bypassed by giving full admin permissions to the desktop shortcut or by installing OpenRED in a different directory. This problem arises from `database.db` file which will be deprecated in later versions.
+## Estado
+
+Implementado y verificado en este repositorio: motor completo (T0–T4) con paridad numérica y de
+ficheros frente a `legacy/`, shell Tauri 2, UI de los 8 módulos, empaquetado del motor portable,
+e **instalador NSIS + portable ZIP construidos y probados sobre la instalación real**
+(`target/release/bundle/nsis/OpenRED_0.1.0_x64-setup.exe`, `artifacts/OpenRED-portable-x64.zip`).
+
+Pendiente de verificación física/hardware: protocolo del banco ESP32 real (probado con transporte
+simulado y replay de CSV), firma Authenticode/Developer ID, y pruebas clean-machine canónicas en
+VM (ver `tests/clean-machine/` y `docs/IMPLEMENTATION_STATUS.md`).
+
+## Licencia
+
+GPL-3.0 (heredada del proyecto original). Las dependencias mantienen sus licencias (PSF, BSD-3,
+HPND, DejaVu); ver `resources/LICENSES/` al empaquetar.
