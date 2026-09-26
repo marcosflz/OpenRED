@@ -1,0 +1,14 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capacidad por defecto de la ventana principal (eventos, ventana, diálogos, updater, opener y app).",
+  "windows": ["main"],
+  "permissions": [
+    "core:app:default",
+    "core:event:default",
+    "core:window:default",
+    "dialog:default",
+    "updater:default",
+    "opener:default"
+  ]
+}

@@ -1,0 +1,307 @@
+/* Layout del shell: menubar + (sidebar 220px | contenido con scroll propio). */
+
+.or-shell {
+  height: 100vh;
+  width: 100vw;
+  display: grid;
+  grid-template-rows: var(--menubar-h) 1fr;
+  overflow: hidden;
+  background: var(--bg-app);
+  color: var(--text);
+}
+
+.or-shell__body {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.or-shell__content {
+  min-width: 0;
+  overflow: auto;
+  padding: var(--space-3);
+}
+
+/* ------------------------------------------------------------------ */
+/* Menubar                                                             */
+/* ------------------------------------------------------------------ */
+
+.or-menubar {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 0 var(--space-2);
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  z-index: 60;
+  user-select: none;
+}
+
+.or-menubar__group {
+  position: relative;
+  display: flex;
+}
+
+.or-menubar__button {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  height: var(--menubar-h);
+  font-size: var(--font-size);
+}
+
+.or-menubar__button:hover,
+.or-menubar__button.is-open {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.or-menubar__button.is-open {
+  color: var(--accent);
+}
+
+/* ------------------------------------------------------------------ */
+/* Desplegables de menú                                                */
+/* ------------------------------------------------------------------ */
+
+.or-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 220px;
+  padding: var(--space-1);
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  z-index: 100;
+}
+
+.or-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  text-align: left;
+  font-size: var(--font-size);
+}
+
+.or-menu__item:hover {
+  background: var(--bg-hover);
+}
+
+.or-menu__item.is-checked {
+  color: var(--accent);
+}
+
+.or-menu__check {
+  width: 14px;
+  flex: 0 0 14px;
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--accent);
+}
+
+.or-menu__label {
+  flex: 1 1 auto;
+  white-space: nowrap;
+}
+
+.or-menu__chevron {
+  color: var(--text-muted);
+}
+
+.or-menu__separator {
+  height: 1px;
+  margin: var(--space-1) var(--space-2);
+  background: var(--border);
+}
+
+.or-menu__sub {
+  position: relative;
+}
+
+.or-menu__subpanel {
+  top: -5px;
+  left: 100%;
+  display: none;
+}
+
+.or-menu__sub:hover > .or-menu__subpanel,
+.or-menu__sub:focus-within > .or-menu__subpanel {
+  display: block;
+}
+
+/* ------------------------------------------------------------------ */
+/* Sidebar                                                             */
+/* ------------------------------------------------------------------ */
+
+.or-sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+}
+
+.or-sidebar__nav {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+}
+
+.or-sidebar__item {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  font-size: var(--font-size);
+  line-height: 1.25;
+  transition: background var(--transition), color var(--transition);
+}
+
+.or-sidebar__item:hover {
+  background: var(--bg-hover);
+}
+
+.or-sidebar__item.is-active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.or-sidebar__footer {
+  border-top: 1px solid var(--border);
+  padding: var(--space-2);
+}
+
+/* ------------------------------------------------------------------ */
+/* Estado del motor                                                    */
+/* ------------------------------------------------------------------ */
+
+.or-status {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "dot text"
+    "path path";
+  gap: 2px var(--space-2);
+  align-items: center;
+}
+
+.or-status__dot {
+  grid-area: dot;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-dim);
+}
+
+.or-status__dot.is-on {
+  background: var(--success);
+  box-shadow: 0 0 6px rgba(76, 175, 125, 0.7);
+}
+
+.or-status__dot.is-off {
+  background: var(--danger);
+}
+
+.or-status__text {
+  grid-area: text;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.or-status__path {
+  grid-area: path;
+  font-size: var(--font-size-xs);
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ------------------------------------------------------------------ */
+/* Placeholder "Soon"                                                  */
+/* ------------------------------------------------------------------ */
+
+.or-soon {
+  height: 100%;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+}
+
+.or-soon__text {
+  font-size: 42px;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+}
+
+.or-soon__caption {
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* ------------------------------------------------------------------ */
+/* About                                                               */
+/* ------------------------------------------------------------------ */
+
+.or-about {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.or-about__logo {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+.or-about__tagline {
+  color: var(--text-muted);
+}
+
+.or-about__meta {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.or-about__meta dt {
+  color: var(--text-muted);
+}
+
+.or-about__meta dd {
+  word-break: break-all;
+}
+
+.or-about__license {
+  font-size: var(--font-size-xs);
+  color: var(--text-dim);
+}
