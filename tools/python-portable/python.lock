@@ -1,0 +1,46 @@
+{
+  "format": 1,
+  "description": "Pinned python-build-standalone runtime for the OpenRED engine bundle. Regenerate with tools/python-portable/refresh_python_lock.ps1 (or .sh) after reviewing the release.",
+  "source": "https://github.com/astral-sh/python-build-standalone",
+  "release_tag": "20260924",
+  "python_version": "3.12.14",
+  "install_only": true,
+  "flavors": {
+    "x86_64-pc-windows-msvc": {
+      "asset": "cpython-3.12.14+20260924-x86_64-pc-windows-msvc-install_only.tar.gz",
+      "sha256": "c5303174bc29f5205decf6721ac549d4eb41c448f9b8c46cbc562d00348865bb",
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260924/cpython-3.12.14%2B20260924-x86_64-pc-windows-msvc-install_only.tar.gz",
+      "extract_dir": "python"
+    },
+    "aarch64-pc-windows-msvc": {
+      "asset": "cpython-3.12.14+20260924-aarch64-pc-windows-msvc-install_only.tar.gz",
+      "sha256": "394b3bf95c45e5b02e02fe9b201e51df11dbff612db5b26406c6db484581317d",
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260924/cpython-3.12.14%2B20260924-aarch64-pc-windows-msvc-install_only.tar.gz",
+      "extract_dir": "python"
+    },
+    "aarch64-apple-darwin": {
+      "asset": "cpython-3.12.14+20260924-aarch64-apple-darwin-install_only.tar.gz",
+      "sha256": "9763f43db2481a6af36af82ec40302aab7a73632f880129d07a6e81aec846277",
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260924/cpython-3.12.14%2B20260924-aarch64-apple-darwin-install_only.tar.gz",
+      "extract_dir": "python"
+    },
+    "x86_64-apple-darwin": {
+      "asset": "cpython-3.12.14+20260924-x86_64-apple-darwin-install_only.tar.gz",
+      "sha256": "0d6a4a299908123f00bc844df737603f047ff9eba14fda6cad83f3cf3cb3a2af",
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260924/cpython-3.12.14%2B20260924-x86_64-apple-darwin-install_only.tar.gz",
+      "extract_dir": "python"
+    },
+    "x86_64-unknown-linux-gnu": {
+      "asset": "cpython-3.12.14+20260924-x86_64-unknown-linux-gnu-install_only.tar.gz",
+      "sha256": "5eae8cf79dd47fc2496a4fccc892936be831ce7a84d984b2299dfb1cdb592682",
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260924/cpython-3.12.14%2B20260924-x86_64-unknown-linux-gnu-install_only.tar.gz",
+      "extract_dir": "python"
+    },
+    "aarch64-unknown-linux-gnu": {
+      "asset": "cpython-3.12.14+20260924-aarch64-unknown-linux-gnu-install_only.tar.gz",
+      "sha256": "c0574c9c9fec561eb192ad510e4e79aaad039929b3531b3bb873e2f630fb14a9",
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260924/cpython-3.12.14%2B20260924-aarch64-unknown-linux-gnu-install_only.tar.gz",
+      "extract_dir": "python"
+    }
+  }
+}

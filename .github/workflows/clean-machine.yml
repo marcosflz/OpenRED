@@ -1,0 +1,102 @@
+name: clean-machine
+
+# Installs the Windows MSI on a runner with Python removed from PATH and runs
+# tests/clean-machine/smoke.ps1 (bundled sidecar only).
+#
+# CANONICAL VALIDATION: a pristine Windows 11 Sandbox / VM image (no Python at all, no
+# developer tools) is the reference environment. A GitHub runner still ships Python in the
+# tool cache and other tooling, so this workflow is a *proxy*: it scrubs Python from PATH and
+# asserts no python.exe outside <install>\engine is used, but it cannot prove the absence of
+# any Python installation. Document the Sandbox run in the release checklist (plan §4.3/§6.5).
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag to download the MSI from ('latest' or e.g. v0.2.0)"
+        required: false
+        default: "latest"
+      build_from_source:
+        description: "Build the MSI from this checkout instead of downloading it"
+        type: boolean
+        required: false
+        default: false
+  schedule:
+    - cron: "43 4 * * 3"
+
+permissions:
+  contents: read
+
+jobs:
+  windows-msi:
+    name: windows MSI smoke
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Canonical validation note
+        shell: pwsh
+        run: |
+          Write-Host "::notice::Canonical clean-machine validation is Windows Sandbox / a pristine VM; this runner is a proxy (see .github/workflows/clean-machine.yml)."
+
+      - name: Download MSI from a release
+        if: ${{ github.event.inputs.build_from_source != 'true' }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          New-Item -ItemType Directory -Force artifacts | Out-Null
+          $tag = "${{ github.event.inputs.release_tag }}"
+          if (-not $tag) { $tag = "latest" }
+          $pattern = "*x64_en-US.msi"
+          try {
+            if ($tag -eq "latest") {
+              gh release download --pattern $pattern --dir artifacts --clobber
+            } else {
+              gh release download $tag --pattern $pattern --dir artifacts --clobber
+            }
+          } catch {
+            Write-Warning "could not download the MSI ($_); building from source instead"
+            "BUILD_FROM_SOURCE=true" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          }
+
+      - name: Build MSI from source
+        if: ${{ github.event.inputs.build_from_source == 'true' || env.BUILD_FROM_SOURCE == 'true' }}
+        shell: pwsh
+        run: |
+          Write-Host "building the MSI and the engine bundle from this checkout"
+          ./tools/python-portable/fetch_python.ps1
+          ./tools/packaging/build_installer.ps1 -Bundles msi
+
+      - name: Scrub Python from PATH
+        shell: pwsh
+        run: |
+          $clean = ($env:PATH -split ';' | Where-Object { $_ -and ($_ -notmatch '(?i)python') }) -join ';'
+          "PATH=$clean" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Get-Command python -ErrorAction SilentlyContinue | ForEach-Object { Write-Warning "python still resolvable: $($_.Source)" }
+
+      - name: Install MSI silently
+        shell: pwsh
+        run: |
+          $msi = Get-ChildItem artifacts -Recurse -Filter *.msi | Select-Object -First 1
+          if (-not $msi) { throw "no MSI found under artifacts/" }
+          Write-Host "installing $($msi.FullName)"
+          $log = Join-Path (Get-Location) "artifacts\msi-install.log"
+          $arguments = @("/i", "`"$($msi.FullName)`"", "/qn", "/norestart", "/l*v", "`"$log`"", "ALLUSERS=2")
+          $process = Start-Process msiexec.exe -ArgumentList $arguments -Wait -PassThru
+          if ($process.ExitCode -ne 0) {
+            Get-Content -LiteralPath $log -Tail 120
+            throw "msiexec failed with exit code $($process.ExitCode)"
+          }
+
+      - name: Run smoke test
+        shell: pwsh
+        run: ./tests/clean-machine/smoke.ps1 -Fixtures contracts/fixtures
+
+      - name: Upload installer log and report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: clean-machine-artifacts
+          path: |
+            artifacts/msi-install.log
+          if-no-files-found: warn

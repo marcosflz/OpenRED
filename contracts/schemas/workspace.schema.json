@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openred.dev/contracts/schemas/workspace.schema.json",
+  "title": "workspace namespace",
+  "description": "Working directory, layout creation and config.json lifecycle (contracts/methods.md section 3.2). config.json is opaque to the engine: stored/loaded verbatim (numeric values are strings, paridad G3). Frozen at M0.",
+  "oneOf": [
+    { "$ref": "#/$defs/workspace_get" },
+    { "$ref": "#/$defs/workspace_set_dir" },
+    { "$ref": "#/$defs/workspace_load_config" },
+    { "$ref": "#/$defs/workspace_save_config" },
+    { "$ref": "#/$defs/workspace_save_config_exists" },
+    { "$ref": "#/$defs/workspace_list" },
+    { "$ref": "#/$defs/workspace_ensure_workdir" }
+  ],
+  "$defs": {
+    "config": {
+      "description": "Opaque config.json payload (claves tabs.tab_0..tab_3, valores numéricos como cadenas).",
+      "type": ["object", "null"]
+    },
+    "fileEntry": {
+      "type": "object",
+      "required": ["name", "size", "mtime"],
+      "properties": {
+        "name": { "type": "string" },
+        "size": { "type": "integer", "minimum": 0 },
+        "mtime": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "workspace_get": {
+      "title": "workspace.get",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "workspace.get" },
+        "params": { "type": "object", "maxProperties": 0 },
+        "result": {
+          "type": "object",
+          "required": ["workdir", "workdirSelected"],
+          "properties": {
+            "workdir": { "type": ["string", "null"] },
+            "workdirSelected": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "workspace_set_dir": {
+      "title": "workspace.set_dir",
+      "description": "Creates Engines/ Nozzles/ Sketches/ Tests/ and loads config.json when present.",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "workspace.set_dir" },
+        "params": {
+          "type": "object",
+          "required": ["path"],
+          "properties": { "path": { "type": "string", "minLength": 1 } },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["workdir", "created", "hasConfig", "config"],
+          "properties": {
+            "workdir": { "type": "string" },
+            "created": { "type": "array", "items": { "type": "string" } },
+            "hasConfig": { "type": "boolean" },
+            "config": { "$ref": "#/$defs/config" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "workspace_load_config": {
+      "title": "workspace.load_config",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "workspace.load_config" },
+        "params": { "type": "object", "maxProperties": 0 },
+        "result": {
+          "type": "object",
+          "required": ["config", "hasConfig"],
+          "properties": {
+            "config": { "$ref": "#/$defs/config" },
+            "hasConfig": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "workspace_save_config": {
+      "title": "workspace.save_config",
+      "description": "Atomic write (tmp+rename). Error 1004 when config.json exists and force != true.",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "workspace.save_config" },
+        "params": {
+          "type": "object",
+          "required": ["config"],
+          "properties": {
+            "config": { "$ref": "#/$defs/config" },
+            "force": { "type": "boolean", "default": false }
+          },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["path"],
+          "properties": { "path": { "type": "string" } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "workspace_save_config_exists": {
+      "title": "workspace.save_config (config.json already exists)",
+      "type": "object",
+      "required": ["method", "params", "error"],
+      "properties": {
+        "method": { "const": "workspace.save_config" },
+        "params": {
+          "type": "object",
+          "required": ["config"],
+          "properties": {
+            "config": { "$ref": "#/$defs/config" },
+            "force": { "type": "boolean", "default": false }
+          },
+          "additionalProperties": false
+        },
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "const": 1004 },
+            "message": { "type": "string" },
+            "detail": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "workspace_list": {
+      "title": "workspace.list",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "workspace.list" },
+        "params": {
+          "type": "object",
+          "required": ["kind"],
+          "properties": {
+            "kind": { "enum": ["Engines", "Nozzles", "Sketches", "Tests"] }
+          },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["files"],
+          "properties": {
+            "files": { "type": "array", "items": { "$ref": "#/$defs/fileEntry" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "workspace_ensure_workdir": {
+      "title": "workspace.ensure_workdir",
+      "description": "Creates the default <Documents>/OpenRED directory when no workdir is selected.",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "workspace.ensure_workdir" },
+        "params": { "type": "object", "maxProperties": 0 },
+        "result": {
+          "type": "object",
+          "required": ["workdir"],
+          "properties": { "workdir": { "type": "string" } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

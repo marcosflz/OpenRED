@@ -1,0 +1,84 @@
+name: parity
+
+# Golden parity: regenerate the fixtures with the real legacy app and compare the
+# openred_engine sidecar against them. Blocking gate for releases (A0/A10).
+on:
+  push:
+    paths:
+      - "legacy/**"
+      - "engine/**"
+      - "contracts/**"
+      - "tools/parity/**"
+      - ".github/workflows/parity.yml"
+  pull_request:
+    paths:
+      - "legacy/**"
+      - "engine/**"
+      - "contracts/**"
+      - "tools/parity/**"
+  workflow_dispatch:
+  schedule:
+    # Weekly drift check against the frozen legacy revision.
+    - cron: "17 4 * * 1"
+
+concurrency:
+  group: parity-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  parity:
+    name: legacy vs sidecar (ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The fixture generator imports the legacy modules, which import tkinter.
+      # No display is needed (no Tk root is created).
+      - name: Install system Tk
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-tk
+
+      - name: Install legacy dependencies (implementation of record)
+        run: |
+          python3 -m pip install --upgrade pip --break-system-packages
+          python3 -m pip install --break-system-packages -r legacy/requirements.txt
+          python3 -m pip install --break-system-packages jsonschema==4.23.0
+          python3 -c "import tkinter, customtkinter, numpy, scipy, matplotlib, serial; print('legacy deps OK')"
+
+      - name: Regenerate fixtures from the legacy app
+        run: python3 tools/parity/gen_fixtures.py --legacy legacy --out contracts/fixtures --full
+
+      - name: Validate schemas and fixtures
+        run: python3 tools/parity/validate_schemas.py
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: engine/uv.lock
+
+      - name: Install engine dependencies
+        working-directory: engine
+        run: uv sync --extra dev
+
+      - name: Run parity harness
+        id: run_parity
+        continue-on-error: true
+        run: uv run --project engine python tools/parity/run_parity.py --report parity-report.json
+
+      - name: Upload fixtures, generated CSVs and parity report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parity-artifacts
+          path: |
+            contracts/fixtures/**
+            parity-report.json
+          if-no-files-found: warn
+
+      - name: Fail when parity is not green
+        if: steps.run_parity.outcome == 'failure'
+        run: |
+          echo "::error::Parity harness reported failures; see the parity-artifacts artifact."
+          exit 1

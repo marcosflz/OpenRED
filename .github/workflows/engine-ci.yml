@@ -1,0 +1,53 @@
+name: engine-ci
+
+on:
+  push:
+    paths:
+      - "engine/**"
+      - "contracts/**"
+      - "tools/parity/**"
+      - ".github/workflows/engine-ci.yml"
+  pull_request:
+    paths:
+      - "engine/**"
+      - "contracts/**"
+      - "tools/parity/**"
+      - ".github/workflows/engine-ci.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: engine-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: engine (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    defaults:
+      run:
+        working-directory: engine
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: engine/uv.lock
+
+      - name: Install dependencies (uv sync --extra dev)
+        run: uv sync --extra dev
+
+      - name: Ruff
+        run: uv run ruff check
+
+      - name: Pytest (excluding slow)
+        run: uv run pytest -m "not slow"
+
+      - name: Validate contracts (schemas + fixtures)
+        working-directory: .
+        run: uv run --project engine python tools/parity/validate_schemas.py

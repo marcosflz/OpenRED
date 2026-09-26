@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openred.dev/contracts/schemas/adiabatic.schema.json",
+  "title": "adiabatic namespace",
+  "description": "Adiabatic flame temperature (T0, contracts/methods.md section 3.4). Frozen at M0.",
+  "oneOf": [
+    { "$ref": "#/$defs/adiabatic_calculate" },
+    { "$ref": "#/$defs/adiabatic_calculate_invalid_step" },
+    { "$ref": "#/$defs/adiabatic_calculate_unknown_component" },
+    { "$ref": "#/$defs/adiabatic_component_info" },
+    { "$ref": "#/$defs/adiabatic_save_propellant" }
+  ],
+  "$defs": {
+    "reactionRow": {
+      "type": "object",
+      "required": ["moles", "component"],
+      "properties": {
+        "moles": { "type": "number" },
+        "component": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "calculateParams": {
+      "type": "object",
+      "required": ["reac", "prod", "t0", "tGuess", "hStep"],
+      "properties": {
+        "reac": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/reactionRow" } },
+        "prod": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/reactionRow" } },
+        "t0": { "type": "number" },
+        "tGuess": { "type": "number" },
+        "hStep": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "adiabatic_calculate": {
+      "title": "adiabatic.calculate",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "adiabatic.calculate" },
+        "params": { "$ref": "#/$defs/calculateParams" },
+        "result": {
+          "type": "object",
+          "required": ["tSol", "molWeight", "cp", "cv", "R", "gamma", "cChar"],
+          "properties": {
+            "tSol": { "type": "number" },
+            "molWeight": { "type": "number" },
+            "cp": { "type": "number" },
+            "cv": { "type": "number" },
+            "R": { "type": "number" },
+            "gamma": { "type": "number" },
+            "cChar": { "type": "number" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "adiabatic_calculate_invalid_step": {
+      "title": "adiabatic.calculate (hStep <= 0)",
+      "type": "object",
+      "required": ["method", "params", "error"],
+      "properties": {
+        "method": { "const": "adiabatic.calculate" },
+        "params": { "$ref": "#/$defs/calculateParams" },
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "const": -32602 },
+            "message": { "const": "Invalid integration step value." },
+            "detail": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "adiabatic_calculate_unknown_component": {
+      "title": "adiabatic.calculate (unknown component)",
+      "type": "object",
+      "required": ["method", "params", "error"],
+      "properties": {
+        "method": { "const": "adiabatic.calculate" },
+        "params": { "$ref": "#/$defs/calculateParams" },
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "const": -32602 },
+            "message": { "type": "string", "pattern": "^No data found for component: " },
+            "detail": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "adiabatic_component_info": {
+      "title": "adiabatic.component_info",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "adiabatic.component_info" },
+        "params": {
+          "type": "object",
+          "required": ["component"],
+          "properties": { "component": { "type": "string", "minLength": 1 } },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["MolWeight", "Hf0", "minColdTemp", "maxColdTemp", "minHotTemp", "maxHotTemp"],
+          "properties": {
+            "MolWeight": { "type": "number" },
+            "Hf0": { "type": "number" },
+            "minColdTemp": { "type": "number" },
+            "maxColdTemp": { "type": "number" },
+            "minHotTemp": { "type": "number" },
+            "maxHotTemp": { "type": "number" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "adiabatic_save_propellant": {
+      "title": "adiabatic.save_propellant",
+      "description": "Same effect and result as db.propellants.add.",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "adiabatic.save_propellant" },
+        "params": {
+          "type": "object",
+          "required": ["values"],
+          "properties": {
+            "values": {
+              "type": "object",
+              "required": [
+                "Propelente", "T_ad", "MolWeight", "Cp", "Cv", "R", "gamma", "cChar", "Density",
+                "P1_min", "P1_max", "a", "n"
+              ],
+              "additionalProperties": { "type": ["number", "string"] }
+            }
+          },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["items"],
+          "properties": {
+            "items": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

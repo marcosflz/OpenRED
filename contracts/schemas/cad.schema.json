@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openred.dev/contracts/schemas/cad.schema.json",
+  "title": "cad namespace",
+  "description": "Conventional-nozzle CAD sketches (T3, contracts/methods.md section 3.8). CSV export is byte-compatible with the legacy header 'Sketch,Plane,x,y,z', planes XY/YZ, scale x100. Frozen at M0.",
+  "oneOf": [
+    { "$ref": "#/$defs/cad_load_nozzle" },
+    { "$ref": "#/$defs/cad_load_nozzle_unsupported" },
+    { "$ref": "#/$defs/cad_views" },
+    { "$ref": "#/$defs/cad_export" },
+    { "$ref": "#/$defs/cad_export_exists" }
+  ],
+  "$defs": {
+    "settings": {
+      "description": "12 numeric entries + 12 checkboxes + type ('Fitted'|'Bulk') collected from the CAD tab.",
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "enum": ["Fitted", "Bulk"] }
+      },
+      "additionalProperties": { "type": ["number", "string", "boolean"] }
+    },
+    "field": {
+      "type": "object",
+      "required": ["key", "label", "type", "default"],
+      "properties": {
+        "key": { "type": "string" },
+        "label": { "type": "string" },
+        "type": { "enum": ["number", "string", "boolean"] },
+        "default": { "type": ["number", "string", "boolean"] }
+      },
+      "additionalProperties": false
+    },
+    "cad_load_nozzle": {
+      "title": "cad.load_nozzle",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "cad.load_nozzle" },
+        "params": {
+          "type": "object",
+          "required": ["path"],
+          "properties": { "path": { "type": "string", "minLength": 1 } },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["config", "architecture", "fields", "checks"],
+          "properties": {
+            "config": { "type": "object" },
+            "architecture": { "enum": ["conventional", "as-nozzle"] },
+            "fields": { "type": "array", "items": { "$ref": "#/$defs/field" } },
+            "checks": { "type": "array", "items": { "$ref": "#/$defs/field" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "cad_load_nozzle_unsupported": {
+      "title": "cad.load_nozzle (AS-Nozzle not supported)",
+      "type": "object",
+      "required": ["method", "params", "error"],
+      "properties": {
+        "method": { "const": "cad.load_nozzle" },
+        "params": {
+          "type": "object",
+          "required": ["path"],
+          "properties": { "path": { "type": "string" } },
+          "additionalProperties": false
+        },
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "const": 1007 },
+            "message": { "type": "string" },
+            "detail": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "cad_views": {
+      "title": "cad.views",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "cad.views" },
+        "params": {
+          "type": "object",
+          "required": ["config", "settings", "type"],
+          "properties": {
+            "config": { "type": "object" },
+            "settings": { "$ref": "#/$defs/settings" },
+            "type": { "enum": ["Fitted", "Bulk"] }
+          },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["views"],
+          "properties": {
+            "views": {
+              "type": "object",
+              "required": ["engine", "coverFront", "nozzleFront", "tools", "toolMould", "toolMouldFix"],
+              "properties": {
+                "engine": { "type": "string" },
+                "coverFront": { "type": "string" },
+                "nozzleFront": { "type": "string" },
+                "tools": { "type": "string" },
+                "toolMould": { "type": "string" },
+                "toolMouldFix": { "type": "string" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "cad_export": {
+      "title": "cad.export",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "cad.export" },
+        "params": {
+          "type": "object",
+          "required": ["kind", "config", "settings"],
+          "properties": {
+            "kind": { "enum": ["engine", "cover", "tools"] },
+            "config": { "type": "object" },
+            "settings": { "$ref": "#/$defs/settings" },
+            "overwrite": { "type": "boolean", "default": false }
+          },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["path", "written"],
+          "properties": {
+            "path": { "type": "string" },
+            "written": { "type": "array", "items": { "type": "string" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "cad_export_exists": {
+      "title": "cad.export (target exists and overwrite != true)",
+      "type": "object",
+      "required": ["method", "params", "error"],
+      "properties": {
+        "method": { "const": "cad.export" },
+        "params": {
+          "type": "object",
+          "required": ["kind", "config", "settings"],
+          "properties": {
+            "kind": { "enum": ["engine", "cover", "tools"] },
+            "config": { "type": "object" },
+            "settings": { "$ref": "#/$defs/settings" },
+            "overwrite": { "type": "boolean", "default": false }
+          },
+          "additionalProperties": false
+        },
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "const": 1004 },
+            "message": { "type": "string" },
+            "detail": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,336 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openred.dev/contracts/schemas/db.schema.json",
+  "title": "db namespace",
+  "description": "CRUD over the SQLite tables termoquimica and propelente (contracts/methods.md section 3.3). Duplicate names are allowed; ids are reassigned 1..N after every add/edit/delete. Numeric fields accept strings (the UI sends entry text); the engine returns -32602 when a numeric field is not parseable. Frozen at M0.",
+  "oneOf": [
+    { "$ref": "#/$defs/components_list" },
+    { "$ref": "#/$defs/components_add" },
+    { "$ref": "#/$defs/components_edit" },
+    { "$ref": "#/$defs/components_delete" },
+    { "$ref": "#/$defs/propellants_list" },
+    { "$ref": "#/$defs/propellants_add" },
+    { "$ref": "#/$defs/propellants_edit" },
+    { "$ref": "#/$defs/propellants_delete" },
+    { "$ref": "#/$defs/propellants_burning_rate" },
+    { "$ref": "#/$defs/clean_name" }
+  ],
+  "$defs": {
+    "numberish": {
+      "description": "Numeric value as stored by the UI (string) or already parsed (number).",
+      "type": ["number", "string"]
+    },
+    "componentValues": {
+      "title": "termoquimica row without id",
+      "type": "object",
+      "required": [
+        "Component", "MolWeight", "Hf0", "minColdTemp", "maxColdTemp", "minHotTemp", "maxHotTemp",
+        "a1_cold", "a2_cold", "a3_cold", "a4_cold", "a5_cold",
+        "a1_hot", "a2_hot", "a3_hot", "a4_hot", "a5_hot"
+      ],
+      "properties": {
+        "Component": { "type": "string" },
+        "MolWeight": { "$ref": "#/$defs/numberish" },
+        "Hf0": { "$ref": "#/$defs/numberish" },
+        "minColdTemp": { "$ref": "#/$defs/numberish" },
+        "maxColdTemp": { "$ref": "#/$defs/numberish" },
+        "minHotTemp": { "$ref": "#/$defs/numberish" },
+        "maxHotTemp": { "$ref": "#/$defs/numberish" },
+        "a1_cold": { "$ref": "#/$defs/numberish" },
+        "a2_cold": { "$ref": "#/$defs/numberish" },
+        "a3_cold": { "$ref": "#/$defs/numberish" },
+        "a4_cold": { "$ref": "#/$defs/numberish" },
+        "a5_cold": { "$ref": "#/$defs/numberish" },
+        "a1_hot": { "$ref": "#/$defs/numberish" },
+        "a2_hot": { "$ref": "#/$defs/numberish" },
+        "a3_hot": { "$ref": "#/$defs/numberish" },
+        "a4_hot": { "$ref": "#/$defs/numberish" },
+        "a5_hot": { "$ref": "#/$defs/numberish" }
+      },
+      "additionalProperties": false
+    },
+    "componentItem": {
+      "title": "termoquimica row as returned by list/add/edit/delete",
+      "allOf": [
+        { "$ref": "#/$defs/componentValues" },
+        {
+          "type": "object",
+          "required": ["id", "latex"],
+          "properties": {
+            "id": { "type": "integer", "minimum": 1 },
+            "latex": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "propellantValues": {
+      "title": "propelente row without id",
+      "type": "object",
+      "required": [
+        "Propelente", "T_ad", "MolWeight", "Cp", "Cv", "R", "gamma", "cChar", "Density",
+        "P1_min", "P1_max", "a", "n"
+      ],
+      "properties": {
+        "Propelente": { "type": "string" },
+        "T_ad": { "$ref": "#/$defs/numberish" },
+        "MolWeight": { "$ref": "#/$defs/numberish" },
+        "Cp": { "$ref": "#/$defs/numberish" },
+        "Cv": { "$ref": "#/$defs/numberish" },
+        "R": { "$ref": "#/$defs/numberish" },
+        "gamma": { "$ref": "#/$defs/numberish" },
+        "cChar": { "$ref": "#/$defs/numberish" },
+        "Density": { "$ref": "#/$defs/numberish" },
+        "P1_min": { "$ref": "#/$defs/numberish" },
+        "P1_max": { "$ref": "#/$defs/numberish" },
+        "a": { "$ref": "#/$defs/numberish" },
+        "n": { "$ref": "#/$defs/numberish" }
+      },
+      "additionalProperties": false
+    },
+    "propellantItem": {
+      "title": "propelente row as returned by list/add/edit/delete",
+      "allOf": [
+        { "$ref": "#/$defs/propellantValues" },
+        {
+          "type": "object",
+          "required": ["id"],
+          "properties": { "id": { "type": "integer", "minimum": 1 } }
+        }
+      ]
+    },
+    "components_list": {
+      "title": "db.components.list",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "db.components.list" },
+        "params": { "type": "object", "maxProperties": 0 },
+        "result": {
+          "type": "object",
+          "required": ["items"],
+          "properties": {
+            "items": { "type": "array", "items": { "$ref": "#/$defs/componentItem" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "components_add": {
+      "title": "db.components.add",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "db.components.add" },
+        "params": {
+          "type": "object",
+          "required": ["values"],
+          "properties": { "values": { "$ref": "#/$defs/componentValues" } },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["items"],
+          "properties": {
+            "items": { "type": "array", "items": { "$ref": "#/$defs/componentItem" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "components_edit": {
+      "title": "db.components.edit",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "db.components.edit" },
+        "params": {
+          "type": "object",
+          "required": ["id", "values"],
+          "properties": {
+            "id": { "type": "integer", "minimum": 1 },
+            "values": { "$ref": "#/$defs/componentValues" }
+          },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["items"],
+          "properties": {
+            "items": { "type": "array", "items": { "$ref": "#/$defs/componentItem" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "components_delete": {
+      "title": "db.components.delete",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "db.components.delete" },
+        "params": {
+          "type": "object",
+          "required": ["id"],
+          "properties": { "id": { "type": "integer", "minimum": 1 } },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["items"],
+          "properties": {
+            "items": { "type": "array", "items": { "$ref": "#/$defs/componentItem" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "propellants_list": {
+      "title": "db.propellants.list",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "db.propellants.list" },
+        "params": { "type": "object", "maxProperties": 0 },
+        "result": {
+          "type": "object",
+          "required": ["items"],
+          "properties": {
+            "items": { "type": "array", "items": { "$ref": "#/$defs/propellantItem" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "propellants_add": {
+      "title": "db.propellants.add",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "db.propellants.add" },
+        "params": {
+          "type": "object",
+          "required": ["values"],
+          "properties": { "values": { "$ref": "#/$defs/propellantValues" } },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["items"],
+          "properties": {
+            "items": { "type": "array", "items": { "$ref": "#/$defs/propellantItem" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "propellants_edit": {
+      "title": "db.propellants.edit",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "db.propellants.edit" },
+        "params": {
+          "type": "object",
+          "required": ["id", "values"],
+          "properties": {
+            "id": { "type": "integer", "minimum": 1 },
+            "values": { "$ref": "#/$defs/propellantValues" }
+          },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["items"],
+          "properties": {
+            "items": { "type": "array", "items": { "$ref": "#/$defs/propellantItem" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "propellants_delete": {
+      "title": "db.propellants.delete",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "db.propellants.delete" },
+        "params": {
+          "type": "object",
+          "required": ["id"],
+          "properties": { "id": { "type": "integer", "minimum": 1 } },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["items"],
+          "properties": {
+            "items": { "type": "array", "items": { "$ref": "#/$defs/propellantItem" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "propellants_burning_rate": {
+      "title": "db.propellants.burning_rate",
+      "description": "r = a * P^n sampled over [P1_min, P1_max] (default 1000 points).",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "db.propellants.burning_rate" },
+        "params": {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": { "type": "string" },
+            "n_points": { "type": "integer", "minimum": 2, "default": 1000 }
+          },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["P", "r", "a", "n", "P1_min", "P1_max"],
+          "properties": {
+            "P": { "type": "array", "items": { "type": "number" } },
+            "r": { "type": "array", "items": { "type": "number" } },
+            "a": { "type": "number" },
+            "n": { "type": "number" },
+            "P1_min": { "type": "number" },
+            "P1_max": { "type": "number" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "clean_name": {
+      "title": "db.clean_name",
+      "description": "re.sub(r'\\s*\\(\\d+\\)\\s*$', '', name)",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "db.clean_name" },
+        "params": {
+          "type": "object",
+          "required": ["name"],
+          "properties": { "name": { "type": "string" } },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["clean"],
+          "properties": { "clean": { "type": "string" } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,111 @@
+name: release
+
+# Tag v* or manual dispatch. Builds installers per platform, uploads them to a draft
+# GitHub release and (when the updater is configured) attaches latest.json.
+#
+# Coordination note: the engine bundle is produced here and staged under
+# apps/desktop/src-tauri/resources/engine; tauri.conf.json must declare that resource and the
+# updater pubkey (A9 change with A2 review). Without the resource wiring the installers still
+# build, but the sidecar will not be bundled.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v0.2.0); defaults to the pushed tag"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows-x64
+            os: windows-latest
+            bundles: msi,nsis
+          - name: macos-arm64
+            os: macos-latest
+            bundles: dmg
+          - name: linux-x64
+            os: ubuntu-22.04
+            bundles: appimage,deb
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux webkit dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/desktop/package-lock.json
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri -> target
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: engine/uv.lock
+
+      - name: Fetch pinned portable Python
+        shell: pwsh
+        run: ./tools/python-portable/fetch_python.ps1
+
+      - name: Build engine bundle
+        shell: pwsh
+        run: ./tools/packaging/build_engine_bundle.ps1
+
+      - name: Stage engine bundle for Tauri resources
+        shell: pwsh
+        run: |
+          $target = "apps/desktop/src-tauri/resources/engine"
+          if (Test-Path $target) { Remove-Item $target -Recurse -Force }
+          New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target) | Out-Null
+          Move-Item "artifacts/engine-bundle" $target
+          Write-Host "staged $target"
+
+      - name: Tauri build and release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+        with:
+          projectPath: apps/desktop
+          tagName: ${{ github.event.inputs.tag || github.ref_name }}
+          releaseName: "OpenRED ${{ github.event.inputs.tag || github.ref_name }}"
+          releaseBody: |
+            Instaladores de OpenRED. Consulta las notas de la versión en el repositorio.
+            El sidecar de cálculo va incluido en el paquete (Python portable + engine.lock).
+          releaseDraft: true
+          prerelease: false
+          includeUpdaterJson: true
+          args: --bundles ${{ matrix.bundles }}

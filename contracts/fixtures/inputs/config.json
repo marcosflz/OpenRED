@@ -1,0 +1,104 @@
+{
+    "tabs": {
+        "tab_0": {
+            "reactivos": [
+                [
+                    "1",
+                    "C12H22O11 (Solid)"
+                ],
+                [
+                    "6.288",
+                    "KNO3 (S)"
+                ]
+            ],
+            "productos": [
+                [
+                    "3.796",
+                    "CO2"
+                ],
+                [
+                    "5.205",
+                    "CO"
+                ],
+                [
+                    "7.794",
+                    "H2O"
+                ],
+                [
+                    "3.065",
+                    "H2"
+                ],
+                [
+                    "3.143",
+                    "N2"
+                ],
+                [
+                    "2.998",
+                    "K2CO3 (L)"
+                ],
+                [
+                    "0.274",
+                    "KOH (G)"
+                ]
+            ],
+            "initial_temp": "293",
+            "temp_Int_step": "1",
+            "temp_guess": "1500"
+        },
+        "tab_1": {
+            "propellant": "KNSU (1)",
+            "geoConfig": "Tubular-Grain",
+            "P0": "1e5",
+            "Rt": "0.0065",
+            "Rc": "0.016",
+            "Lc": "0.1",
+            "dt": "0.005",
+            "dh": "0.0001",
+            "ItMax": "10000",
+            "Tubular-Grain_cx_real": "0.005",
+            "Tubular-Grain_cy_real": "0",
+            "Tubular-Grain_r_in": "0.005"
+        },
+        "tab_2": {
+            "engine_config": "KNSU-32-RT65.json",
+            "SwitchState": 1,
+            "P1": "790190.5221096972",
+            "n_res": "50",
+            "nozzle_type": "TOPN-BN",
+            "CONE-LN_CONE-LN_k": "0",
+            "CONE-LN_CONE-LN_theta_t": "0",
+            "TOPN-BN_TOP-BN_k": "0.25",
+            "TOPN-BN_TOP-BN_theta_t": "30",
+            "TOPN-BN_TOP-BN_theta_e": "6",
+            "TOPN-BN_TOP-BN_cone_length_percent": "1"
+        },
+        "tab_3": {
+            "NozzleConfig": "BN1.json",
+            "type": "Fitted",
+            "n_conv": "50",
+            "t_cartridge": "0.004",
+            "KIn": "0.5",
+            "alpha": "0.5",
+            "wall_t": "0.006",
+            "bolt_OffSet": "0.02",
+            "hBoltFactor": "0.5",
+            "cover_t": "0.01",
+            "dy_elect": "0.005",
+            "d_elect": "0.001",
+            "on_Cartridge": 1,
+            "on_Propellant": 1,
+            "on_Engine": 1,
+            "on_Cover": 1,
+            "t_factor": "0.5",
+            "extra_len": "0.02",
+            "cover_len": "0.01",
+            "on_CoverCast1": 1,
+            "on_CoverCast2": 1,
+            "on_CastBolt": 1,
+            "on_Mould": 1,
+            "on_CastNut": 1,
+            "nut_h": "0.005",
+            "nut_dr": "0.005"
+        }
+    }
+}

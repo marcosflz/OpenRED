@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openred.dev/contracts/schemas/events.schema.json",
+  "title": "OpenRED events",
+  "description": "Transversal event notifications (contracts/methods.md section 3.10). Each event is sent as {\"method\":\"event\",\"params\":{\"name\":..., ...}} with no id. Frozen at M0.",
+  "oneOf": [
+    { "$ref": "#/$defs/ready" },
+    { "$ref": "#/$defs/console" },
+    { "$ref": "#/$defs/progress" },
+    { "$ref": "#/$defs/job_done" },
+    { "$ref": "#/$defs/log" },
+    { "$ref": "#/$defs/serial_line" },
+    { "$ref": "#/$defs/record" },
+    { "$ref": "#/$defs/state" },
+    { "$ref": "#/$defs/ports" },
+    { "$ref": "#/$defs/exiting" }
+  ],
+  "$defs": {
+    "notification": {
+      "type": "object",
+      "required": ["method", "params"],
+      "properties": {
+        "method": { "const": "event" },
+        "params": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "ready": {
+      "title": "event/ready",
+      "allOf": [
+        { "$ref": "#/$defs/notification" },
+        {
+          "properties": {
+            "params": {
+              "type": "object",
+              "required": ["name", "version", "pid"],
+              "properties": {
+                "name": { "const": "ready" },
+                "version": { "type": "string" },
+                "pid": { "type": "integer", "minimum": 1 }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "console": {
+      "title": "event/console",
+      "allOf": [
+        { "$ref": "#/$defs/notification" },
+        {
+          "properties": {
+            "params": {
+              "type": "object",
+              "required": ["name", "job", "line"],
+              "properties": {
+                "name": { "const": "console" },
+                "job": { "type": "string" },
+                "line": { "type": "string" }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "progress": {
+      "title": "event/progress",
+      "allOf": [
+        { "$ref": "#/$defs/notification" },
+        {
+          "properties": {
+            "params": {
+              "type": "object",
+              "required": ["name", "job", "value"],
+              "properties": {
+                "name": { "const": "progress" },
+                "job": { "type": "string" },
+                "value": { "type": "number", "minimum": 0, "maximum": 1 },
+                "label": { "type": "string" }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "job_done": {
+      "title": "event/job_done",
+      "allOf": [
+        { "$ref": "#/$defs/notification" },
+        {
+          "properties": {
+            "params": {
+              "type": "object",
+              "required": ["name", "job", "status"],
+              "properties": {
+                "name": { "const": "job_done" },
+                "job": { "type": "string" },
+                "status": { "enum": ["ok", "cancelled", "error"] },
+                "error": { "type": ["string", "null"] }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "log": {
+      "title": "event/log",
+      "allOf": [
+        { "$ref": "#/$defs/notification" },
+        {
+          "properties": {
+            "params": {
+              "type": "object",
+              "required": ["name", "level", "message"],
+              "properties": {
+                "name": { "const": "log" },
+                "level": { "enum": ["debug", "info", "warning", "error"] },
+                "message": { "type": "string" }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "serial_line": {
+      "title": "event/serial_line",
+      "allOf": [
+        { "$ref": "#/$defs/notification" },
+        {
+          "properties": {
+            "params": {
+              "type": "object",
+              "required": ["name", "line"],
+              "properties": {
+                "name": { "const": "serial_line" },
+                "line": { "type": "string" }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "record": {
+      "title": "event/record",
+      "allOf": [
+        { "$ref": "#/$defs/notification" },
+        {
+          "properties": {
+            "params": {
+              "type": "object",
+              "required": ["name", "t", "F", "T"],
+              "properties": {
+                "name": { "const": "record" },
+                "t": { "type": "number" },
+                "F": { "type": "number" },
+                "T": { "type": "number" }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "state": {
+      "title": "event/state",
+      "allOf": [
+        { "$ref": "#/$defs/notification" },
+        {
+          "properties": {
+            "params": {
+              "type": "object",
+              "required": ["name", "connected", "wifiReady", "recording", "checklistComplete", "leds"],
+              "properties": {
+                "name": { "const": "state" },
+                "connected": { "type": "boolean" },
+                "wifiReady": { "type": "boolean" },
+                "recording": { "type": "boolean" },
+                "checklistComplete": { "type": "boolean" },
+                "leds": {
+                  "type": "object",
+                  "required": ["serial", "wifi"],
+                  "properties": {
+                    "serial": { "enum": ["green", "blue", "off"] },
+                    "wifi": { "enum": ["green", "blue", "off"] }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "ports": {
+      "title": "event/ports",
+      "allOf": [
+        { "$ref": "#/$defs/notification" },
+        {
+          "properties": {
+            "params": {
+              "type": "object",
+              "required": ["name", "ports"],
+              "properties": {
+                "name": { "const": "ports" },
+                "ports": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["device", "description"],
+                    "properties": {
+                      "device": { "type": "string" },
+                      "description": { "type": "string" }
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    },
+    "exiting": {
+      "title": "event/exiting",
+      "allOf": [
+        { "$ref": "#/$defs/notification" },
+        {
+          "properties": {
+            "params": {
+              "type": "object",
+              "required": ["name"],
+              "properties": { "name": { "const": "exiting" } },
+              "additionalProperties": false
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,298 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openred.dev/contracts/schemas/engine.schema.json",
+  "title": "engine namespace",
+  "description": "Propellant grain design / LSM simulation (T1, contracts/methods.md section 3.6). Frozen at M0.",
+  "oneOf": [
+    { "$ref": "#/$defs/engine_geometry" },
+    { "$ref": "#/$defs/engine_calculate" },
+    { "$ref": "#/$defs/engine_save" },
+    { "$ref": "#/$defs/engine_load" },
+    { "$ref": "#/$defs/engine_list" },
+    { "$ref": "#/$defs/engine_load_missing" }
+  ],
+  "$defs": {
+    "spec": {
+      "title": "engine spec (common inputs + grain plugin labels)",
+      "type": "object",
+      "required": ["P0", "Rt", "R2", "Lc", "dt", "dh", "It"],
+      "properties": {
+        "P0": { "type": "number" },
+        "Rt": { "type": "number" },
+        "R2": { "type": "number" },
+        "Lc": { "type": "number" },
+        "dt": { "type": "number", "exclusiveMinimum": 0 },
+        "dh": { "type": "number", "exclusiveMinimum": 0 },
+        "It": { "type": "number", "minimum": 1 }
+      },
+      "additionalProperties": { "type": "number" }
+    },
+    "propellantData": {
+      "title": "propellant row consumed by the LSM",
+      "type": "object",
+      "required": ["a", "n", "R", "T1", "cChar", "rho_b", "P1_min", "P1_max"],
+      "properties": {
+        "a": { "type": "number" },
+        "n": { "type": "number" },
+        "R": { "type": "number" },
+        "T1": { "type": "number" },
+        "cChar": { "type": "number" },
+        "rho_b": { "type": "number" },
+        "P1_min": { "type": "number" },
+        "P1_max": { "type": "number" }
+      },
+      "additionalProperties": { "type": ["number", "string"] }
+    },
+    "arrays": {
+      "type": "object",
+      "required": ["time", "pressure", "massFlow", "mass"],
+      "properties": {
+        "time": { "type": "array", "items": { "type": "number" } },
+        "pressure": { "type": "array", "items": { "type": "number" } },
+        "massFlow": { "type": "array", "items": { "type": "number" } },
+        "mass": { "type": "array", "items": { "type": "number" } },
+        "phi_samples": { "type": "array", "items": { "type": "number" } }
+      },
+      "additionalProperties": false
+    },
+    "payloadInputs": {
+      "type": "object",
+      "required": ["Propellant", "GrainGeo", "CADx", "CADy", "CAD0"],
+      "properties": {
+        "Propellant": { "type": "string" },
+        "GrainGeo": { "type": "string" },
+        "CADx": { "type": "array", "items": { "type": "number" } },
+        "CADy": { "type": "array", "items": { "type": "number" } },
+        "CAD0": { "type": "array", "items": { "type": "number" } }
+      },
+      "additionalProperties": { "type": ["number", "string", "boolean"] }
+    },
+    "treeData": {
+      "type": "object",
+      "required": ["Time (s)", "Pressure (Pa)", "Mass Flow (kg/s)", "Mass (kg)"],
+      "properties": {
+        "Time (s)": { "type": "array", "items": { "type": "number" } },
+        "Pressure (Pa)": { "type": "array", "items": { "type": "number" } },
+        "Mass Flow (kg/s)": { "type": "array", "items": { "type": "number" } },
+        "Mass (kg)": { "type": "array", "items": { "type": "number" } }
+      },
+      "additionalProperties": false
+    },
+    "results": {
+      "type": "object",
+      "required": [
+        "meanPressure", "maxPressure", "minPressure",
+        "meanMassFlow", "maxMassFlow", "minMassFlow",
+        "totalTime", "totalMass", "tree_data"
+      ],
+      "properties": {
+        "meanPressure": { "type": "number" },
+        "maxPressure": { "type": "number" },
+        "minPressure": { "type": "number" },
+        "meanMassFlow": { "type": "number" },
+        "maxMassFlow": { "type": "number" },
+        "minMassFlow": { "type": "number" },
+        "totalTime": { "type": "number" },
+        "totalMass": { "type": "number" },
+        "tree_data": { "$ref": "#/$defs/treeData" }
+      },
+      "additionalProperties": false
+    },
+    "engine_geometry": {
+      "title": "engine.geometry",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "engine.geometry" },
+        "params": {
+          "type": "object",
+          "required": ["grain", "spec"],
+          "properties": {
+            "grain": { "type": "string" },
+            "spec": {
+              "type": "object",
+              "required": ["rOut", "dh"],
+              "properties": {
+                "rOut": { "type": "number" },
+                "dh": { "type": "number", "exclusiveMinimum": 0 }
+              },
+              "additionalProperties": { "type": "number" }
+            }
+          },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["png_b64", "cad"],
+          "properties": {
+            "png_b64": { "type": "string" },
+            "cad": {
+              "type": "object",
+              "required": ["center", "x", "y"],
+              "properties": {
+                "center": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+                "x": { "type": "array", "items": { "type": "number" } },
+                "y": { "type": "array", "items": { "type": "number" } }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "engine_calculate": {
+      "title": "engine.calculate",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "engine.calculate" },
+        "params": {
+          "type": "object",
+          "required": ["propellant", "grain", "spec", "propellantData"],
+          "properties": {
+            "propellant": { "type": "string" },
+            "grain": { "type": "string" },
+            "spec": { "$ref": "#/$defs/spec" },
+            "propellantData": { "$ref": "#/$defs/propellantData" }
+          },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["payload", "arrays"],
+          "properties": {
+            "payload": {
+              "type": "object",
+              "required": ["inputs", "results"],
+              "properties": {
+                "inputs": { "$ref": "#/$defs/payloadInputs" },
+                "results": { "$ref": "#/$defs/results" }
+              },
+              "additionalProperties": true
+            },
+            "arrays": { "$ref": "#/$defs/arrays" },
+            "figures": {
+              "description": "Base64 PNG figures. Validated for presence/non-emptiness in E2E, not in golden parity (non-deterministic bytes).",
+              "type": "object",
+              "required": ["regression", "pressure", "massFlow", "massBurn"],
+              "properties": {
+                "regression": { "type": "string" },
+                "pressure": { "type": "string" },
+                "massFlow": { "type": "string" },
+                "massBurn": { "type": "string" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "engine_save": {
+      "title": "engine.save",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "engine.save" },
+        "params": {
+          "type": "object",
+          "required": ["name", "payload"],
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "payload": { "type": "object" }
+          },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["path"],
+          "properties": { "path": { "type": "string" } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "engine_load": {
+      "title": "engine.load",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "engine.load" },
+        "params": {
+          "type": "object",
+          "required": ["path"],
+          "properties": { "path": { "type": "string", "minLength": 1 } },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["payload", "arrays"],
+          "properties": {
+            "payload": { "type": "object" },
+            "arrays": { "$ref": "#/$defs/arrays" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "engine_list": {
+      "title": "engine.list",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "engine.list" },
+        "params": { "type": "object", "maxProperties": 0 },
+        "result": {
+          "type": "object",
+          "required": ["files"],
+          "properties": {
+            "files": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "size": { "type": "integer", "minimum": 0 },
+                  "mtime": { "type": "number" }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "engine_load_missing": {
+      "title": "engine.load (file not found / unreadable)",
+      "type": "object",
+      "required": ["method", "params", "error"],
+      "properties": {
+        "method": { "const": "engine.load" },
+        "params": {
+          "type": "object",
+          "required": ["path"],
+          "properties": { "path": { "type": "string" } },
+          "additionalProperties": false
+        },
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "enum": [1002, 1003] },
+            "message": { "type": "string" },
+            "detail": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

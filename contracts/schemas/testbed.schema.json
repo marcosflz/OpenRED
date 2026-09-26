@@ -1,0 +1,326 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openred.dev/contracts/schemas/testbed.schema.json",
+  "title": "testbed namespace",
+  "description": "Test bench (T4, contracts/methods.md section 3.9): serial transport, recording CSV, checklist and mock transport. Frozen at M0.",
+  "oneOf": [
+    { "$ref": "#/$defs/testbed_list_ports" },
+    { "$ref": "#/$defs/testbed_monitor_ports" },
+    { "$ref": "#/$defs/testbed_run" },
+    { "$ref": "#/$defs/testbed_connect_com" },
+    { "$ref": "#/$defs/testbed_connect_com_error" },
+    { "$ref": "#/$defs/testbed_disconnect" },
+    { "$ref": "#/$defs/testbed_connect_wifi" },
+    { "$ref": "#/$defs/testbed_abort" },
+    { "$ref": "#/$defs/testbed_checklist_load" },
+    { "$ref": "#/$defs/testbed_checklist_toggle" },
+    { "$ref": "#/$defs/testbed_state" },
+    { "$ref": "#/$defs/testbed_mock" }
+  ],
+  "$defs": {
+    "port": {
+      "type": "object",
+      "required": ["device", "description"],
+      "properties": {
+        "device": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "state": {
+      "type": "object",
+      "required": ["connected", "wifiReady", "recording", "checklistComplete", "leds"],
+      "properties": {
+        "connected": { "type": "boolean" },
+        "wifiReady": { "type": "boolean" },
+        "recording": { "type": "boolean" },
+        "checklistComplete": { "type": "boolean" },
+        "leds": {
+          "type": "object",
+          "required": ["serial", "wifi"],
+          "properties": {
+            "serial": { "enum": ["green", "blue", "off"] },
+            "wifi": { "enum": ["green", "blue", "off"] }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "testbed_list_ports": {
+      "title": "testbed.list_ports",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "testbed.list_ports" },
+        "params": { "type": "object", "maxProperties": 0 },
+        "result": {
+          "type": "object",
+          "required": ["ports"],
+          "properties": {
+            "ports": { "type": "array", "items": { "$ref": "#/$defs/port" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "testbed_monitor_ports": {
+      "title": "testbed.monitor_ports",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "testbed.monitor_ports" },
+        "params": {
+          "type": "object",
+          "required": ["enabled"],
+          "properties": { "enabled": { "type": "boolean" } },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["ok"],
+          "properties": { "ok": { "const": true } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "testbed_run": {
+      "title": "testbed.run",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "testbed.run" },
+        "params": {
+          "type": "object",
+          "required": ["nozzleFile"],
+          "properties": { "nozzleFile": { "type": "string", "minLength": 1 } },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["testFile", "nozzle", "engine", "maxThrust", "maxTemp"],
+          "properties": {
+            "testFile": { "type": "string" },
+            "nozzle": { "type": "string" },
+            "engine": { "type": "string" },
+            "maxThrust": { "type": "number" },
+            "maxTemp": { "type": "number" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "testbed_connect_com": {
+      "title": "testbed.connect_com",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "testbed.connect_com" },
+        "params": {
+          "type": "object",
+          "required": ["port"],
+          "properties": { "port": { "type": "string", "minLength": 1 } },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["connected"],
+          "properties": { "connected": { "const": true } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "testbed_connect_com_error": {
+      "title": "testbed.connect_com (no serial connection)",
+      "type": "object",
+      "required": ["method", "params", "error"],
+      "properties": {
+        "method": { "const": "testbed.connect_com" },
+        "params": {
+          "type": "object",
+          "required": ["port"],
+          "properties": { "port": { "type": "string" } },
+          "additionalProperties": false
+        },
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "const": 1008 },
+            "message": { "type": "string" },
+            "detail": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "testbed_disconnect": {
+      "title": "testbed.disconnect",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "testbed.disconnect" },
+        "params": { "type": "object", "maxProperties": 0 },
+        "result": {
+          "type": "object",
+          "required": ["connected"],
+          "properties": { "connected": { "const": false } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "testbed_connect_wifi": {
+      "title": "testbed.connect_wifi",
+      "description": "Sends the command CONNECT <ssid> <password> over the serial transport.",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "testbed.connect_wifi" },
+        "params": {
+          "type": "object",
+          "required": ["ssid", "password"],
+          "properties": {
+            "ssid": { "type": "string", "minLength": 1 },
+            "password": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["sent"],
+          "properties": { "sent": { "const": true } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "testbed_abort": {
+      "title": "testbed.abort",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "testbed.abort" },
+        "params": { "type": "object", "maxProperties": 0 },
+        "result": {
+          "type": "object",
+          "required": ["ok"],
+          "properties": { "ok": { "type": "boolean" } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "testbed_checklist_load": {
+      "title": "testbed.checklist.load",
+      "description": "Reads <workdir>/checklist.json.",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "testbed.checklist.load" },
+        "params": { "type": "object", "maxProperties": 0 },
+        "result": {
+          "type": "object",
+          "required": ["title", "items"],
+          "properties": {
+            "title": { "type": "string" },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["text", "done"],
+                "properties": {
+                  "text": { "type": "string" },
+                  "done": { "type": "boolean" }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "testbed_checklist_toggle": {
+      "title": "testbed.checklist.toggle",
+      "description": "Toggling the last item sends SWITCH START-RECORDING-LED and starts recording.",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "testbed.checklist.toggle" },
+        "params": {
+          "type": "object",
+          "required": ["index"],
+          "properties": { "index": { "type": "integer", "minimum": 0 } },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["items", "complete"],
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["text", "done"],
+                "properties": {
+                  "text": { "type": "string" },
+                  "done": { "type": "boolean" }
+                },
+                "additionalProperties": false
+              }
+            },
+            "complete": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "testbed_state": {
+      "title": "testbed.state",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "testbed.state" },
+        "params": { "type": "object", "maxProperties": 0 },
+        "result": { "$ref": "#/$defs/state" }
+      },
+      "additionalProperties": false
+    },
+    "testbed_mock": {
+      "title": "testbed.mock",
+      "description": "Simulated transport for tests/CI (R6): replays the optional script of serial lines.",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "testbed.mock" },
+        "params": {
+          "type": "object",
+          "required": ["enabled"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "script": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["ok"],
+          "properties": { "ok": { "const": true } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

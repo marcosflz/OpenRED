@@ -1,0 +1,17 @@
+{
+  "description": "Byte copies of the legacy inputs used by the fixtures (sha256 for provenance).",
+  "files": {
+    "KNSU-32-RT65.json": "8bbcf211e60a4c7f564fd29b8b1482c7aedf3a1b2b0a45cd728f0d957e32e263",
+    "BN1.json": "0d2e36fc58262404a301b182cb16591950c815795e5f938f21c684978cb84ef5",
+    "config.json": "f9f3e104cb45bbab2ba7b2bf5871b841255a1df06187d193388da835324a6bb9",
+    "checklist.json": "d450aae211f3d13d9f782b38188de06779f6f03992ce40c718a8b4f554a26084",
+    "database.db": "e1731443446ac72612377a88ca327a39678c993de320efdfdf0864498a51370a"
+  },
+  "provenance": {
+    "fixture_version": 1,
+    "generator": "tools/parity/gen_fixtures.py",
+    "command": "python tools/parity/gen_fixtures.py --legacy legacy --out contracts/fixtures --full",
+    "legacy_commit": "c2250d0",
+    "python": "3.12.12"
+  }
+}

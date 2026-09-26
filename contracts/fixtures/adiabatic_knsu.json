@@ -1,0 +1,115 @@
+{
+  "id": "adiabatic_knsu",
+  "tag": "full",
+  "inputs": {
+    "reac": [
+      {
+        "moles": 1.0,
+        "component": "C12H22O11 (Solid)"
+      },
+      {
+        "moles": 6.288,
+        "component": "KNO3 (S)"
+      }
+    ],
+    "prod": [
+      {
+        "moles": 3.796,
+        "component": "CO2"
+      },
+      {
+        "moles": 5.205,
+        "component": "CO"
+      },
+      {
+        "moles": 7.794,
+        "component": "H2O"
+      },
+      {
+        "moles": 3.065,
+        "component": "H2"
+      },
+      {
+        "moles": 3.143,
+        "component": "N2"
+      },
+      {
+        "moles": 2.998,
+        "component": "K2CO3 (L)"
+      },
+      {
+        "moles": 0.274,
+        "component": "KOH (G)"
+      }
+    ],
+    "t0": 293.0,
+    "tGuess": 1500.0,
+    "hStep": 1.0
+  },
+  "outputs": {
+    "tSol": 1790.9602394045733,
+    "molWeight": 0.0371913506344434,
+    "cp": 1683.313428426912,
+    "cv": 1459.7543891256314,
+    "R": 223.55903930128062,
+    "gamma": 1.1531483932959357,
+    "cChar": 989.8131693939902
+  },
+  "rpc": {
+    "method": "adiabatic.calculate",
+    "params": {
+      "reac": [
+        {
+          "moles": 1.0,
+          "component": "C12H22O11 (Solid)"
+        },
+        {
+          "moles": 6.288,
+          "component": "KNO3 (S)"
+        }
+      ],
+      "prod": [
+        {
+          "moles": 3.796,
+          "component": "CO2"
+        },
+        {
+          "moles": 5.205,
+          "component": "CO"
+        },
+        {
+          "moles": 7.794,
+          "component": "H2O"
+        },
+        {
+          "moles": 3.065,
+          "component": "H2"
+        },
+        {
+          "moles": 3.143,
+          "component": "N2"
+        },
+        {
+          "moles": 2.998,
+          "component": "K2CO3 (L)"
+        },
+        {
+          "moles": 0.274,
+          "component": "KOH (G)"
+        }
+      ],
+      "t0": 293.0,
+      "tGuess": 1500.0,
+      "hStep": 1.0
+    },
+    "result_from": "#/outputs"
+  },
+  "provenance": {
+    "fixture_version": 1,
+    "generator": "tools/parity/gen_fixtures.py",
+    "command": "python tools/parity/gen_fixtures.py --legacy legacy --out contracts/fixtures --full",
+    "legacy_commit": "c2250d0",
+    "python": "3.12.12",
+    "source": "workingDirectory/config.json tab_0 + legacy/database.db"
+  }
+}

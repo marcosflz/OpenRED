@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openred.dev/contracts/schemas/nozzle.schema.json",
+  "title": "nozzle namespace",
+  "description": "Nozzle design (T2, contracts/methods.md section 3.7). Frozen at M0.",
+  "oneOf": [
+    { "$ref": "#/$defs/nozzle_load_engine" },
+    { "$ref": "#/$defs/nozzle_load_engine_invalid" },
+    { "$ref": "#/$defs/nozzle_calculate" },
+    { "$ref": "#/$defs/nozzle_op_point" },
+    { "$ref": "#/$defs/nozzle_save" },
+    { "$ref": "#/$defs/nozzle_load" }
+  ],
+  "$defs": {
+    "engineLane": {
+      "description": "Engine view returned by nozzle.load_engine (sliders + pressure profile).",
+      "type": "object",
+      "required": ["inputs", "n_samples", "p1_min", "p1_max", "p_curve", "nozzleConfig"],
+      "properties": {
+        "inputs": { "type": "object", "additionalProperties": true },
+        "n_samples": { "type": "integer", "minimum": 1 },
+        "p1_min": { "type": "number" },
+        "p1_max": { "type": "number" },
+        "p_curve": {
+          "type": "object",
+          "required": ["t", "P"],
+          "properties": {
+            "t": { "type": "array", "items": { "type": "number" } },
+            "P": { "type": "array", "items": { "type": "number" } }
+          },
+          "additionalProperties": false
+        },
+        "nozzleConfig": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "treeData": {
+      "type": "object",
+      "required": ["Time (s)", "Pressure (Pa)", "Mass Flow (kg/s)", "Mass (kg)"],
+      "properties": {
+        "Time (s)": { "type": "array", "items": { "type": "number" } },
+        "Pressure (Pa)": { "type": "array", "items": { "type": "number" } },
+        "Mass Flow (kg/s)": { "type": "array", "items": { "type": "number" } },
+        "Mass (kg)": { "type": "array", "items": { "type": "number" } }
+      },
+      "additionalProperties": false
+    },
+    "enginePayload": {
+      "description": "Engine JSON payload ({inputs, results}) consumed by nozzle.calculate / nozzle.op_point (same shape as engine.load payload / the Engines/*.json file).",
+      "type": "object",
+      "required": ["inputs", "results"],
+      "properties": {
+        "inputs": {
+          "type": "object",
+          "required": ["Propellant", "P0", "Rt"],
+          "additionalProperties": true
+        },
+        "results": {
+          "type": "object",
+          "required": ["tree_data", "totalMass", "totalTime"],
+          "properties": {
+            "tree_data": { "$ref": "#/$defs/treeData" },
+            "totalMass": { "type": "number" },
+            "totalTime": { "type": "number" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    },
+    "calculatedResults": {
+      "title": "calculatedResults (17 labels + PR_Crit0..3)",
+      "type": "object",
+      "required": [
+        "DP. Thrust (kg)", "Med. Thrust (kg)", "CF (DP.)", "CF (Med.)",
+        "Vs (DP.)", "Vs (Med.)", "Ts (DP.)", "Ts (Med.)",
+        "Ps (DP.)", "Ps (Med.)", "It", "Isp", "AR", "MS", "Longitud (m)",
+        "Rt (m)", "R2 (m)", "PR_Crit0", "PR_Crit1", "PR_Crit2", "PR_Crit3"
+      ],
+      "properties": {
+        "DP. Thrust (kg)": { "type": "number" },
+        "Med. Thrust (kg)": { "type": "number" },
+        "CF (DP.)": { "type": "number" },
+        "CF (Med.)": { "type": "number" },
+        "Vs (DP.)": { "type": "number" },
+        "Vs (Med.)": { "type": "number" },
+        "Ts (DP.)": { "type": "number" },
+        "Ts (Med.)": { "type": "number" },
+        "Ps (DP.)": { "type": "number" },
+        "Ps (Med.)": { "type": "number" },
+        "It": { "type": "number" },
+        "Isp": { "type": "number" },
+        "AR": { "type": "number" },
+        "MS": { "type": "number" },
+        "Longitud (m)": { "type": "number" },
+        "Rt (m)": { "type": "number" },
+        "R2 (m)": { "type": "number" },
+        "PR_Crit0": { "type": "number" },
+        "PR_Crit1": { "type": "number" },
+        "PR_Crit2": { "type": "number" },
+        "PR_Crit3": { "type": "number" }
+      },
+      "additionalProperties": { "type": "number" }
+    },
+    "geometryData": {
+      "type": "object",
+      "required": ["X (m)", "Y (m)", "AR (m)"],
+      "properties": {
+        "X (m)": { "type": "array", "items": { "type": "number" } },
+        "Y (m)": { "type": "array", "items": { "type": "number" } },
+        "AR (m)": { "type": "array", "items": { "type": "number" } }
+      },
+      "additionalProperties": false
+    },
+    "timeResultsData": {
+      "type": "object",
+      "required": ["Time (s)", "Thrust (kg)", "CF"],
+      "properties": {
+        "Time (s)": { "type": "array", "items": { "type": "number" } },
+        "Thrust (kg)": { "type": "array", "items": { "type": "number" } },
+        "CF": { "type": "array", "items": { "type": "number" } }
+      },
+      "additionalProperties": false
+    },
+    "nozzle_load_engine": {
+      "title": "nozzle.load_engine",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "nozzle.load_engine" },
+        "params": {
+          "type": "object",
+          "required": ["path"],
+          "properties": { "path": { "type": "string", "minLength": 1 } },
+          "additionalProperties": false
+        },
+        "result": { "$ref": "#/$defs/engineLane" }
+      },
+      "additionalProperties": false
+    },
+    "nozzle_load_engine_invalid": {
+      "title": "nozzle.load_engine (unreadable JSON)",
+      "type": "object",
+      "required": ["method", "params", "error"],
+      "properties": {
+        "method": { "const": "nozzle.load_engine" },
+        "params": {
+          "type": "object",
+          "required": ["path"],
+          "properties": { "path": { "type": "string" } },
+          "additionalProperties": false
+        },
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "const": 1003 },
+            "message": { "const": "Invalid file." },
+            "detail": {}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "nozzle_calculate": {
+      "title": "nozzle.calculate",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "nozzle.calculate" },
+        "params": {
+          "type": "object",
+          "required": ["engine", "nozzleType", "p1", "n", "spec"],
+          "properties": {
+            "engine": { "$ref": "#/$defs/enginePayload" },
+            "nozzleType": { "type": "string", "minLength": 1 },
+            "p1": { "type": "number", "exclusiveMinimum": 0 },
+            "n": { "type": "number", "minimum": 2 },
+            "spec": { "$ref": "#/$defs/spec" },
+            "dt": {
+              "description": "Time normalization step (front_nozDes 'Temp. Step'); 0 disables normalization.",
+              "type": "number",
+              "minimum": 0
+            },
+            "defCheck": {
+              "description": "front_nozDes pressureCheck switch (1 = use mean mass flow).",
+              "type": "integer",
+              "enum": [0, 1]
+            },
+            "engineName": {
+              "description": "Engine file name written to payload.Inputs.EngineConfig.",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["calculatedResults", "geometry_data", "timeResults_data", "payload"],
+          "properties": {
+            "calculatedResults": { "$ref": "#/$defs/calculatedResults" },
+            "geometry_data": { "$ref": "#/$defs/geometryData" },
+            "timeResults_data": { "$ref": "#/$defs/timeResultsData" },
+            "payload": { "type": "object", "additionalProperties": true },
+            "figures": {
+              "type": "object",
+              "required": ["geometry", "mach", "pres", "thrust", "cf"],
+              "properties": {
+                "geometry": { "type": "string" },
+                "mach": { "type": "string" },
+                "pres": { "type": "string" },
+                "thrust": { "type": "string" },
+                "cf": { "type": "string" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "nozzle_op_point": {
+      "title": "nozzle.op_point",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "nozzle.op_point" },
+        "params": {
+          "type": "object",
+          "required": ["engine", "nozzleType", "p1t", "p0", "n", "spec"],
+          "properties": {
+            "engine": { "$ref": "#/$defs/enginePayload" },
+            "nozzleType": { "type": "string", "minLength": 1 },
+            "p1t": { "type": "number", "exclusiveMinimum": 0 },
+            "p0": { "type": "number", "exclusiveMinimum": 0 },
+            "n": { "type": "number", "minimum": 2 },
+            "spec": { "$ref": "#/$defs/spec" },
+            "dt": { "type": "number", "minimum": 0 },
+            "defCheck": { "type": "integer", "enum": [0, 1] },
+            "p1": {
+              "description": "Design chamber pressure of the nozzle instance (front_nozDes P1 entry). Defaults to engine.results.meanPressure when absent.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["F", "Pe", "PR", "ratios", "regime"],
+          "properties": {
+            "F": { "type": "number" },
+            "Pe": { "type": "number" },
+            "PR": { "type": "number" },
+            "ratios": {
+              "type": "object",
+              "required": ["P0_P1t", "Pe_P1t", "Pe_P0"],
+              "properties": {
+                "P0_P1t": { "type": "number" },
+                "Pe_P1t": { "type": "number" },
+                "Pe_P0": { "type": "number" }
+              },
+              "additionalProperties": false
+            },
+            "regime": {
+              "enum": ["Subsonic", "Normal Shock Inside", "Normal Shock Exit", "Over-Expanded", "Design-Point", "Under-Expanded"]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "nozzle_save": {
+      "title": "nozzle.save",
+      "description": "Writes Nozzles/<name>.json with BN1.json keys; label typo 'DP. Thrust (kg)1' is normalized (R10/T2-9).",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "nozzle.save" },
+        "params": {
+          "type": "object",
+          "required": ["name", "payload"],
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "payload": { "type": "object" }
+          },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["path"],
+          "properties": { "path": { "type": "string" } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "nozzle_load": {
+      "title": "nozzle.load",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "nozzle.load" },
+        "params": {
+          "type": "object",
+          "required": ["path"],
+          "properties": { "path": { "type": "string", "minLength": 1 } },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["payload"],
+          "properties": { "payload": { "type": "object" } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

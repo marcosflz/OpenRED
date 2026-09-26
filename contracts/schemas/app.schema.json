@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openred.dev/contracts/schemas/app.schema.json",
+  "title": "app namespace",
+  "description": "Process lifecycle and cancellation methods (contracts/methods.md section 3.1). Frozen at M0.",
+  "oneOf": [
+    { "$ref": "#/$defs/app_ping" },
+    { "$ref": "#/$defs/app_info" },
+    { "$ref": "#/$defs/app_shutdown" },
+    { "$ref": "#/$defs/request_cancel" }
+  ],
+  "$defs": {
+    "app_ping": {
+      "title": "app.ping",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "app.ping" },
+        "params": { "type": "object", "maxProperties": 0 },
+        "result": {
+          "type": "object",
+          "required": ["version", "pid", "python", "dataDir", "resourceDir", "workdir"],
+          "properties": {
+            "version": { "type": "string" },
+            "pid": { "type": "integer", "minimum": 1 },
+            "python": { "type": "string" },
+            "dataDir": { "type": "string" },
+            "resourceDir": { "type": "string" },
+            "workdir": { "type": ["string", "null"] }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "app_info": {
+      "title": "app.info",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "app.info" },
+        "params": { "type": "object", "maxProperties": 0 },
+        "result": {
+          "type": "object",
+          "required": ["version", "dataDir", "resourceDir", "workdir", "workdirSelected"],
+          "properties": {
+            "version": { "type": "string" },
+            "dataDir": { "type": "string" },
+            "resourceDir": { "type": "string" },
+            "workdir": { "type": ["string", "null"] },
+            "workdirSelected": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "app_shutdown": {
+      "title": "app.shutdown",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "app.shutdown" },
+        "params": { "type": "object", "maxProperties": 0 },
+        "result": {
+          "type": "object",
+          "required": ["ok"],
+          "properties": { "ok": { "const": true } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "request_cancel": {
+      "title": "request.cancel",
+      "description": "Cancels the in-flight request with the given id; the cancelled request answers error 1005.",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "request.cancel" },
+        "params": {
+          "type": "object",
+          "required": ["id"],
+          "properties": { "id": { "type": ["integer", "string"] } },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["cancelled"],
+          "properties": { "cancelled": { "type": "boolean" } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

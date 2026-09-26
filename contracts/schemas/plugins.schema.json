@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openred.dev/contracts/schemas/plugins.schema.json",
+  "title": "plugins namespace",
+  "description": "Runtime plugin discovery (contracts/methods.md section 3.5). Classes with a nozzle_type class attribute are registered; SQUARE.py is kept but not registered. Frozen at M0.",
+  "oneOf": [
+    { "$ref": "#/$defs/plugins_list" },
+    { "$ref": "#/$defs/plugins_reload" }
+  ],
+  "$defs": {
+    "plugins_list": {
+      "title": "plugins.list",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "plugins.list" },
+        "params": {
+          "type": "object",
+          "required": ["library"],
+          "properties": {
+            "library": { "enum": ["GrainLibrary", "NozzleLibrary"] }
+          },
+          "additionalProperties": false
+        },
+        "result": {
+          "type": "object",
+          "required": ["plugins"],
+          "properties": {
+            "plugins": {
+              "description": "{<plugin_type>: {labels: {<label>: <entry_key>}}}",
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": ["labels"],
+                "properties": {
+                  "labels": {
+                    "type": "object",
+                    "additionalProperties": { "type": "string" }
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "plugins_reload": {
+      "title": "plugins.reload",
+      "type": "object",
+      "required": ["method", "params", "result"],
+      "properties": {
+        "method": { "const": "plugins.reload" },
+        "params": { "type": "object", "maxProperties": 0 },
+        "result": {
+          "type": "object",
+          "required": ["grain", "nozzle"],
+          "properties": {
+            "grain": { "type": "array", "items": { "type": "string" } },
+            "nozzle": { "type": "array", "items": { "type": "string" } }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

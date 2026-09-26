@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openred.dev/contracts/schemas/envelope.schema.json",
+  "title": "OpenRED JSON-RPC envelope",
+  "description": "Transport envelope for the OpenRED sidecar (JSON-RPC 2.0 subset over stdio, one JSON object per line). Source: contracts/methods.md sections 1 and 2. Frozen at M0; changes require an RFC (contracts/RFC-*.md).",
+  "oneOf": [
+    { "$ref": "#/$defs/request" },
+    { "$ref": "#/$defs/responseOk" },
+    { "$ref": "#/$defs/responseError" },
+    { "$ref": "#/$defs/notification" }
+  ],
+  "$defs": {
+    "id": {
+      "title": "Request identifier",
+      "description": "Echoed verbatim in the response. Integers are the norm; strings are allowed.",
+      "type": ["integer", "string"]
+    },
+    "method": {
+      "title": "Method name",
+      "description": "namespace.method, lower snake_case segments.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)+$"
+    },
+    "errorCode": {
+      "title": "Domain error code",
+      "description": "Standard JSON-RPC codes (-32700, -32601, -32602) plus OpenRED domain codes (1001-1008, 2000).",
+      "type": "integer",
+      "enum": [-32700, -32601, -32602, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 2000]
+    },
+    "error": {
+      "title": "Error object",
+      "type": "object",
+      "required": ["code", "message"],
+      "properties": {
+        "code": { "$ref": "#/$defs/errorCode" },
+        "message": { "type": "string", "minLength": 1 },
+        "detail": {
+          "description": "Optional structured detail; for code 2000 a summarized traceback.",
+          "type": ["object", "array", "string", "number", "boolean", "null"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "request": {
+      "title": "Request",
+      "type": "object",
+      "required": ["method", "params"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "method": { "$ref": "#/$defs/method" },
+        "params": {
+          "description": "Validated per method against the namespace schema.",
+          "type": ["object", "array"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "responseOk": {
+      "title": "Successful response",
+      "type": "object",
+      "required": ["id", "result"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "result": {}
+      },
+      "additionalProperties": false
+    },
+    "responseError": {
+      "title": "Error response",
+      "type": "object",
+      "required": ["id", "error"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "error": { "$ref": "#/$defs/error" }
+      },
+      "additionalProperties": false
+    },
+    "notification": {
+      "title": "Event notification (no id)",
+      "type": "object",
+      "required": ["method", "params"],
+      "properties": {
+        "method": { "const": "event" },
+        "params": {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": { "type": "string", "minLength": 1 }
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
