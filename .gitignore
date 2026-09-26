@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+engine/.venv/
+engine/python/
+engine/engine.lock
+engine/build/
+engine/dist/
+engine/openred_engine/_version.py
+
+# Node / Tauri
+node_modules/
+apps/desktop/dist/
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/gen/
+.vite/
+
+# Rust
+target/
+
+# Build artifacts
+build/
+dist/
+artifacts/
+*.msi
+*.exe
+!legacy/inno/setup.exe
+parity-report.json
+
+# Runtime / local data
+temp_dir.txt
+*.log
+.env
+.env.*
+!.env.example
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
